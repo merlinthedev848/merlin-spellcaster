@@ -1,23 +1,51 @@
 <?php
-if (!isset($_GET['c']) || !isset($_GET['s']) || !isset($_GET['dest'])) {
-    header("HTTP/1.1 400 Bad Request");
-    exit;
+/**
+ * r.php — Click tracking redirect
+ * PHP 8.5+
+ */
+declare(strict_types=1);
+$c   = (int)($_GET['c'] ?? 0);
+$s   = (int)($_GET['s'] ?? 0);
+$t   = $_GET['t'] ?? '';
+$url = trim($_GET['url'] ?? '');
+
+// Redirect immediately
+$target = $url ?: '/';
+if (!filter_var($target, FILTER_VALIDATE_URL)) {
+    // Validate it's a safe URL
+    $target = '/';
 }
+header('Location: ' . $target);
+header('Cache-Control: no-cache');
+
+// Flush
+if (function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
+} else {
+    ob_end_flush();
+    flush();
+}
+
+if (!$c || !$s || !$t || !$url) exit;
 
 require_once __DIR__ . '/config.php';
 
-$campaignId = (int)$_GET['c'];
-$subscriberId = (int)$_GET['s'];
-$destination = filter_var($_GET['dest'], FILTER_SANITIZE_URL);
+if (getSetting('tracking_enabled','1') !== '1') exit;
 
 try {
-    $stmt = $db->prepare("INSERT INTO campaign_clicks (campaign_id, subscriber_id, clicked_at) VALUES (?, ?, ?)");
-    $stmt->execute([$campaignId, $subscriberId, time()]);
-    
-    ModuleManager::triggerAction('link_clicked', $subscriberId, $campaignId, $destination);
-} catch (Exception $e) {
-    // Fail silently to prioritize the redirect UX
-}
+    $sub = $db->prepare("SELECT email FROM subscribers WHERE id=?"); $sub->execute([$s]); $email = $sub->fetchColumn();
+    if (!$email) exit;
+    $expected = generateToken((string)$email, $c, $s);
+    if (!hash_equals($expected, $t)) exit;
 
-header("Location: " . $destination);
-exit;
+    $existingSt = $db->prepare("SELECT id FROM campaign_clicks WHERE campaign_id=? AND subscriber_id=? AND url=? LIMIT 1");
+    $existingSt->execute([$c,$s,$url]);
+    $isUnique = !$existingSt->fetchColumn();
+
+    $db->prepare("INSERT INTO campaign_clicks (campaign_id,subscriber_id,url,ip_address,is_unique) VALUES (?,?,?,?,?)")
+       ->execute([$c,$s,$url,$_SERVER['REMOTE_ADDR']??'',(int)$isUnique]);
+
+    if ($isUnique) {
+        $db->prepare("UPDATE campaigns SET click_count=click_count+1 WHERE id=?")->execute([$c]);
+    }
+} catch (Throwable) {}

@@ -1,0 +1,15 @@
+{
+    "name": "merlinthedev848/merlin-spellcaster",
+    "description": "Merlin Spellcaster — Open Source Email Marketing Platform (Mautic × Listmonk hybrid)",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0"
+    },
+    "suggest": {
+        "phpmailer/phpmailer": "For advanced SMTP delivery (^6.9). Run: composer require phpmailer/phpmailer"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
