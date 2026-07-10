@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * login.php — Merlin Spellcaster admin login
  */
@@ -12,14 +14,22 @@ if (Auth::isLoggedIn()) {
     exit();
 }
 
-// Setup not complete
-if ($db === null || !isSetupComplete()) {
+// Setup not complete: allow login if an admin user already exists, otherwise run setup.
+$hasUsers = false;
+if ($db !== null) {
+    try {
+        $hasUsers = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn() > 0;
+    } catch (Throwable) {
+        $hasUsers = false;
+    }
+}
+if ($db === null || (!isSetupComplete() && !$hasUsers)) {
     header('Location: /setup/');
     exit();
 }
 
 $error    = '';
-$redirect = $_GET['redirect'] ?? '/admin/dashboard.php';
+$redirect = sc_safe_redirect_path($_POST['redirect'] ?? $_GET['redirect'] ?? '/admin/dashboard.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email']    ?? '');
@@ -29,8 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please enter your email and password.';
     } elseif (Auth::login($email, $password, $db)) {
         logActivity($db, currentUserId(), 'login', 'user', currentUserId(), 'Successful login from ' . ($_SERVER['REMOTE_ADDR'] ?? ''));
-        $safe = filter_var($redirect, FILTER_VALIDATE_URL) ? $redirect : '/admin/dashboard.php';
-        header('Location: ' . $safe);
+        header('Location: ' . $redirect);
         exit();
     } else {
         $error = 'Invalid email or password. Please try again.';

@@ -17,9 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('success', 'Campaign deleted.');
     }
     if ($action === 'send' && $id > 0) {
-        // Queue all subscribers
-        $campaign = $db->prepare("SELECT * FROM campaigns WHERE id = ? AND status = 'draft'")->execute([$id]);
-        $db->prepare("UPDATE campaigns SET status='sending', started_at=NOW() WHERE id = ? AND status IN ('draft','scheduled')")->execute([$id]);
         // Build email queue
         $db->exec("INSERT IGNORE INTO email_queue (campaign_id, subscriber_id)
             SELECT {$id}, s.id FROM subscribers s
@@ -27,9 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             JOIN campaign_lists cl ON sl.list_id = cl.list_id
             WHERE cl.campaign_id = {$id} AND s.status = 'active' AND sl.status = 'confirmed'");
         $queuedCount = (int)$db->query("SELECT COUNT(*) FROM email_queue WHERE campaign_id={$id} AND status='pending'")->fetchColumn();
-        $db->prepare("UPDATE campaigns SET send_count = ? WHERE id = ?")->execute([$queuedCount, $id]);
-        logActivity($db, currentUserId(), 'started sending', 'campaign', $id, "Queued {$queuedCount} emails");
-        flash('success', "Sending started! {$queuedCount} emails queued.");
+        if ($queuedCount > 0) {
+            $db->prepare("UPDATE campaigns SET status='sending', started_at=COALESCE(started_at,NOW()), send_count = ? WHERE id = ? AND status IN ('draft','scheduled','sending')")->execute([$queuedCount, $id]);
+            logActivity($db, currentUserId(), 'started sending', 'campaign', $id, "Queued {$queuedCount} emails");
+            flash('success', "Sending started! {$queuedCount} emails queued.");
+        } else {
+            flash('error', 'No confirmed active recipients found for this campaign. Add subscribers to the selected list before sending.');
+        }
     }
     if ($action === 'pause' && $id > 0) {
         $db->prepare("UPDATE campaigns SET status='paused' WHERE id = ? AND status='sending'")->execute([$id]);

@@ -9,11 +9,26 @@ $s   = (int)($_GET['s'] ?? 0);
 $t   = $_GET['t'] ?? '';
 $url = trim($_GET['url'] ?? '');
 
-// Redirect immediately
-$target = $url ?: '/';
-if (!filter_var($target, FILTER_VALIDATE_URL)) {
-    // Validate it's a safe URL
-    $target = '/';
+$target = '/';
+$trackingOk = false;
+$email = '';
+
+if ($c && $s && $t && $url && filter_var($url, FILTER_VALIDATE_URL)) {
+    require_once __DIR__ . '/config.php';
+    try {
+        $sub = $db->prepare("SELECT email FROM subscribers WHERE id=?");
+        $sub->execute([$s]);
+        $email = (string)$sub->fetchColumn();
+        if ($email !== '') {
+            $expected = generateToken($email, $c, $s);
+            $trackingOk = hash_equals($expected, $t);
+            if ($trackingOk) {
+                $target = $url;
+            }
+        }
+    } catch (Throwable) {
+        $trackingOk = false;
+    }
 }
 header('Location: ' . $target);
 header('Cache-Control: no-cache');
@@ -22,22 +37,15 @@ header('Cache-Control: no-cache');
 if (function_exists('fastcgi_finish_request')) {
     fastcgi_finish_request();
 } else {
-    ob_end_flush();
+    if (ob_get_level() > 0) ob_end_flush();
     flush();
 }
 
-if (!$c || !$s || !$t || !$url) exit;
-
-require_once __DIR__ . '/config.php';
+if (!$trackingOk) exit;
 
 if (getSetting('tracking_enabled','1') !== '1') exit;
 
 try {
-    $sub = $db->prepare("SELECT email FROM subscribers WHERE id=?"); $sub->execute([$s]); $email = $sub->fetchColumn();
-    if (!$email) exit;
-    $expected = generateToken((string)$email, $c, $s);
-    if (!hash_equals($expected, $t)) exit;
-
     $existingSt = $db->prepare("SELECT id FROM campaign_clicks WHERE campaign_id=? AND subscriber_id=? AND url=? LIMIT 1");
     $existingSt->execute([$c,$s,$url]);
     $isUnique = !$existingSt->fetchColumn();

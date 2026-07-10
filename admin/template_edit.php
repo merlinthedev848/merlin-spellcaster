@@ -124,7 +124,19 @@ textarea.form-input-dark { resize:vertical; }
 <script>
 function refreshPreview() {
   const html = document.getElementById('bodyHtml').value;
-  document.getElementById('previewFrame').srcdoc = html;
+  document.getElementById('previewFrame').srcdoc = makePreviewHtml(html);
+}
+function makePreviewHtml(html) {
+  const safe = html
+    .replace(/href=(["'])\s*\{\{unsubscribe_url\}\}\s*\1/gi, 'href="#preview-unsubscribe"')
+    .replace(/href=(["'])\s*%7B%7Bunsubscribe_url%7D%7D\s*\1/gi, 'href="#preview-unsubscribe"');
+  return safe + `
+<script>
+document.addEventListener('click', function (event) {
+  const link = event.target.closest && event.target.closest('a');
+  if (link) event.preventDefault();
+}, true);
+<\/script>`;
 }
 function insertVar(v) {
   const ta = document.getElementById('bodyHtml');

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 class ModuleManager {
     private static array $hooks = [];
 

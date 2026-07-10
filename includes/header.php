@@ -8,11 +8,17 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 if (!defined('APP_ROOT')) require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/core/Auth.php';
 Auth::requireLogin();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !Auth::checkCsrf()) {
+    flash('error', 'Your session token expired. Please try again.');
+    $refererPath = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_PATH) ?: '/admin/dashboard.php';
+    sc_redirect(sc_safe_redirect_path($refererPath));
+}
 
 $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 $appName     = getSetting('app_name', 'Merlin Spellcaster');
 $flash       = getFlash();
 $user        = Auth::currentUser();
+$csrfToken   = Auth::csrfToken();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,6 +41,7 @@ tailwind.config = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<meta name="csrf-token" content="<?= e($csrfToken) ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>

@@ -26,8 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$data['name']) { flash('error','Form name is required.'); sc_redirect('/admin/forms.php'); }
         if ($id) {
             $db->prepare("UPDATE forms SET name=?,list_id=?,headline=?,description=?,button_text=?,success_message=?,redirect_url=?,show_name=?,require_name=?,double_optin=? WHERE id=?")
-               ->execute(array_values($data) + [$id]); // reordered below:
-            $db->prepare("UPDATE forms SET name=?,list_id=?,headline=?,description=?,button_text=?,success_message=?,redirect_url=?,show_name=?,require_name=?,double_optin=? WHERE id=?")
                ->execute([$data['name'],$data['list_id'],$data['headline'],$data['description'],$data['button_text'],$data['success_message'],$data['redirect_url'],$data['show_name'],$data['require_name'],$data['double_optin'],$id]);
         } else {
             $db->prepare("INSERT INTO forms (name,list_id,headline,description,button_text,success_message,redirect_url,show_name,require_name,double_optin) VALUES (?,?,?,?,?,?,?,?,?,?)")

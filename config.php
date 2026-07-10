@@ -21,6 +21,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/core/ModuleManager.php';
 
+if (!function_exists('mb_strimwidth')) {
+    function mb_strimwidth(string $string, int $start, int $width, string $trimMarker = '', ?string $encoding = null): string
+    {
+        $slice = substr($string, $start, $width);
+        return strlen($string) > ($start + $width) ? $slice . $trimMarker : $slice;
+    }
+}
+
 // ─── Constants ─────────────────────────────────────────────────────────────────
 define('APP_VERSION', '2.0.0');
 define('APP_ROOT',    __DIR__);
@@ -34,6 +42,7 @@ $db_name = 'spellcaster';
 $db_user = 'root';
 $db_pass = '';
 $db_port = 3306;
+$db_socket = '';
 
 // Local override (Enhance / shared hosting credentials go here)
 if (file_exists(__DIR__ . '/config.local.php')) {
@@ -46,6 +55,35 @@ if (getenv('DB_NAME') !== false) $db_name = getenv('DB_NAME');
 if (getenv('DB_USER') !== false) $db_user = getenv('DB_USER');
 if (getenv('DB_PASS') !== false) $db_pass = getenv('DB_PASS');
 if (getenv('DB_PORT') !== false) $db_port = (int)getenv('DB_PORT');
+if (getenv('DB_SOCKET') !== false) $db_socket = getenv('DB_SOCKET');
+
+function sc_mysql_dsn(string $host, int $port, string $name, string $socket = ''): string
+{
+    $host = trim($host);
+    $name = trim($name);
+    $socket = trim($socket);
+
+    if ($socket !== '') {
+        return "mysql:unix_socket={$socket};dbname={$name};charset=utf8mb4";
+    }
+
+    if (str_ends_with($host, '.sock')) {
+        return "mysql:unix_socket={$host};dbname={$name};charset=utf8mb4";
+    }
+
+    if (str_contains($host, ':/')) {
+        [$socketHost, $socketPath] = explode(':', $host, 2);
+        if ($socketPath !== '' && str_ends_with($socketPath, '.sock')) {
+            return "mysql:unix_socket={$socketPath};dbname={$name};charset=utf8mb4";
+        }
+    }
+
+    if (strtolower($host) === 'localhost' && $port === 3306) {
+        return "mysql:host=localhost;dbname={$name};charset=utf8mb4";
+    }
+
+    return "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+}
 
 // ─── PDO Connection ───────────────────────────────────────────────────────────
 $db = null;
@@ -54,7 +92,7 @@ $GLOBALS['db_error'] = '';
 
 try {
     $db = new PDO(
-        "mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4",
+        sc_mysql_dsn($db_host, $db_port, $db_name, $db_socket),
         $db_user,
         $db_pass,
         [
@@ -66,9 +104,14 @@ try {
     );
 } catch (PDOException $e) {
     $GLOBALS['db_error'] = $e->getMessage();
-    $uri = $_SERVER['PHP_SELF'] ?? '';
-    $isSetup = (strpos($uri, '/setup') !== false);
-    $isApi   = (strpos($uri, '/api/')  !== false);
+    $uri = implode(' ', [
+        $_SERVER['PHP_SELF'] ?? '',
+        $_SERVER['SCRIPT_NAME'] ?? '',
+        $_SERVER['REQUEST_URI'] ?? '',
+    ]);
+    $normalizedUri = str_replace('\\', '/', $uri);
+    $isSetup = (strpos($normalizedUri, '/setup') !== false);
+    $isApi   = (strpos($normalizedUri, '/api/')  !== false);
 
     if ($isApi) {
         http_response_code(503);
@@ -120,7 +163,13 @@ function _sc_bootstrapSchema(PDO $db): void
         $version = 0;
     }
 
-    if ($version >= 2) return;
+    if ($version >= 2) {
+        try {
+            $db->exec("ALTER TABLE email_queue ADD UNIQUE KEY uq_campaign_subscriber (campaign_id, subscriber_id)");
+        } catch (Throwable $e) {
+            // Index may already exist or duplicates may need manual cleanup on older installs.
+        }
+    }
 
     // Use CREATE TABLE IF NOT EXISTS for idempotent migrations
     $tables = [];
@@ -205,7 +254,7 @@ function _sc_bootstrapSchema(PDO $db): void
         `from_email`   VARCHAR(255) NOT NULL DEFAULT '',
         `reply_to`     VARCHAR(255) NOT NULL DEFAULT '',
         `template_id`  INT                   DEFAULT NULL,
-        `body_html`    LONGTEXT     NOT NULL DEFAULT '',
+        `body_html`    LONGTEXT     NOT NULL,
         `body_text`    LONGTEXT              DEFAULT NULL,
         `status`       VARCHAR(20)  NOT NULL DEFAULT 'draft' COMMENT 'draft|scheduled|sending|sent|paused|cancelled',
         `type`         VARCHAR(20)  NOT NULL DEFAULT 'regular' COMMENT 'regular|automated|transactional',
@@ -242,6 +291,7 @@ function _sc_bootstrapSchema(PDO $db): void
         `attempts`      INT         NOT NULL DEFAULT 0,
         PRIMARY KEY (`id`),
         KEY `idx_delivery` (`status`, `send_at`),
+        UNIQUE KEY `uq_campaign_subscriber` (`campaign_id`, `subscriber_id`),
         CONSTRAINT `fk_eq_campaign`   FOREIGN KEY (`campaign_id`)   REFERENCES `campaigns`(`id`)   ON DELETE CASCADE,
         CONSTRAINT `fk_eq_subscriber` FOREIGN KEY (`subscriber_id`) REFERENCES `subscribers`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
@@ -289,7 +339,7 @@ function _sc_bootstrapSchema(PDO $db): void
         `headline`        VARCHAR(500) NOT NULL DEFAULT 'Subscribe to our newsletter',
         `description`     TEXT                  DEFAULT NULL,
         `button_text`     VARCHAR(100) NOT NULL DEFAULT 'Subscribe',
-        `success_message` TEXT         NOT NULL DEFAULT 'Thank you for subscribing!',
+        `success_message` VARCHAR(1000) NOT NULL DEFAULT 'Thank you for subscribing!',
         `redirect_url`    VARCHAR(500) NOT NULL DEFAULT '',
         `show_name`       TINYINT(1)   NOT NULL DEFAULT 1,
         `require_name`    TINYINT(1)   NOT NULL DEFAULT 0,
@@ -374,6 +424,12 @@ function _sc_bootstrapSchema(PDO $db): void
 
     foreach ($tables as $sql) {
         try { $db->exec($sql); } catch (Throwable $e) { /* ignore already-exists */ }
+    }
+
+    try {
+        $db->exec("ALTER TABLE email_queue ADD UNIQUE KEY uq_campaign_subscriber (campaign_id, subscriber_id)");
+    } catch (Throwable $e) {
+        // Index may already exist or duplicates may need manual cleanup on older installs.
     }
 
     // Seed default settings
@@ -466,8 +522,31 @@ function getFlash(): ?array
 
 function sc_redirect(string $url): void
 {
-    header("Location: $url");
+    $url = sc_safe_redirect_path($url);
+    if (!headers_sent()) {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header("Location: $url");
+        exit();
+    }
+
+    $escaped = htmlspecialchars($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    echo '<script>window.location.replace(' . json_encode($url) . ');</script>';
+    echo '<noscript><meta http-equiv="refresh" content="0;url=' . $escaped . '"><a href="' . $escaped . '">Continue</a></noscript>';
     exit();
+}
+
+function sc_safe_redirect_path(string $url, string $fallback = '/admin/dashboard.php'): string
+{
+    $url = trim($url);
+    if ($url === '' || str_starts_with($url, '//') || preg_match('/^[a-z][a-z0-9+.-]*:/i', $url)) {
+        return $fallback;
+    }
+    if ($url[0] !== '/') {
+        return $fallback;
+    }
+    return preg_match('/[\r\n]/', $url) ? $fallback : $url;
 }
 
 function isSetupComplete(): bool
@@ -494,6 +573,51 @@ function updateListCounts(PDO $db): void
             WHERE sl.list_id = l.id AND sl.status = 'confirmed'
         )");
     } catch (Throwable $e) {}
+}
+
+function deleteSubscriber(PDO $db, int $subscriberId): bool
+{
+    if ($subscriberId <= 0) {
+        return false;
+    }
+
+    $ownsTransaction = !$db->inTransaction();
+    if ($ownsTransaction) {
+        $db->beginTransaction();
+    }
+
+    try {
+        foreach ([
+            'automation_queue',
+            'email_queue',
+            'campaign_opens',
+            'campaign_clicks',
+            'email_bounces',
+            'subscriber_lists',
+        ] as $table) {
+            try {
+                $stmt = $db->prepare("DELETE FROM `{$table}` WHERE subscriber_id = ?");
+                $stmt->execute([$subscriberId]);
+            } catch (Throwable) {
+                // Some older installs may not have every analytics/automation table yet.
+            }
+        }
+
+        $stmt = $db->prepare("DELETE FROM subscribers WHERE id = ?");
+        $stmt->execute([$subscriberId]);
+        $deleted = $stmt->rowCount() > 0;
+        updateListCounts($db);
+
+        if ($ownsTransaction) {
+            $db->commit();
+        }
+        return $deleted;
+    } catch (Throwable $e) {
+        if ($ownsTransaction && $db->inTransaction()) {
+            $db->rollBack();
+        }
+        throw $e;
+    }
 }
 
 function generateToken(string $email, int $campaignId, int $subscriberId): string

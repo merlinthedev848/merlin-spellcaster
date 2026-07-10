@@ -12,8 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $id     = (int)($_POST['id'] ?? 0);
     if ($action === 'delete' && $id > 0) {
-        $db->prepare("DELETE FROM subscribers WHERE id=?")->execute([$id]);
-        flash('success','Subscriber deleted.');
+        try {
+            $deleted = deleteSubscriber($db, $id);
+            flash($deleted ? 'success' : 'error', $deleted ? 'Subscriber deleted.' : 'Subscriber not found.');
+        } catch (Throwable $e) {
+            flash('error', 'Could not delete subscriber: ' . $e->getMessage());
+        }
     }
     if ($action === 'unsubscribe' && $id > 0) {
         $db->prepare("UPDATE subscribers SET status='unsubscribed' WHERE id=?")->execute([$id]);
@@ -24,15 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('success','Subscriber reactivated.');
     }
     if ($action === 'bulk_delete') {
-        $ids = array_map('intval', $_POST['ids'] ?? []);
+        $rawIds = $_POST['ids'] ?? [];
+        $ids = array_values(array_unique(array_filter(is_array($rawIds) ? array_map('intval', $rawIds) : array_map('intval', array_filter(explode(',', $rawIds))))));
         if ($ids) {
-            $in = implode(',', $ids);
-            $db->exec("DELETE FROM subscribers WHERE id IN ({$in})");
-            flash('success', count($ids) . ' subscribers deleted.');
+            $deleted = 0;
+            try {
+                foreach ($ids as $deleteId) {
+                    if (deleteSubscriber($db, $deleteId)) {
+                        $deleted++;
+                    }
+                }
+                flash('success', $deleted . ' subscribers deleted.');
+            } catch (Throwable $e) {
+                flash('error', 'Could not delete selected subscribers: ' . $e->getMessage());
+            }
         }
     }
     if ($action === 'bulk_unsub') {
-        $ids = array_map('intval', $_POST['ids'] ?? []);
+        $rawIds = $_POST['ids'] ?? [];
+        $ids = is_array($rawIds) ? array_map('intval', $rawIds) : array_map('intval', array_filter(explode(',', $rawIds)));
         if ($ids) {
             $in = implode(',', $ids);
             $db->exec("UPDATE subscribers SET status='unsubscribed' WHERE id IN ({$in})");

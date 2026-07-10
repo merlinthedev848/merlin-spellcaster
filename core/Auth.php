@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
+
 /**
  * core/Auth.php — Session-based authentication
- * PHP 7.4+ compatible. No external dependencies.
+ * PHP 8.5+ compatible. No external dependencies.
  */
 
 class Auth
@@ -81,7 +83,10 @@ class Auth
 
     public static function createUser(PDO $db, string $name, string $email, string $password, string $role = 'admin'): int
     {
-        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 11]);
+        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+        if ($hash === false) {
+            throw new RuntimeException('Could not hash the admin password on this PHP build.');
+        }
         $token = bin2hex(random_bytes(32));
         $db->prepare("INSERT INTO users (name, email, password_hash, role, api_token) VALUES (?, ?, ?, ?, ?)")
            ->execute([trim($name), trim(strtolower($email)), $hash, $role, $token]);

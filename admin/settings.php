@@ -47,6 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($section === 'clear_queue') {
+        $db->exec("DELETE FROM email_queue WHERE status IN ('pending','failed')");
+        flash('success', 'Pending and failed email queue entries were cleared.');
+    }
+
+    if ($section === 'reset_setup') {
+        setSetting($db, 'setup_complete', '0');
+        flash('success', 'Setup wizard has been re-enabled for the current admin session.');
+        sc_redirect('/setup/');
+    }
+
     sc_redirect('/admin/settings.php');
 }
 

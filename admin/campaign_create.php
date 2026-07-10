@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $listIds    = array_map('intval', (array)($_POST['list_ids'] ?? []));
     $schedAt    = !empty($_POST['scheduled_at']) ? $_POST['scheduled_at'] : null;
     $tplId      = (int)($_POST['template_id'] ?? 0) ?: null;
+    $status     = $schedAt ? 'scheduled' : 'draft';
 
     $errors = [];
     if (!$name)    $errors[] = 'Campaign name is required.';
@@ -41,13 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         if ($editId) {
-            $db->prepare("UPDATE campaigns SET name=?,subject=?,from_name=?,from_email=?,reply_to=?,body_html=?,body_text=?,template_id=?,scheduled_at=?,updated_at=NOW() WHERE id=?")
-               ->execute([$name,$subject,$fromName,$fromEmail,$replyTo,$bodyHtml,$bodyText,$tplId,$schedAt,$editId]);
+            $db->prepare("UPDATE campaigns SET name=?,subject=?,from_name=?,from_email=?,reply_to=?,body_html=?,body_text=?,template_id=?,scheduled_at=?,status=CASE WHEN status IN ('draft','scheduled') THEN ? ELSE status END,updated_at=NOW() WHERE id=?")
+               ->execute([$name,$subject,$fromName,$fromEmail,$replyTo,$bodyHtml,$bodyText,$tplId,$schedAt,$status,$editId]);
             $db->prepare("DELETE FROM campaign_lists WHERE campaign_id=?")->execute([$editId]);
             $cid = $editId;
         } else {
-            $db->prepare("INSERT INTO campaigns (name,subject,from_name,from_email,reply_to,body_html,body_text,template_id,scheduled_at,status) VALUES (?,?,?,?,?,?,?,?,?,'draft')")
-               ->execute([$name,$subject,$fromName,$fromEmail,$replyTo,$bodyHtml,$bodyText,$tplId,$schedAt]);
+            $db->prepare("INSERT INTO campaigns (name,subject,from_name,from_email,reply_to,body_html,body_text,template_id,scheduled_at,status) VALUES (?,?,?,?,?,?,?,?,?,?)")
+               ->execute([$name,$subject,$fromName,$fromEmail,$replyTo,$bodyHtml,$bodyText,$tplId,$schedAt,$status]);
             $cid = (int)$db->lastInsertId();
         }
         if ($listIds) {
@@ -204,7 +205,7 @@ document.querySelector('[x-data]').__x?.$watch('preview', v => {
   if (v) {
     const html = document.getElementById('bodyHtml').value;
     const iframe = document.getElementById('previewFrame');
-    iframe.srcdoc = html;
+    iframe.srcdoc = makePreviewHtml(html);
   }
 });
 
@@ -214,10 +215,23 @@ document.addEventListener('alpine:initialized', () => {
   Alpine.effect(() => {
     if (comp.preview) {
       const html = document.getElementById('bodyHtml').value;
-      document.getElementById('previewFrame').srcdoc = html;
+      document.getElementById('previewFrame').srcdoc = makePreviewHtml(html);
     }
   });
 });
+
+function makePreviewHtml(html) {
+  const safe = html
+    .replace(/href=(["'])\s*\{\{unsubscribe_url\}\}\s*\1/gi, 'href="#preview-unsubscribe"')
+    .replace(/href=(["'])\s*%7B%7Bunsubscribe_url%7D%7D\s*\1/gi, 'href="#preview-unsubscribe"');
+  return safe + `
+<script>
+document.addEventListener('click', function (event) {
+  const link = event.target.closest && event.target.closest('a');
+  if (link) event.preventDefault();
+}, true);
+<\/script>`;
+}
 
 async function loadTemplate(id) {
   if (!id) return;

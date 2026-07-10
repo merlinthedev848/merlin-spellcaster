@@ -22,7 +22,7 @@ if ($token && $camId && $subId) {
         $expected = generateToken($subscriber['email'], $camId, $subId);
         if (hash_equals($expected, $token)) {
             $valid = true;
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['confirm'])) {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare("UPDATE subscribers SET status='unsubscribed', updated_at=NOW() WHERE id=?")->execute([$subId]);
                 $db->prepare("UPDATE campaigns SET unsub_count=unsub_count+1 WHERE id=?")->execute([$camId]);
                 $db->prepare("UPDATE subscriber_lists SET status='unsubscribed' WHERE subscriber_id=?")->execute([$subId]);
@@ -35,19 +35,7 @@ if ($token && $camId && $subId) {
         $error = 'Subscriber not found.';
     }
 } else {
-    // Handle list-level unsubscribe without campaign token
-    $email = strtolower(trim($_GET['email'] ?? ''));
-    if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $sub = $db->prepare("SELECT id FROM subscribers WHERE email=?"); $sub->execute([$email]); $subId = (int)$sub->fetchColumn();
-        if ($subId) {
-            $db->prepare("UPDATE subscribers SET status='unsubscribed' WHERE id=?")->execute([$subId]);
-            $valid = true;
-        } else {
-            $error = 'Email not found.';
-        }
-    } else {
-        $error = 'Invalid unsubscribe link.';
-    }
+    $error = 'Invalid unsubscribe link. Please use the secure unsubscribe link from your email.';
 }
 ?>
 <!DOCTYPE html>
@@ -77,7 +65,7 @@ p{color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 24px}
   <div class="icon">⚠️</div>
   <h1 class="error">Invalid Link</h1>
   <p><?= e($error) ?></p>
-  <?php elseif ($valid && (isset($_GET['confirm']) || $_SERVER['REQUEST_METHOD']==='POST')): ?>
+  <?php elseif ($valid && $_SERVER['REQUEST_METHOD']==='POST'): ?>
   <div class="icon">✅</div>
   <h1 class="success">Unsubscribed</h1>
   <p><?= e($msg) ?></p>
@@ -87,7 +75,9 @@ p{color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 24px}
   <h1>Unsubscribe?</h1>
   <p>Are you sure you want to unsubscribe? You will stop receiving emails from <strong><?= e($appName) ?></strong>.</p>
   <div style="display:flex;gap:12px;justify-content:center">
-    <a href="?<?= e(http_build_query(array_merge($_GET,['confirm'=>'1']))) ?>" class="btn">Yes, Unsubscribe</a>
+    <form method="post" style="display:inline">
+      <button type="submit" class="btn">Yes, Unsubscribe</button>
+    </form>
     <a href="javascript:history.back()" class="btn-soft">Go Back</a>
   </div>
   <?php else: ?>

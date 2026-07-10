@@ -4,11 +4,36 @@
  * Standalone: no includes/header.php. PHP 8.5+ compatible.
  */
 declare(strict_types=1);
+if (($_GET['debug'] ?? '') === '1') {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+}
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/core/Auth.php';
+
+$setupAlreadyComplete = ($db !== null && isSetupComplete());
+$setupHasUsers = false;
+if ($db !== null) {
+    try {
+        $setupHasUsers = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn() > 0;
+    } catch (Throwable) {
+        $setupHasUsers = false;
+    }
+}
+if (($setupAlreadyComplete || $setupHasUsers) && !Auth::isLoggedIn()) {
+    sc_wiz_redirect('/login.php?redirect=' . urlencode('/setup/'));
+}
+
+if (empty($_SESSION['setup_csrf_token'])) {
+    $_SESSION['setup_csrf_token'] = bin2hex(random_bytes(32));
+}
+$setupCsrfToken = $_SESSION['setup_csrf_token'];
 
 // ── Requirements check ──────────────────────────────────────────────────────
 $requirements = [
-    ['label' => 'PHP 8.0+',                'pass' => PHP_MAJOR_VERSION >= 8,               'required' => true],
+    ['label' => 'PHP 8.2+',                'pass' => PHP_VERSION_ID >= 80200,              'required' => true],
     ['label' => 'PDO extension',           'pass' => extension_loaded('pdo'),               'required' => true],
     ['label' => 'PDO MySQL driver',        'pass' => extension_loaded('pdo_mysql'),         'required' => true],
     ['label' => 'OpenSSL extension',       'pass' => extension_loaded('openssl'),           'required' => true],
@@ -25,7 +50,16 @@ $stepError = '';
 $stepSuccess = '';
 $currentStep = (int)($_SESSION['setup_step'] ?? 1);
 
+if (($_GET['reset'] ?? '') === '1' && !$setupAlreadyComplete) {
+    unset($_SESSION['setup_step'], $_SESSION['setup_db'], $_SESSION['setup_smtp'], $_SESSION['setup_admin'], $_SESSION['setup_list']);
+    $_SESSION['setup_step'] = 1;
+    sc_wiz_redirect('/setup/');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!hash_equals($setupCsrfToken, $_POST['_csrf'] ?? '')) {
+        $stepError = 'Your setup session expired. Please try again.';
+    } else {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'save_db') {
@@ -74,16 +108,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once dirname(__DIR__) . '/config.php';
             require_once dirname(__DIR__) . '/core/Auth.php';
             if ($db !== null) {
-                Auth::createUser($db, $name, $email, $pass, 'admin');
-                // Save SMTP settings to DB
-                if (!empty($_SESSION['setup_smtp'])) {
-                    foreach ($_SESSION['setup_smtp'] as $k => $v) {
-                        setSetting($db, $k, $v);
+                try {
+                    $existing = $db->prepare("SELECT id FROM users WHERE email=? LIMIT 1");
+                    $existing->execute([strtolower($email)]);
+                    if ($existing->fetchColumn()) {
+                        throw new RuntimeException('An admin user with this email already exists. Use a different email or log in.');
                     }
+
+                    Auth::createUser($db, $name, $email, $pass, 'admin');
+                    // Save SMTP settings to DB
+                    if (!empty($_SESSION['setup_smtp'])) {
+                        foreach ($_SESSION['setup_smtp'] as $k => $v) {
+                            setSetting($db, $k, $v);
+                        }
+                    }
+                    $_SESSION['setup_admin'] = ['name' => $name, 'email' => $email];
+                    $_SESSION['setup_step']  = 5;
+                    sc_wiz_redirect('?step=5');
+                } catch (Throwable $e) {
+                    $stepError = 'Could not create admin account: ' . $e->getMessage();
                 }
-                $_SESSION['setup_admin'] = ['name' => $name, 'email' => $email];
-                $_SESSION['setup_step']  = 5;
-                sc_wiz_redirect('?step=5');
             } else {
                 $stepError = 'Database connection lost. Please restart setup.';
             }
@@ -114,10 +158,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'finish') {
         require_once dirname(__DIR__) . '/config.php';
-        if ($db !== null) setSetting($db, 'setup_complete', '1');
-        // Log in admin
-        $user = $db?->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-        if ($user) {
+        if ($db === null) {
+            $stepError = 'Database connection failed while finishing setup. Please go back to the database step and re-test your host details.';
+        } else {
+            setSetting($db, 'setup_complete', '1');
+            // Log in admin
+            $user = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
             $adminEmail = $_SESSION['setup_admin']['email'] ?? '';
             $user->execute([$adminEmail]);
             $u = $user->fetch();
@@ -126,13 +172,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $u['name'];
                 $_SESSION['user_role'] = $u['role'];
             }
+            sc_wiz_redirect('/admin/dashboard.php');
         }
-        sc_wiz_redirect('/admin/dashboard.php');
+    }
     }
 }
 
 $requestedStep = (int)($_GET['step'] ?? $currentStep);
-if ($requestedStep <= $currentStep) $currentStep = $requestedStep;
+if ($requestedStep === 2 && $currentStep === 1 && $canProceed) {
+    $_SESSION['setup_step'] = 2;
+    $currentStep = 2;
+} elseif ($requestedStep <= $currentStep) {
+    $currentStep = $requestedStep;
+}
 
 function sc_wiz_redirect(string $url): never
 {
@@ -156,6 +208,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="<?= e($setupCsrfToken) ?>">
 <title>Setup Wizard — Merlin Spellcaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -373,6 +426,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
 
         <div class="rounded-2xl p-6" style="background:#111827;border:1px solid rgba(148,163,184,0.08);">
           <form method="post" id="dbForm">
+            <input type="hidden" name="_csrf" value="<?= e($setupCsrfToken) ?>">
             <input type="hidden" name="action" value="save_db">
             <div class="grid grid-cols-3 gap-3 mb-4">
               <div class="col-span-2">
@@ -442,6 +496,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
           </div>
 
           <form method="post">
+            <input type="hidden" name="_csrf" value="<?= e($setupCsrfToken) ?>">
             <input type="hidden" name="action" value="save_smtp">
             <div class="grid grid-cols-3 gap-3 mb-4">
               <div class="col-span-2">
@@ -522,6 +577,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
           </div>
 
           <form method="post">
+            <input type="hidden" name="_csrf" value="<?= e($setupCsrfToken) ?>">
             <input type="hidden" name="action" value="create_admin">
             <div class="mb-4">
               <label class="block text-xs font-semibold text-slate-400 mb-1.5">Full Name *</label>
@@ -570,6 +626,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
 
         <div class="rounded-2xl p-6" style="background:#111827;border:1px solid rgba(148,163,184,0.08);">
           <form method="post">
+            <input type="hidden" name="_csrf" value="<?= e($setupCsrfToken) ?>">
             <input type="hidden" name="action" value="create_list">
             <div class="mb-4">
               <label class="block text-xs font-semibold text-slate-400 mb-1.5">List Name *</label>
@@ -602,6 +659,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
           </form>
           <div class="text-center mt-3">
             <form method="post" style="display:inline">
+              <input type="hidden" name="_csrf" value="<?= e($setupCsrfToken) ?>">
               <input type="hidden" name="action" value="skip_list">
               <button type="submit" class="text-slate-500 hover:text-slate-300 text-sm underline">Skip for now</button>
             </form>
@@ -644,6 +702,7 @@ function writeConfigLocal(string $host, int $port, string $name, string $user, s
         </div>
 
         <form method="post">
+          <input type="hidden" name="_csrf" value="<?= e($setupCsrfToken) ?>">
           <input type="hidden" name="action" value="finish">
           <div class="flex gap-3">
             <button type="submit" class="btn-magic flex-1 justify-center text-base py-3">
@@ -676,6 +735,7 @@ function wizard() {
           name: document.getElementById('db_name').value,
           user: document.getElementById('db_user').value,
           pass: document.getElementById('db_pass').value,
+          _csrf: document.querySelector('meta[name="csrf-token"]')?.content || '',
         })});
         const j = await r.json();
         this.dbResult = (j.success ? '✅ ' : '❌ ') + j.message;
@@ -693,6 +753,7 @@ function wizard() {
           encryption: document.getElementById('smtp_enc').value,
           smtp_user: document.getElementById('smtp_user').value,
           smtp_pass: document.getElementById('smtp_pass').value,
+          _csrf: document.querySelector('meta[name="csrf-token"]')?.content || '',
         })});
         const j = await r.json();
         this.smtpResult = (j.success ? '✅ ' : '❌ ') + j.message;
@@ -749,6 +810,21 @@ function launchConfetti() {
     }, i * 30);
   }
 }
+</script>
+<script>
+(() => {
+  const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  if (!token) return;
+  document.querySelectorAll('form[method]').forEach((form) => {
+    if ((form.getAttribute('method') || '').toLowerCase() !== 'post') return;
+    if (form.querySelector('input[name="_csrf"]')) return;
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = '_csrf';
+    input.value = token;
+    form.prepend(input);
+  });
+})();
 </script>
 </body>
 </html>

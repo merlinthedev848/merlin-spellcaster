@@ -42,7 +42,7 @@ try {
                           AND aseq.status = 'active'
                         ORDER BY aq.scheduled_at ASC
                         LIMIT {$batchSize}
-                        FOR UPDATE SKIP LOCKED");
+                        FOR UPDATE");
     $st->execute();
     $jobs = $st->fetchAll();
 

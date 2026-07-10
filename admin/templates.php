@@ -57,8 +57,8 @@ $templates = $db->query("SELECT * FROM templates ORDER BY updated_at DESC")->fet
         </div>
       </div>
       <!-- HTML Preview -->
-      <div class="rounded-lg overflow-hidden bg-white" style="height:140px">
-        <iframe srcdoc="<?= htmlspecialchars($t['body_html'],ENT_QUOTES,'UTF-8') ?>" class="w-full h-full pointer-events-none" style="transform:scale(0.5);transform-origin:top left;width:200%;height:200%" sandbox="allow-same-origin"></iframe>
+      <div class="rounded-lg overflow-hidden bg-white pointer-events-none" style="height:140px">
+        <iframe srcdoc="<?= htmlspecialchars($t['body_html'],ENT_QUOTES,'UTF-8') ?>" class="w-full h-full pointer-events-none" style="transform:scale(0.5);transform-origin:top left;width:200%;height:200%" sandbox=""></iframe>
       </div>
       <div class="flex items-center justify-between text-xs text-slate-500">
         <span>Updated <?= timeAgo($t['updated_at']) ?></span>

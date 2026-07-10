@@ -4,16 +4,35 @@
  * PHP 8.5+ compatible
  */
 declare(strict_types=1);
-header('Content-Type: application/json');
-header('X-Content-Type-Options: nosniff');
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Allow calls both as standalone and when included
 if (!function_exists('testDbConnection')) {
     function testDbConnection(string $host, int $port, string $name, string $user, string $pass): array
     {
         try {
+            if (!function_exists('sc_mysql_dsn')) {
+                function sc_mysql_dsn(string $host, int $port, string $name, string $socket = ''): string
+                {
+                    $host = trim($host);
+                    $name = trim($name);
+                    if (str_ends_with($host, '.sock')) {
+                        return "mysql:unix_socket={$host};dbname={$name};charset=utf8mb4";
+                    }
+                    if (str_contains($host, ':/')) {
+                        [, $socketPath] = explode(':', $host, 2);
+                        if ($socketPath !== '' && str_ends_with($socketPath, '.sock')) {
+                            return "mysql:unix_socket={$socketPath};dbname={$name};charset=utf8mb4";
+                        }
+                    }
+                    if (strtolower($host) === 'localhost' && $port === 3306) {
+                        return "mysql:host=localhost;dbname={$name};charset=utf8mb4";
+                    }
+                    return "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+                }
+            }
             $pdo = new PDO(
-                "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",
+                sc_mysql_dsn($host, $port, $name),
                 $user,
                 $pass,
                 [PDO::ATTR_TIMEOUT => 5, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
@@ -28,6 +47,31 @@ if (!function_exists('testDbConnection')) {
 
 // Only produce output if called directly (not included)
 if (basename($_SERVER['PHP_SELF']) === 'test_db.php') {
+    header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff');
+    require_once dirname(__DIR__) . '/config.php';
+    require_once dirname(__DIR__) . '/core/Auth.php';
+
+    $hasUsers = false;
+    if ($db !== null) {
+        try {
+            $hasUsers = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn() > 0;
+        } catch (Throwable) {
+            $hasUsers = false;
+        }
+    }
+    if ($db !== null && (isSetupComplete() || $hasUsers) && !Auth::isLoggedIn()) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Setup requires an authenticated admin session.']);
+        exit;
+    }
+
+    if (!hash_equals($_SESSION['setup_csrf_token'] ?? '', $_POST['_csrf'] ?? '')) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Invalid setup session token.']);
+        exit;
+    }
+
     $action = $_GET['action'] ?? 'db';
 
     if ($action === 'db') {

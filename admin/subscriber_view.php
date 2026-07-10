@@ -4,6 +4,11 @@
  * PHP 8.5+
  */
 declare(strict_types=1);
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/core/Auth.php';
+Auth::requireLogin();
+
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { flash('error','Invalid subscriber.'); sc_redirect('/admin/subscribers.php'); }
 $pageTitle = 'Subscriber Profile';
@@ -20,6 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
        ->execute([trim($_POST['first_name']??''), trim($_POST['last_name']??''), trim($_POST['phone']??''), $_POST['status']??'active', $id]);
     flash('success','Subscriber updated.');
     sc_redirect('/admin/subscriber_view.php?id='.$id);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+    try {
+        $deleted = deleteSubscriber($db, $id);
+        flash($deleted ? 'success' : 'error', $deleted ? 'Subscriber deleted.' : 'Subscriber not found.');
+        sc_redirect('/admin/subscribers.php');
+    } catch (Throwable $e) {
+        flash('error', 'Could not delete subscriber: ' . $e->getMessage());
+        sc_redirect('/admin/subscriber_view.php?id='.$id);
+    }
 }
 
 $subLists   = (function() use ($db,$id) { $s=$db->prepare("SELECT l.*,sl.status as sub_status,sl.subscribed_at FROM subscriber_lists sl JOIN lists l ON l.id=sl.list_id WHERE sl.subscriber_id=?"); $s->execute([$id]); return $s->fetchAll(); })();
@@ -84,6 +100,14 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
           <?php endforeach; ?>
         </div>
         <?php endif; ?>
+      </div>
+
+      <div class="card p-5">
+        <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Danger Zone</h3>
+        <form method="post" onsubmit="return confirm('Delete this subscriber permanently?')">
+          <input type="hidden" name="action" value="delete">
+          <button class="btn btn-danger w-full justify-center" type="submit">Delete Subscriber</button>
+        </form>
       </div>
     </div>
 

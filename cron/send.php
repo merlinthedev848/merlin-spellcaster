@@ -31,6 +31,27 @@ $appUrl    = getSetting('app_url', 'http://localhost');
 $fromName  = getSetting('smtp_from_name', 'Newsletter');
 $fromEmail = getSetting('smtp_from_email', 'noreply@localhost');
 
+try {
+    $due = $db->query("SELECT id FROM campaigns WHERE status='scheduled' AND scheduled_at IS NOT NULL AND scheduled_at <= NOW()")->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($due as $campaignId) {
+        $campaignId = (int)$campaignId;
+        $db->exec("INSERT IGNORE INTO email_queue (campaign_id, subscriber_id)
+            SELECT {$campaignId}, s.id FROM subscribers s
+            JOIN subscriber_lists sl ON s.id = sl.subscriber_id
+            JOIN campaign_lists cl ON sl.list_id = cl.list_id
+            WHERE cl.campaign_id = {$campaignId} AND s.status = 'active' AND sl.status = 'confirmed'");
+        $queued = (int)$db->query("SELECT COUNT(*) FROM email_queue WHERE campaign_id={$campaignId} AND status='pending'")->fetchColumn();
+        if ($queued > 0) {
+            $db->prepare("UPDATE campaigns SET status='sending', started_at=COALESCE(started_at,NOW()), send_count=? WHERE id=?")->execute([$queued, $campaignId]);
+        } else {
+            $db->prepare("UPDATE campaigns SET status='draft' WHERE id=?")->execute([$campaignId]);
+            echo "Scheduled campaign {$campaignId} has no confirmed active recipients.\n";
+        }
+    }
+} catch (Throwable $e) {
+    echo "Scheduled campaign check failed: " . $e->getMessage() . "\n";
+}
+
 // Lock: grab pending emails
 try {
     $db->beginTransaction();
@@ -43,7 +64,7 @@ try {
                         WHERE eq.status = 'pending' AND eq.send_at <= NOW()
                         ORDER BY eq.send_at ASC
                         LIMIT {$batchSize}
-                        FOR UPDATE SKIP LOCKED");
+                        FOR UPDATE");
     $st->execute();
     $jobs = $st->fetchAll();
 
@@ -126,8 +147,8 @@ $stCheck = $db->prepare("SELECT campaign_id, COUNT(*) as remaining FROM email_qu
 // Simpler: check each campaign in this batch
 $campaignIds = array_unique(array_column($jobs, 'campaign_id'));
 foreach ($campaignIds as $cid) {
-    $remaining = (int)$db->prepare("SELECT COUNT(*) FROM email_queue WHERE campaign_id=? AND status='pending'")->execute([$cid]) ? (function() use ($db,$cid) {
-        $s=$db->prepare("SELECT COUNT(*) FROM email_queue WHERE campaign_id=? AND status='pending'"); $s->execute([$cid]); return (int)$s->fetchColumn();
+    $remaining = (int)$db->prepare("SELECT COUNT(*) FROM email_queue WHERE campaign_id=? AND status IN ('pending','sending','failed')")->execute([$cid]) ? (function() use ($db,$cid) {
+        $s=$db->prepare("SELECT COUNT(*) FROM email_queue WHERE campaign_id=? AND status IN ('pending','sending','failed')"); $s->execute([$cid]); return (int)$s->fetchColumn();
     })() : 0;
     if ($remaining === 0) {
         $db->prepare("UPDATE campaigns SET status='sent', sent_at=NOW() WHERE id=? AND status IN ('sending','paused')")->execute([$cid]);

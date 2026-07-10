@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * logout.php — Destroys session and redirects to login
  */

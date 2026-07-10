@@ -4,6 +4,11 @@
  * PHP 8.5+
  */
 declare(strict_types=1);
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/core/Auth.php';
+Auth::requireLogin();
+
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) sc_redirect('/admin/research.php');
 $pageTitle = 'Survey Results';
