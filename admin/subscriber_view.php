@@ -119,23 +119,23 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
           <input type="hidden" name="action" value="update">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">First Name</label>
-            <input type="text" name="first_name" value="<?= e($sub['first_name']) ?>" class="form-input-dark w-full">
+            <input type="text" name="first_name" value="<?= e($sub['first_name']) ?>" class="form-input w-full">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Last Name</label>
-            <input type="text" name="last_name" value="<?= e($sub['last_name']) ?>" class="form-input-dark w-full">
+            <input type="text" name="last_name" value="<?= e($sub['last_name']) ?>" class="form-input w-full">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Email (read-only)</label>
-            <input type="email" value="<?= e($sub['email']) ?>" class="form-input-dark w-full opacity-50" disabled>
+            <input type="email" value="<?= e($sub['email']) ?>" class="form-input w-full opacity-50" disabled>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Phone</label>
-            <input type="text" name="phone" value="<?= e($sub['phone']) ?>" class="form-input-dark w-full">
+            <input type="text" name="phone" value="<?= e($sub['phone']) ?>" class="form-input w-full">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Status</label>
-            <select name="status" class="form-input-dark w-full">
+            <select name="status" class="form-input w-full">
               <?php foreach (['active','unsubscribed','bounced','complained'] as $st): ?>
               <option value="<?= $st ?>" <?= $sub['status']===$st?'selected':'' ?>><?= ucfirst($st) ?></option>
               <?php endforeach; ?>
@@ -184,10 +184,6 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
   </div>
 </div>
 
-<style>
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-</style>
+
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

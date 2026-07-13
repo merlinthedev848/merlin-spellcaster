@@ -89,26 +89,26 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
         <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Campaign Details</h2>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Campaign Name *</label>
-          <input type="text" name="name" value="<?= e($campaign['name'] ?? '') ?>" class="form-input-dark w-full" placeholder="May Newsletter 2025" required>
+          <input type="text" name="name" value="<?= e($campaign['name'] ?? '') ?>" class="form-input w-full" placeholder="May Newsletter 2025" required>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Subject Line *</label>
-          <input type="text" name="subject" value="<?= e($campaign['subject'] ?? '') ?>" class="form-input-dark w-full" placeholder="🚀 Something amazing this way comes…" required>
+          <input type="text" name="subject" value="<?= e($campaign['subject'] ?? '') ?>" class="form-input w-full" placeholder="🚀 Something amazing this way comes…" required>
           <p class="text-xs text-slate-600 mt-1">Tip: emoji in subject lines boost open rates</p>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">From Name</label>
-            <input type="text" name="from_name" value="<?= e($campaign['from_name'] ?? getSetting('smtp_from_name')) ?>" class="form-input-dark w-full" placeholder="Merlin Spellcaster">
+            <input type="text" name="from_name" value="<?= e($campaign['from_name'] ?? getSetting('smtp_from_name')) ?>" class="form-input w-full" placeholder="Merlin Spellcaster">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">From Email</label>
-            <input type="email" name="from_email" value="<?= e($campaign['from_email'] ?? getSetting('smtp_from_email')) ?>" class="form-input-dark w-full" placeholder="hi@example.com">
+            <input type="email" name="from_email" value="<?= e($campaign['from_email'] ?? getSetting('smtp_from_email')) ?>" class="form-input w-full" placeholder="hi@example.com">
           </div>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Reply-To (optional)</label>
-          <input type="email" name="reply_to" value="<?= e($campaign['reply_to'] ?? '') ?>" class="form-input-dark w-full" placeholder="Same as From Email">
+          <input type="email" name="reply_to" value="<?= e($campaign['reply_to'] ?? '') ?>" class="form-input w-full" placeholder="Same as From Email">
         </div>
       </div>
 
@@ -122,7 +122,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
           </div>
         </div>
         <div x-show="!preview">
-          <textarea name="body_html" id="bodyHtml" class="form-input-dark w-full font-mono text-xs" rows="18" placeholder="<!-- Paste or type your HTML email here -->"><?= e($campaign['body_html'] ?? '') ?></textarea>
+          <textarea name="body_html" id="bodyHtml" class="form-input w-full font-mono text-xs" rows="18" placeholder="<!-- Paste or type your HTML email here -->"><?= e($campaign['body_html'] ?? '') ?></textarea>
           <p class="text-xs text-slate-600 mt-1">Use <code class="text-indigo-400">{{first_name}}</code>, <code class="text-indigo-400">{{email}}</code>, <code class="text-indigo-400">{{unsubscribe_url}}</code> for personalization.</p>
         </div>
         <div x-show="preview" x-cloak class="rounded-lg overflow-hidden border border-white/10" style="height:400px">
@@ -130,7 +130,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Plain Text Version (auto-generated if empty)</label>
-          <textarea name="body_text" class="form-input-dark w-full font-mono text-xs" rows="4" placeholder="Optional plain text fallback…"><?= e($campaign['body_text'] ?? '') ?></textarea>
+          <textarea name="body_text" class="form-input w-full font-mono text-xs" rows="4" placeholder="Optional plain text fallback…"><?= e($campaign['body_text'] ?? '') ?></textarea>
         </div>
       </div>
     </div>
@@ -141,7 +141,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
       <!-- Template -->
       <div class="card p-5">
         <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Load Template</h2>
-        <select name="template_id" class="form-input-dark w-full text-sm" @change="loadTemplate($event.target.value)">
+        <select name="template_id" class="form-input w-full text-sm" @change="loadTemplate($event.target.value)">
           <option value="">— No Template —</option>
           <?php foreach ($templates as $t): ?>
           <option value="<?= $t['id'] ?>" <?= ($campaign['template_id'] ?? 0) == $t['id'] ? 'selected' : '' ?>><?= e($t['name']) ?></option>
@@ -173,7 +173,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
       <!-- Schedule -->
       <div class="card p-5">
         <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Schedule (optional)</h2>
-        <input type="datetime-local" name="scheduled_at" value="<?= e(str_replace(' ','T',$campaign['scheduled_at']??'')) ?>" class="form-input-dark w-full text-sm">
+        <input type="datetime-local" name="scheduled_at" value="<?= e(str_replace(' ','T',$campaign['scheduled_at']??'')) ?>" class="form-input w-full text-sm">
         <p class="text-xs text-slate-600 mt-2">Leave empty to save as draft and send manually.</p>
       </div>
 
@@ -188,17 +188,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
   </form>
 </div>
 
-<style>
-.form-input-dark {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(148,163,184,0.1);
-  color: #e2e8f0; border-radius: 10px; padding: 8px 12px;
-  font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
-}
-.form-input-dark:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color: #475569; }
-textarea.form-input-dark { resize: vertical; }
-</style>
+
 
 <script>
 document.querySelector('[x-data]').__x?.$watch('preview', v => {

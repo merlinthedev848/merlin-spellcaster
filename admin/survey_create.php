@@ -88,11 +88,11 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
           <input type="hidden" name="action" value="save_survey">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Survey Name *</label>
-            <input type="text" name="name" value="<?= e($survey['name'] ?? '') ?>" class="form-input-dark w-full" placeholder="Customer Satisfaction Survey" required>
+            <input type="text" name="name" value="<?= e($survey['name'] ?? '') ?>" class="form-input w-full" placeholder="Customer Satisfaction Survey" required>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Description</label>
-            <textarea name="desc" class="form-input-dark w-full" rows="3" placeholder="What is this survey about?"><?= e($survey['description'] ?? '') ?></textarea>
+            <textarea name="desc" class="form-input w-full" rows="3" placeholder="What is this survey about?"><?= e($survey['description'] ?? '') ?></textarea>
           </div>
           <button type="submit" class="btn btn-primary w-full justify-center">💾 Save Survey</button>
         </form>
@@ -160,12 +160,12 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
           <input type="hidden" name="action" value="add_question">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Question *</label>
-            <input type="text" name="question" class="form-input-dark w-full" placeholder="How satisfied are you with our product?" required>
+            <input type="text" name="question" class="form-input w-full" placeholder="How satisfied are you with our product?" required>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold text-slate-400 mb-1.5">Type</label>
-              <select name="type" x-model="qtype" class="form-input-dark w-full">
+              <select name="type" x-model="qtype" class="form-input w-full">
                 <?php foreach ($questionTypes as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?>
               </select>
             </div>
@@ -179,7 +179,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
           <!-- Options (for MC/dropdown) -->
           <div x-show="qtype==='mc'||qtype==='dropdown'" x-cloak>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Options (one per line)</label>
-            <textarea name="options" class="form-input-dark w-full font-mono text-xs" rows="4" placeholder="Very satisfied&#10;Satisfied&#10;Neutral&#10;Dissatisfied"></textarea>
+            <textarea name="options" class="form-input w-full font-mono text-xs" rows="4" placeholder="Very satisfied&#10;Satisfied&#10;Neutral&#10;Dissatisfied"></textarea>
           </div>
           <button type="submit" class="btn btn-primary">Add Question</button>
         </form>
@@ -189,11 +189,6 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
   </div>
 </div>
 
-<style>
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

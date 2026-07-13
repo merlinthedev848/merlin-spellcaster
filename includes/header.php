@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !Auth::checkCsrf()) {
 }
 
 $currentPage = basename($_SERVER['PHP_SELF'], '.php');
+ModuleManager::triggerAction('admin_init', $currentPage);
 $appName     = getSetting('app_name', 'Merlin Spellcaster');
 $flash       = getFlash();
 $user        = Auth::currentUser();
@@ -204,16 +205,13 @@ tailwind.config = {
       <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
       Automation
     </a>
+    <div class="nav-section-label">Forms</div>
     <a href="/admin/forms.php"      class="nav-link <?= $currentPage === 'forms'      ? 'active' : '' ?>">
       <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       Forms
     </a>
 
-    <div class="nav-section-label">Research</div>
-    <a href="/admin/research.php"   class="nav-link <?= in_array($currentPage, ['research','survey_create','survey_view']) ? 'active' : '' ?>">
-      <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-      Market Research
-    </a>
+    <?php ModuleManager::renderNavItems($currentPage); ?>
 
     <div class="nav-section-label">Assets</div>
     <a href="/admin/media.php"      class="nav-link <?= $currentPage === 'media'      ? 'active' : '' ?>">

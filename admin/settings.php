@@ -87,29 +87,29 @@ $tab        = $_GET['tab'] ?? 'general';
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Application Name</label>
-        <input type="text" name="app_name" value="<?= e(getSetting('app_name')) ?>" class="form-input-dark w-full">
+        <input type="text" name="app_name" value="<?= e(getSetting('app_name')) ?>" class="form-input w-full">
       </div>
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Application URL</label>
-        <input type="url" name="app_url" value="<?= e($appUrl) ?>" class="form-input-dark w-full" placeholder="https://yourdomain.com">
+        <input type="url" name="app_url" value="<?= e($appUrl) ?>" class="form-input w-full" placeholder="https://yourdomain.com">
       </div>
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Company Name</label>
-      <input type="text" name="company_name" value="<?= e(getSetting('company_name')) ?>" class="form-input-dark w-full">
+      <input type="text" name="company_name" value="<?= e(getSetting('company_name')) ?>" class="form-input w-full">
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Company Address <span class="text-slate-600">(shown in email footers per CAN-SPAM)</span></label>
-      <textarea name="company_address" rows="2" class="form-input-dark w-full"><?= e(getSetting('company_address')) ?></textarea>
+      <textarea name="company_address" rows="2" class="form-input w-full"><?= e(getSetting('company_address')) ?></textarea>
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Unsubscribe Message</label>
-      <input type="text" name="unsubscribe_message" value="<?= e(getSetting('unsubscribe_message')) ?>" class="form-input-dark w-full">
+      <input type="text" name="unsubscribe_message" value="<?= e(getSetting('unsubscribe_message')) ?>" class="form-input w-full">
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Batch Size (emails per cron run)</label>
-        <input type="number" name="cron_batch_size" value="<?= e(getSetting('cron_batch_size','50')) ?>" min="1" max="500" class="form-input-dark w-full">
+        <input type="number" name="cron_batch_size" value="<?= e(getSetting('cron_batch_size','50')) ?>" min="1" max="500" class="form-input w-full">
       </div>
       <div class="flex items-center gap-3 pt-5">
         <input type="checkbox" name="tracking_enabled" id="tracking" value="1" <?= getSetting('tracking_enabled','1')==='1'?'checked':'' ?> class="accent-indigo-500 w-4 h-4">
@@ -129,16 +129,16 @@ $tab        = $_GET['tab'] ?? 'general';
       <div class="grid grid-cols-3 gap-3">
         <div class="col-span-2">
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">SMTP Host</label>
-          <input type="text" name="smtp_host" value="<?= e(getSetting('smtp_host')) ?>" class="form-input-dark w-full" placeholder="smtp.gmail.com">
+          <input type="text" name="smtp_host" value="<?= e(getSetting('smtp_host')) ?>" class="form-input w-full" placeholder="smtp.gmail.com">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Port</label>
-          <input type="number" name="smtp_port" value="<?= e(getSetting('smtp_port','587')) ?>" class="form-input-dark w-full">
+          <input type="number" name="smtp_port" value="<?= e(getSetting('smtp_port','587')) ?>" class="form-input w-full">
         </div>
       </div>
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Encryption</label>
-        <select name="smtp_encryption" class="form-input-dark w-full">
+        <select name="smtp_encryption" class="form-input w-full">
           <?php foreach (['tls'=>'TLS (STARTTLS)','ssl'=>'SSL','none'=>'None'] as $v=>$l): ?>
           <option value="<?= $v ?>" <?= getSetting('smtp_encryption','tls')===$v?'selected':'' ?>><?= $l ?></option>
           <?php endforeach; ?>
@@ -147,21 +147,21 @@ $tab        = $_GET['tab'] ?? 'general';
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">SMTP Username</label>
-          <input type="text" name="smtp_user" value="<?= e(getSetting('smtp_user')) ?>" class="form-input-dark w-full">
+          <input type="text" name="smtp_user" value="<?= e(getSetting('smtp_user')) ?>" class="form-input w-full">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">SMTP Password <span class="text-slate-600">(leave blank to keep)</span></label>
-          <input type="password" name="smtp_pass" class="form-input-dark w-full" placeholder="••••••••">
+          <input type="password" name="smtp_pass" class="form-input w-full" placeholder="••••••••">
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">From Name</label>
-          <input type="text" name="smtp_from_name" value="<?= e(getSetting('smtp_from_name')) ?>" class="form-input-dark w-full">
+          <input type="text" name="smtp_from_name" value="<?= e(getSetting('smtp_from_name')) ?>" class="form-input w-full">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">From Email</label>
-          <input type="email" name="smtp_from_email" value="<?= e(getSetting('smtp_from_email')) ?>" class="form-input-dark w-full">
+          <input type="email" name="smtp_from_email" value="<?= e(getSetting('smtp_from_email')) ?>" class="form-input w-full">
         </div>
       </div>
       <button type="submit" class="btn btn-primary">Save SMTP Settings</button>
@@ -172,7 +172,7 @@ $tab        = $_GET['tab'] ?? 'general';
       <input type="hidden" name="section" value="test_smtp">
       <div class="flex-1">
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Send Test Email</label>
-        <input type="email" name="test_email" class="form-input-dark w-full" placeholder="your@email.com" required>
+        <input type="email" name="test_email" class="form-input w-full" placeholder="your@email.com" required>
       </div>
       <button type="submit" class="btn btn-secondary">Send Test</button>
     </form>
@@ -247,11 +247,6 @@ $tab        = $_GET['tab'] ?? 'general';
   <?php endif; ?>
 </div>
 
-<style>
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

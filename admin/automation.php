@@ -166,11 +166,11 @@ if ($activeSeqId) {
     <h2 class="text-lg font-bold text-white">New Automation Sequence</h2>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Sequence Name *</label>
-      <input type="text" name="name" class="form-input-dark w-full" placeholder="Welcome Series" required autofocus>
+      <input type="text" name="name" class="form-input w-full" placeholder="Welcome Series" required autofocus>
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Trigger Event</label>
-      <select name="trigger_event" class="form-input-dark w-full">
+      <select name="trigger_event" class="form-input w-full">
         <option value="subscribe">On Subscribe</option>
         <option value="confirm">On Confirm (double opt-in)</option>
         <option value="tag">On Tag Applied</option>
@@ -178,7 +178,7 @@ if ($activeSeqId) {
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">For List (optional)</label>
-      <select name="list_id" class="form-input-dark w-full">
+      <select name="list_id" class="form-input w-full">
         <option value="">Any list</option>
         <?php foreach ($lists as $l): ?><option value="<?= $l['id'] ?>"><?= e($l['name']) ?></option><?php endforeach; ?>
       </select>
@@ -199,7 +199,7 @@ if ($activeSeqId) {
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Step Type</label>
-        <select name="step_type" class="form-input-dark w-full">
+        <select name="step_type" class="form-input w-full">
           <option value="email">📧 Send Email</option>
           <option value="wait">⏱ Wait / Delay</option>
           <option value="tag">🏷 Apply Tag</option>
@@ -209,18 +209,18 @@ if ($activeSeqId) {
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Delay Before Sending</label>
         <div class="flex gap-2">
-          <input type="number" name="delay_days" value="0" min="0" class="form-input-dark w-full text-sm" placeholder="Days">
-          <input type="number" name="delay_hours" value="0" min="0" max="23" class="form-input-dark w-full text-sm" placeholder="Hrs">
+          <input type="number" name="delay_days" value="0" min="0" class="form-input w-full text-sm" placeholder="Days">
+          <input type="number" name="delay_hours" value="0" min="0" max="23" class="form-input w-full text-sm" placeholder="Hrs">
         </div>
       </div>
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Subject</label>
-      <input type="text" name="subject" class="form-input-dark w-full" placeholder="Welcome to {{app_name}}!">
+      <input type="text" name="subject" class="form-input w-full" placeholder="Welcome to {{app_name}}!">
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Email Body (HTML)</label>
-      <textarea name="body_html" class="form-input-dark w-full font-mono text-xs" rows="6" placeholder="<h2>Welcome!</h2><p>Hello {{first_name}}…</p>"></textarea>
+      <textarea name="body_html" class="form-input w-full font-mono text-xs" rows="6" placeholder="<h2>Welcome!</h2><p>Hello {{first_name}}…</p>"></textarea>
     </div>
     <div class="flex gap-2">
       <button type="submit" class="btn btn-primary flex-1 justify-center">Add Step</button>
@@ -229,12 +229,6 @@ if ($activeSeqId) {
   </form>
 </dialog>
 
-<style>
-dialog::backdrop { background:rgba(0,0,0,0.7);backdrop-filter:blur(4px); }
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

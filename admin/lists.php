@@ -104,11 +104,11 @@ $lists = $db->query("SELECT l.*, COUNT(sl.subscriber_id) as real_count FROM list
     <h2 class="text-lg font-bold text-white">Create New List</h2>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">List Name *</label>
-      <input type="text" name="name" class="form-input-dark w-full" placeholder="Main Newsletter" required autofocus>
+      <input type="text" name="name" class="form-input w-full" placeholder="Main Newsletter" required autofocus>
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Description</label>
-      <textarea name="desc" class="form-input-dark w-full" rows="2" placeholder="Brief description…"></textarea>
+      <textarea name="desc" class="form-input w-full" rows="2" placeholder="Brief description…"></textarea>
     </div>
     <div class="flex gap-4">
       <label class="flex items-center gap-2 cursor-pointer">
@@ -130,11 +130,5 @@ $lists = $db->query("SELECT l.*, COUNT(sl.subscriber_id) as real_count FROM list
     </div>
   </form>
 </dialog>
-<style>
-dialog::backdrop { background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); }
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

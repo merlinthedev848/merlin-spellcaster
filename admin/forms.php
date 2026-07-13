@@ -118,11 +118,11 @@ $appUrl = getSetting('app_url');
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Form Name *</label>
-        <input type="text" name="name" value="<?= e($editForm['name'] ?? '') ?>" class="form-input-dark w-full" required>
+        <input type="text" name="name" value="<?= e($editForm['name'] ?? '') ?>" class="form-input w-full" required>
       </div>
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Add to List</label>
-        <select name="list_id" class="form-input-dark w-full">
+        <select name="list_id" class="form-input w-full">
           <option value="">— None —</option>
           <?php foreach ($lists as $l): ?><option value="<?= $l['id'] ?>" <?= ($editForm['list_id']??0)==$l['id']?'selected':'' ?>><?= e($l['name']) ?></option><?php endforeach; ?>
         </select>
@@ -130,25 +130,25 @@ $appUrl = getSetting('app_url');
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Headline</label>
-      <input type="text" name="headline" value="<?= e($editForm['headline'] ?? 'Subscribe to our newsletter') ?>" class="form-input-dark w-full">
+      <input type="text" name="headline" value="<?= e($editForm['headline'] ?? 'Subscribe to our newsletter') ?>" class="form-input w-full">
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Description</label>
-      <textarea name="description" class="form-input-dark w-full" rows="2"><?= e($editForm['description'] ?? '') ?></textarea>
+      <textarea name="description" class="form-input w-full" rows="2"><?= e($editForm['description'] ?? '') ?></textarea>
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Button Text</label>
-        <input type="text" name="button_text" value="<?= e($editForm['button_text'] ?? 'Subscribe') ?>" class="form-input-dark w-full">
+        <input type="text" name="button_text" value="<?= e($editForm['button_text'] ?? 'Subscribe') ?>" class="form-input w-full">
       </div>
       <div>
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Success Message</label>
-        <input type="text" name="success_message" value="<?= e($editForm['success_message'] ?? 'Thank you for subscribing!') ?>" class="form-input-dark w-full">
+        <input type="text" name="success_message" value="<?= e($editForm['success_message'] ?? 'Thank you for subscribing!') ?>" class="form-input w-full">
       </div>
     </div>
     <div>
       <label class="block text-xs font-semibold text-slate-400 mb-1.5">Redirect URL after subscribe (optional)</label>
-      <input type="url" name="redirect_url" value="<?= e($editForm['redirect_url'] ?? '') ?>" class="form-input-dark w-full" placeholder="https://example.com/thank-you">
+      <input type="url" name="redirect_url" value="<?= e($editForm['redirect_url'] ?? '') ?>" class="form-input w-full" placeholder="https://example.com/thank-you">
     </div>
     <div class="flex gap-4">
       <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="show_name" <?= ($editForm['show_name']??1)?'checked':'' ?> class="accent-indigo-500 w-4 h-4"><span class="text-sm text-slate-300">Show Name</span></label>
@@ -162,13 +162,7 @@ $appUrl = getSetting('app_url');
   </form>
 </dialog>
 
-<style>
-dialog::backdrop { background:rgba(0,0,0,0.7);backdrop-filter:blur(4px); }
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 
 <?php
 // Auto-open modal on edit

@@ -60,22 +60,7 @@ $loggedOut = ($_GET['msg'] ?? '') === 'logged_out';
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; }
-  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-  .float { animation: float 6s ease-in-out infinite; }
-  .fade-up { animation: fadeUp 0.5s ease forwards; }
-  .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; }
-  .form-input {
-    background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.12);
-    border-radius: 10px; padding: 12px 16px; color: #e2e8f0; font-size: 14.5px;
-    width: 100%; transition: all 0.2s; font-family: inherit;
-  }
-  .form-input:focus { outline: none; border-color: rgba(99,102,241,0.5); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
-  .form-input::placeholder { color: #475569; }
-</style>
+
 </head>
 <body class="bg-[#0B0F19] min-h-screen flex items-center justify-center relative overflow-hidden" x-data="{ showPass: false }">
 

@@ -129,35 +129,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Paste -->
         <div x-show="mode==='paste'" x-cloak>
           <label class="block text-xs font-semibold text-slate-400 mb-2">Paste Emails <span class="text-slate-600">(one per line, or comma-separated: email,First,Last)</span></label>
-          <textarea name="paste_data" class="form-input-dark w-full font-mono text-xs" rows="10" placeholder="john@example.com,John,Doe&#10;jane@example.com&#10;bob@example.com,Bob,Smith"></textarea>
+          <textarea name="paste_data" class="form-input w-full font-mono text-xs" rows="10" placeholder="john@example.com,John,Doe&#10;jane@example.com&#10;bob@example.com,Bob,Smith"></textarea>
         </div>
 
         <!-- Column mapping (for CSV) -->
         <div x-show="mode==='csv'" class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Email Column Index *</label>
-            <input type="number" name="col_email" value="0" min="0" class="form-input-dark w-full text-sm">
+            <input type="number" name="col_email" value="0" min="0" class="form-input w-full text-sm">
             <p class="text-xs text-slate-600 mt-1">0 = first column</p>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">First Name Column</label>
-            <input type="number" name="col_first" value="1" min="-1" class="form-input-dark w-full text-sm">
+            <input type="number" name="col_first" value="1" min="-1" class="form-input w-full text-sm">
             <p class="text-xs text-slate-600 mt-1">-1 = not present</p>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Last Name Column</label>
-            <input type="number" name="col_last" value="2" min="-1" class="form-input-dark w-full text-sm">
+            <input type="number" name="col_last" value="2" min="-1" class="form-input w-full text-sm">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Tags Column</label>
-            <input type="number" name="col_tags" value="-1" min="-1" class="form-input-dark w-full text-sm">
+            <input type="number" name="col_tags" value="-1" min="-1" class="form-input w-full text-sm">
           </div>
         </div>
 
         <!-- Common fields -->
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Add to List (optional)</label>
-          <select name="list_id" class="form-input-dark w-full text-sm">
+          <select name="list_id" class="form-input w-full text-sm">
             <option value="">— Don't add to a list —</option>
             <?php foreach ($lists as $l): ?>
             <option value="<?= $l['id'] ?>"><?= e($l['name']) ?></option>
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Source Tag</label>
-          <input type="text" name="source" value="import" class="form-input-dark w-full text-sm" placeholder="import">
+          <input type="text" name="source" value="import" class="form-input w-full text-sm" placeholder="import">
         </div>
 
         <button type="submit" class="btn btn-primary w-full justify-center">📥 Import Now</button>
@@ -208,11 +208,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 </div>
 
-<style>
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -66,11 +66,11 @@ $starters = [
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Template Name *</label>
-            <input type="text" name="name" value="<?= e($template['name'] ?? '') ?>" class="form-input-dark w-full" placeholder="Welcome Email" required autofocus>
+            <input type="text" name="name" value="<?= e($template['name'] ?? '') ?>" class="form-input w-full" placeholder="Welcome Email" required autofocus>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Default Subject</label>
-            <input type="text" name="subject" value="<?= e($template['subject'] ?? '') ?>" class="form-input-dark w-full" placeholder="Welcome to {{app_name}}!">
+            <input type="text" name="subject" value="<?= e($template['subject'] ?? '') ?>" class="form-input w-full" placeholder="Welcome to {{app_name}}!">
           </div>
         </div>
       </div>
@@ -84,14 +84,14 @@ $starters = [
           </div>
         </div>
         <div x-show="!preview">
-          <textarea name="body_html" id="bodyHtml" class="form-input-dark w-full font-mono text-xs" rows="22" placeholder="<!-- Paste full HTML email here -->"><?= e($template['body_html'] ?? '') ?></textarea>
+          <textarea name="body_html" id="bodyHtml" class="form-input w-full font-mono text-xs" rows="22" placeholder="<!-- Paste full HTML email here -->"><?= e($template['body_html'] ?? '') ?></textarea>
         </div>
         <div x-show="preview" x-cloak class="rounded-xl overflow-hidden border border-white/10" style="height:500px">
           <iframe id="previewFrame" class="w-full h-full bg-white" sandbox="allow-same-origin"></iframe>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">Plain Text</label>
-          <textarea name="body_text" class="form-input-dark w-full font-mono text-xs" rows="4" placeholder="Plain text fallback (optional)"><?= e($template['body_text'] ?? '') ?></textarea>
+          <textarea name="body_text" class="form-input w-full font-mono text-xs" rows="4" placeholder="Plain text fallback (optional)"><?= e($template['body_text'] ?? '') ?></textarea>
         </div>
       </div>
     </div>
@@ -115,12 +115,7 @@ $starters = [
   </form>
 </div>
 
-<style>
-.form-input-dark { background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s;outline:none;width:100%; }
-.form-input-dark:focus { border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-.form-input-dark::placeholder { color:#475569; }
-textarea.form-input-dark { resize:vertical; }
-</style>
+
 <script>
 function refreshPreview() {
   const html = document.getElementById('bodyHtml').value;
