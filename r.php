@@ -56,4 +56,9 @@ try {
     if ($isUnique) {
         $db->prepare("UPDATE campaigns SET click_count=click_count+1 WHERE id=?")->execute([$c]);
     }
+    
+    // Trigger hook for modules (like Lead Scoring)
+    require_once __DIR__ . '/core/ModuleManager.php';
+    ModuleManager::triggerAction('link_clicked', $c, $s, $url);
+
 } catch (Throwable) {}

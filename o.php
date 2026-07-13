@@ -50,6 +50,11 @@ try {
     if ($isUnique) {
         $db->prepare("UPDATE campaigns SET open_count=open_count+1 WHERE id=?")->execute([$c]);
     }
+    
+    // Trigger hook for modules (like Lead Scoring)
+    require_once __DIR__ . '/core/ModuleManager.php';
+    ModuleManager::triggerAction('email_opened', $c, $s);
+
 } catch (Throwable) {
     // Silently fail — never show errors on tracking pixel
 }
