@@ -1,0 +1,7 @@
+{
+    "slug": "webhooks",
+    "name": "Webhooks (Zapier Ready)",
+    "description": "Generate inbound API endpoints to let external apps (like Shopify or WordPress) automatically push subscribers into your lists.",
+    "version": "1.0.0",
+    "author": "Antigravity"
+}

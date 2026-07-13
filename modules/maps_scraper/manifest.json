@@ -1,0 +1,7 @@
+{
+    "slug": "maps_scraper",
+    "name": "Google Maps B2B Scraper",
+    "description": "Scrapes Google Maps for local businesses (plumbers, dentists, etc.) and extracts their public email addresses.",
+    "version": "1.0.0",
+    "author": "Antigravity"
+}
