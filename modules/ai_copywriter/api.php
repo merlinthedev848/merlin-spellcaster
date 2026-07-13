@@ -25,7 +25,9 @@ if (!$prompt) {
 // because we don't have the user's OpenAI key. 
 // If they provide one, they can replace the key below.
 
-$apiKey = getSetting('openai_api_key', '');
+$apiKey = getSetting('ai_key', getSetting('openai_api_key', ''));
+$endpoint = getSetting('ai_endpoint', 'https://api.openai.com/v1/chat/completions');
+$model = getSetting('ai_model', 'gpt-3.5-turbo');
 
 if ($apiKey === '') {
     // Mock response for demonstration
@@ -42,8 +44,8 @@ if ($apiKey === '') {
     exit;
 }
 
-// Actual OpenAI Call
-$ch = curl_init('https://api.openai.com/v1/chat/completions');
+// Actual AI Call (compatible with OpenAI, OpenClaw, DeepSeek, etc.)
+$ch = curl_init($endpoint);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -51,9 +53,9 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Bearer ' . $apiKey
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-    'model' => 'gpt-3.5-turbo',
+    'model' => $model,
     'messages' => [
-        ['role' => 'system', 'content' => 'You are an expert email copywriter. The user will give you a prompt. You must reply with a JSON object containing exactly two keys: "subject" (a catchy subject line with emojis) and "body_html" (the full HTML body of the email, styled inline nicely).'],
+        ['role' => 'system', 'content' => 'You are an expert email copywriter. The user will give you a prompt. You must reply with a JSON object containing exactly two keys: "subject" (a catchy subject line with emojis) and "body_html" (the full HTML body of the email, styled inline nicely). Do NOT wrap in markdown blocks, output raw JSON.'],
         ['role' => 'user', 'content' => $prompt]
     ]
 ]));

@@ -34,6 +34,37 @@ $keys = $db->query("SELECT * FROM mod_openclaw_keys ORDER BY id DESC")->fetchAll
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <div class="card p-6 border-t-4 border-fuchsia-500 mt-6">
+    <h2 class="text-lg font-bold text-white mb-4">Outbound AI Provider (For AI Copywriter)</h2>
+    <p class="text-slate-400 text-sm mb-6">Select which AI provider powers the 'Magic Wand' inside the Campaign Creator. If you have a local OpenClaw server running, you can connect it here!</p>
+    
+    <form method="post" >
+        <?= Auth::csrfField() ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">AI Provider</label>
+                <select name="ai_provider" class="form-input w-full" required>
+                    <option value="openclaw" <?= getSetting('ai_provider') === 'openclaw' ? 'selected' : '' ?>>OpenClaw (Self-Hosted)</option>
+                    <option value="openai" <?= getSetting('ai_provider') === 'openai' ? 'selected' : '' ?>>OpenAI</option>
+                    <option value="deepseek" <?= getSetting('ai_provider') === 'deepseek' ? 'selected' : '' ?>>DeepSeek</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Model Name</label>
+                <input type="text" name="ai_model" value="<?= e(getSetting('ai_model', 'gpt-3.5-turbo')) ?>" class="form-input w-full" placeholder="e.g. gpt-4, local-model" required>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-400 mb-1.5">API Endpoint URL (v1/chat/completions format)</label>
+            <input type="url" name="ai_endpoint" value="<?= e(getSetting('ai_endpoint', 'http://127.0.0.1:8080/v1/chat/completions')) ?>" class="form-input w-full" placeholder="http://192.168.../v1/chat/completions" required>
+        </div>
+        <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-400 mb-1.5">API Key / Bearer Token</label>
+            <input type="password" name="ai_key" value="<?= e(getSetting('ai_key', '')) ?>" class="form-input w-full" placeholder="sk-...">
+        </div>
+        <button type="submit" class="btn btn-primary bg-fuchsia-600 hover:bg-fuchsia-500">Save AI Provider</button>
+    </form>
+</div>
   <div class="card p-6 border-t-4 border-blue-500">
     <h2 class="text-lg font-bold text-white mb-4">Generate API Key</h2>
     <p class="text-slate-400 text-sm mb-6">Create a secure Bearer token to allow your OpenClaw agent to manage your campaigns autonomously.</p>
