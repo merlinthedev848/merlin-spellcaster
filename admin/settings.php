@@ -92,6 +92,7 @@ $tab        = $_GET['tab'] ?? 'general';
   <!-- General -->
   <?php if ($tab === 'general'): ?>
   <form method="post" class="card p-6 space-y-4 max-w-2xl">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="section" value="general">
     <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">General Settings</h2>
     <div class="grid grid-cols-2 gap-4">
@@ -134,6 +135,7 @@ $tab        = $_GET['tab'] ?? 'general';
   <?php if ($tab === 'smtp'): ?>
   <div class="space-y-4 max-w-2xl">
     <form method="post" class="card p-6 space-y-4">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="section" value="smtp">
       <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">SMTP Configuration</h2>
       <div class="grid grid-cols-3 gap-3">
@@ -179,6 +181,7 @@ $tab        = $_GET['tab'] ?? 'general';
 
     <!-- Test email -->
     <form method="post" class="card p-5 flex gap-3 items-end">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="section" value="test_smtp">
       <div class="flex-1">
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Send Test Email</label>
@@ -218,6 +221,7 @@ $tab        = $_GET['tab'] ?? 'general';
       <div class="flex items-center gap-2">
         <input type="text" value="<?= e($cronSecret) ?>" readonly class="text-xs bg-slate-900 border border-white/10 rounded-lg px-3 py-2 flex-1 text-slate-400 focus:outline-none font-mono">
         <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="section" value="regen_secret">
           <button type="submit" onclick="return confirm('Regenerate secret? This will break existing cron URLs.')" class="btn btn-secondary text-xs">🔄 Regenerate</button>
         </form>
@@ -238,6 +242,7 @@ $tab        = $_GET['tab'] ?? 'general';
           <p class="text-xs text-slate-500">Remove all pending/failed emails from the queue</p>
         </div>
         <form method="post" onsubmit="return confirm('Clear ALL pending emails from queue?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="section" value="clear_queue">
           <button class="btn text-xs py-1.5 px-3" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)">Clear Queue</button>
         </form>
@@ -248,6 +253,7 @@ $tab        = $_GET['tab'] ?? 'general';
           <p class="text-xs text-slate-500">Reset setup_complete flag to restart onboarding</p>
         </div>
         <form method="post" onsubmit="return confirm('Reset setup wizard?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="section" value="reset_setup">
           <button class="btn text-xs py-1.5 px-3" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)">Reset Setup</button>
         </form>
@@ -335,6 +341,7 @@ $tab        = $_GET['tab'] ?? 'general';
   <!-- General -->
   <?php if ($tab === 'general'): ?>
   <form method="post" class="card p-6 space-y-4 max-w-2xl">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="section" value="general">
     <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">General Settings</h2>
     <div class="grid grid-cols-2 gap-4">
@@ -377,6 +384,7 @@ $tab        = $_GET['tab'] ?? 'general';
   <?php if ($tab === 'smtp'): ?>
   <div class="space-y-4 max-w-2xl">
     <form method="post" class="card p-6 space-y-4">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="section" value="smtp">
       <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">SMTP Configuration</h2>
       <div class="grid grid-cols-3 gap-3">
@@ -422,6 +430,7 @@ $tab        = $_GET['tab'] ?? 'general';
 
     <!-- Test email -->
     <form method="post" class="card p-5 flex gap-3 items-end">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="section" value="test_smtp">
       <div class="flex-1">
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Send Test Email</label>
@@ -461,6 +470,7 @@ $tab        = $_GET['tab'] ?? 'general';
       <div class="flex items-center gap-2">
         <input type="text" value="<?= e($cronSecret) ?>" readonly class="text-xs bg-slate-900 border border-white/10 rounded-lg px-3 py-2 flex-1 text-slate-400 focus:outline-none font-mono">
         <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="section" value="regen_secret">
           <button type="submit" onclick="return confirm('Regenerate secret? This will break existing cron URLs.')" class="btn btn-secondary text-xs">🔄 Regenerate</button>
         </form>
@@ -481,6 +491,7 @@ $tab        = $_GET['tab'] ?? 'general';
           <p class="text-xs text-slate-500">Remove all pending/failed emails from the queue</p>
         </div>
         <form method="post" onsubmit="return confirm('Clear ALL pending emails from queue?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="section" value="clear_queue">
           <button class="btn text-xs py-1.5 px-3" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)">Clear Queue</button>
         </form>
@@ -491,6 +502,7 @@ $tab        = $_GET['tab'] ?? 'general';
           <p class="text-xs text-slate-500">Reset setup_complete flag to restart onboarding</p>
         </div>
         <form method="post" onsubmit="return confirm('Reset setup wizard?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="section" value="reset_setup">
           <button class="btn text-xs py-1.5 px-3" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)">Reset Setup</button>
         </form>

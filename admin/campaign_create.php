@@ -105,6 +105,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
   <?php endif; ?>
 
   <form method="post" class="grid grid-cols-1 xl:grid-cols-3 gap-5" x-data="{preview:false,selectedTemplate:0}" x-init="">
+    <?= Auth::csrfField() ?>
 
     <!-- Left: Main -->
     <div class="xl:col-span-2 space-y-4">
@@ -318,6 +319,7 @@ $lists     = $db->query("SELECT * FROM lists ORDER BY name")->fetchAll();
   <?php endif; ?>
 
   <form method="post" class="grid grid-cols-1 xl:grid-cols-3 gap-5" x-data="{preview:false,selectedTemplate:0}" x-init="">
+    <?= Auth::csrfField() ?>
 
     <!-- Left: Main -->
     <div class="xl:col-span-2 space-y-4">

@@ -69,6 +69,7 @@ $openDayCounts = json_encode(array_column($opensByDay,'cnt'));
     <div class="flex gap-2">
       <?php if (in_array($campaign['status'],['draft','scheduled'])): ?>
       <form method="post" action="/admin/campaigns.php" onsubmit="return confirm('Start sending now?')">
+    <?= Auth::csrfField() ?>
         <input type="hidden" name="action" value="send">
         <input type="hidden" name="id" value="<?= $id ?>">
         <button class="btn btn-primary">🚀 Send Now</button>

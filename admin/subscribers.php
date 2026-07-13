@@ -123,6 +123,7 @@ $statusColors = [
   <!-- Filters -->
   <div class="flex flex-wrap gap-2 items-center">
     <form method="get" class="flex gap-2">
+    <?= Auth::csrfField() ?>
       <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search email, name…" class="form-input-sm">
       <?php if ($status): ?><input type="hidden" name="status" value="<?= e($status) ?>"><?php endif; ?>
       <?php if ($listId): ?><input type="hidden" name="list" value="<?= $listId ?>"><?php endif; ?>
@@ -146,11 +147,13 @@ $statusColors = [
   <div x-show="selected.length > 0" x-cloak class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2)">
     <span class="text-sm text-indigo-300 font-semibold" x-text="selected.length+' selected'"></span>
     <form method="post" style="display:inline" onsubmit="document.getElementById('bulkIds').value=selected.join(','); return confirm('Unsubscribe selected?')">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="action" value="bulk_unsub">
       <input type="hidden" id="bulkIds" name="ids" :value="selected.join(',')">
       <button class="btn btn-secondary text-xs py-1 px-3">Unsubscribe</button>
     </form>
     <form method="post" style="display:inline" onsubmit="document.getElementById('bulkDelIds').value=selected.join(','); return confirm('DELETE selected permanently?')">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="action" value="bulk_delete">
       <input type="hidden" id="bulkDelIds" name="ids" :value="selected.join(',')">
       <button class="btn text-xs py-1 px-3" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)">Delete</button>
@@ -209,6 +212,7 @@ $statusColors = [
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7"/></svg>
               </a>
               <form method="post" style="display:inline" onsubmit="return confirm('Delete this subscriber?')">
+    <?= Auth::csrfField() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
                 <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete">
@@ -354,6 +358,7 @@ $statusColors = [
   <!-- Filters -->
   <div class="flex flex-wrap gap-2 items-center">
     <form method="get" class="flex gap-2">
+    <?= Auth::csrfField() ?>
       <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search email, name…" class="form-input-sm">
       <?php if ($status): ?><input type="hidden" name="status" value="<?= e($status) ?>"><?php endif; ?>
       <?php if ($listId): ?><input type="hidden" name="list" value="<?= $listId ?>"><?php endif; ?>
@@ -377,11 +382,13 @@ $statusColors = [
   <div x-show="selected.length > 0" x-cloak class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2)">
     <span class="text-sm text-indigo-300 font-semibold" x-text="selected.length+' selected'"></span>
     <form method="post" style="display:inline" onsubmit="document.getElementById('bulkIds').value=selected.join(','); return confirm('Unsubscribe selected?')">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="action" value="bulk_unsub">
       <input type="hidden" id="bulkIds" name="ids" :value="selected.join(',')">
       <button class="btn btn-secondary text-xs py-1 px-3">Unsubscribe</button>
     </form>
     <form method="post" style="display:inline" onsubmit="document.getElementById('bulkDelIds').value=selected.join(','); return confirm('DELETE selected permanently?')">
+    <?= Auth::csrfField() ?>
       <input type="hidden" name="action" value="bulk_delete">
       <input type="hidden" id="bulkDelIds" name="ids" :value="selected.join(',')">
       <button class="btn text-xs py-1 px-3" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)">Delete</button>
@@ -440,6 +447,7 @@ $statusColors = [
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7"/></svg>
               </a>
               <form method="post" style="display:inline" onsubmit="return confirm('Delete this subscriber?')">
+    <?= Auth::csrfField() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
                 <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete">

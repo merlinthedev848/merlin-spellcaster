@@ -12,6 +12,7 @@ require_once dirname(__DIR__, 3) . '/includes/header.php';
   <div class="card p-6 border-t-4 border-indigo-500">
     <h2 class="text-lg font-bold text-white mb-4">Start Local Scrape</h2>
     <form method="post" onsubmit="alert('This feature requires an Outscraper or SerpApi key to prevent IP bans. Add your API key in Settings to activate the Maps engine.'); return false;">
+    <?= Auth::csrfField() ?>
       <div class="mb-4">
         <label class="block text-xs font-semibold text-slate-400 mb-1.5">Niche / Business Type</label>
         <input type="text" name="niche" class="form-input w-full" placeholder="e.g. 'Plumbers', 'Dentists'" required>

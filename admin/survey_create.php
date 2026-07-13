@@ -104,6 +104,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
       <div class="card p-5">
         <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Survey Details</h2>
         <form method="post" class="space-y-3">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="save_survey">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Survey Name *</label>
@@ -122,6 +123,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
       <div class="card p-5 space-y-2">
         <?php if ($survey['status'] === 'draft'): ?>
         <form method="post">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="activate">
           <button type="submit" class="btn w-full justify-center" style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)" onclick="return confirm('Make this survey live?')">🚀 Activate Survey</button>
         </form>
@@ -161,6 +163,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
             <?php endif; ?>
           </div>
           <form method="post" onsubmit="return confirm('Remove question?')" style="display:inline">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="delete_question">
             <input type="hidden" name="qid" value="<?= $q['id'] ?>">
             <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
@@ -176,6 +179,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
       <div class="card p-5" x-data="{qtype:'text'}">
         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Add Question</h3>
         <form method="post" class="space-y-3">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="add_question">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Question *</label>
@@ -280,6 +284,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
       <div class="card p-5">
         <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Survey Details</h2>
         <form method="post" class="space-y-3">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="save_survey">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Survey Name *</label>
@@ -298,6 +303,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
       <div class="card p-5 space-y-2">
         <?php if ($survey['status'] === 'draft'): ?>
         <form method="post">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="activate">
           <button type="submit" class="btn w-full justify-center" style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)" onclick="return confirm('Make this survey live?')">🚀 Activate Survey</button>
         </form>
@@ -337,6 +343,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
             <?php endif; ?>
           </div>
           <form method="post" onsubmit="return confirm('Remove question?')" style="display:inline">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="delete_question">
             <input type="hidden" name="qid" value="<?= $q['id'] ?>">
             <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
@@ -352,6 +359,7 @@ $questionTypes = ['text'=>'Text','textarea'=>'Long Text','mc'=>'Multiple Choice'
       <div class="card p-5" x-data="{qtype:'text'}">
         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Add Question</h3>
         <form method="post" class="space-y-3">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="add_question">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">Question *</label>

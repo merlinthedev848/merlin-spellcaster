@@ -109,6 +109,7 @@ $statusColors = [
   <!-- Filters -->
   <div class="flex flex-wrap gap-3">
     <form method="get" class="flex gap-2 flex-1">
+    <?= Auth::csrfField() ?>
       <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search campaigns…" class="form-input flex-1 max-w-xs text-sm px-3 py-2 rounded-lg" style="background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;outline:none;">
       <?php if ($statusFilter): ?><input type="hidden" name="status" value="<?= e($statusFilter) ?>"><?php endif; ?>
       <button class="btn btn-secondary text-sm">Search</button>
@@ -165,6 +166,7 @@ $statusColors = [
                 </a>
                 <?php if (in_array($c['status'], ['draft','scheduled'])): ?>
                 <form method="post" style="display:inline" onsubmit="return confirm('Start sending this campaign?')">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="send">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 transition-colors" title="Send Now">
@@ -173,6 +175,7 @@ $statusColors = [
                 </form>
                 <?php elseif ($c['status'] === 'sending'): ?>
                 <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="pause">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-orange-500/20 text-slate-400 hover:text-orange-400 transition-colors" title="Pause">
@@ -181,6 +184,7 @@ $statusColors = [
                 </form>
                 <?php elseif ($c['status'] === 'paused'): ?>
                 <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="resume">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 transition-colors" title="Resume">
@@ -189,6 +193,7 @@ $statusColors = [
                 </form>
                 <?php endif; ?>
                 <form method="post" style="display:inline" onsubmit="return confirm('Delete this campaign permanently?')">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete">
@@ -307,6 +312,7 @@ $statusColors = [
   <!-- Filters -->
   <div class="flex flex-wrap gap-3">
     <form method="get" class="flex gap-2 flex-1">
+    <?= Auth::csrfField() ?>
       <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search campaigns…" class="form-input flex-1 max-w-xs text-sm px-3 py-2 rounded-lg" style="background:rgba(255,255,255,0.03);border:1px solid rgba(148,163,184,0.1);color:#e2e8f0;outline:none;">
       <?php if ($statusFilter): ?><input type="hidden" name="status" value="<?= e($statusFilter) ?>"><?php endif; ?>
       <button class="btn btn-secondary text-sm">Search</button>
@@ -363,6 +369,7 @@ $statusColors = [
                 </a>
                 <?php if (in_array($c['status'], ['draft','scheduled'])): ?>
                 <form method="post" style="display:inline" onsubmit="return confirm('Start sending this campaign?')">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="send">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 transition-colors" title="Send Now">
@@ -371,6 +378,7 @@ $statusColors = [
                 </form>
                 <?php elseif ($c['status'] === 'sending'): ?>
                 <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="pause">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-orange-500/20 text-slate-400 hover:text-orange-400 transition-colors" title="Pause">
@@ -379,6 +387,7 @@ $statusColors = [
                 </form>
                 <?php elseif ($c['status'] === 'paused'): ?>
                 <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="resume">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 transition-colors" title="Resume">
@@ -387,6 +396,7 @@ $statusColors = [
                 </form>
                 <?php endif; ?>
                 <form method="post" style="display:inline" onsubmit="return confirm('Delete this campaign permanently?')">
+    <?= Auth::csrfField() ?>
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete">

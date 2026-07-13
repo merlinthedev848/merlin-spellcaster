@@ -180,6 +180,7 @@ $statusColors = ['draft'=>'text-slate-400 bg-slate-800','active'=>'text-emerald-
         <a href="/admin/survey_view.php?id=<?= $survey['id'] ?>" class="btn btn-secondary text-xs flex-1 justify-center">📊 Results</a>
         <a href="/admin/survey_create.php?id=<?= $survey['id'] ?>" class="btn btn-secondary text-xs justify-center">✏️</a>
         <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="toggle">
           <input type="hidden" name="id" value="<?= $survey['id'] ?>">
           <button class="btn text-xs <?= $survey['status']==='active'?'text-amber-400':'text-emerald-400' ?> bg-white/5 border border-white/10" title="<?= $survey['status']==='active'?'Close':'Activate' ?>">
@@ -280,6 +281,7 @@ $statusColors = ['draft'=>'text-slate-400 bg-slate-800','active'=>'text-emerald-
         <a href="/admin/survey_view.php?id=<?= $survey['id'] ?>" class="btn btn-secondary text-xs flex-1 justify-center">📊 Results</a>
         <a href="/admin/survey_create.php?id=<?= $survey['id'] ?>" class="btn btn-secondary text-xs justify-center">✏️</a>
         <form method="post" style="display:inline">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="toggle">
           <input type="hidden" name="id" value="<?= $survey['id'] ?>">
           <button class="btn text-xs <?= $survey['status']==='active'?'text-amber-400':'text-emerald-400' ?> bg-white/5 border border-white/10" title="<?= $survey['status']==='active'?'Close':'Activate' ?>">

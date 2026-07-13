@@ -55,6 +55,7 @@ $files = $db->query("SELECT * FROM media ORDER BY uploaded_at DESC, id DESC LIMI
 
 <div class="card p-6 mb-6">
   <form method="post" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-3 items-end">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="upload">
     <div class="flex-1 w-full">
       <label class="form-label">File</label>
@@ -128,6 +129,7 @@ $files = $db->query("SELECT * FROM media ORDER BY uploaded_at DESC, id DESC LIMI
 
 <div class="card p-6 mb-6">
   <form method="post" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-3 items-end">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="upload">
     <div class="flex-1 w-full">
       <label class="form-label">File</label>

@@ -101,11 +101,13 @@ if ($activeSeqId) {
         <div class="flex items-center gap-2 flex-shrink-0">
           <span class="w-2 h-2 rounded-full <?= $seq['status']==='active'?'bg-emerald-400':'bg-slate-600' ?>"></span>
           <form method="post" style="display:inline" onclick="event.preventDefault(); event.stopPropagation(); this.submit()">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="toggle">
             <input type="hidden" name="id" value="<?= $seq['id'] ?>">
             <button class="text-xs font-semibold <?= $seq['status']==='active'?'text-emerald-400':'text-slate-500' ?> hover:text-white transition-colors"><?= $seq['status']==='active'?'LIVE':'PAUSED' ?></button>
           </form>
           <form method="post" style="display:inline" onsubmit="event.stopPropagation(); return confirm('Delete sequence?')" onclick="event.stopPropagation()">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="id" value="<?= $seq['id'] ?>">
             <button class="p-1 text-slate-600 hover:text-red-400 transition-colors" title="Delete">
@@ -151,6 +153,7 @@ if ($activeSeqId) {
               <?php if ($step['body_html']): ?><p class="text-xs text-slate-500 mt-1"><?= e(mb_strimwidth(strip_tags($step['body_html']),0,80,'…')) ?></p><?php endif; ?>
             </div>
             <form method="post" onsubmit="return confirm('Remove step?')">
+    <?= Auth::csrfField() ?>
               <input type="hidden" name="action" value="delete_step">
               <input type="hidden" name="step_id" value="<?= $step['id'] ?>">
               <input type="hidden" name="" value="<?= $activeSeqId ?>">
@@ -172,6 +175,7 @@ if ($activeSeqId) {
 <!-- Create Sequence Modal -->
 <dialog id="seqModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-md" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="create_sequence">
     <h2 class="text-lg font-bold text-white">New Automation Sequence</h2>
     <div>
@@ -203,6 +207,7 @@ if ($activeSeqId) {
 <!-- Add Step Modal -->
 <dialog id="stepModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-lg" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="add_step">
     <input type="hidden" name="seq_id" value="<?= $activeSeqId ?>">
     <h2 class="text-lg font-bold text-white">Add Step</h2>
@@ -326,11 +331,13 @@ if ($activeSeqId) {
         <div class="flex items-center gap-2 flex-shrink-0">
           <span class="w-2 h-2 rounded-full <?= $seq['status']==='active'?'bg-emerald-400':'bg-slate-600' ?>"></span>
           <form method="post" style="display:inline" onclick="event.preventDefault(); event.stopPropagation(); this.submit()">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="toggle">
             <input type="hidden" name="id" value="<?= $seq['id'] ?>">
             <button class="text-xs font-semibold <?= $seq['status']==='active'?'text-emerald-400':'text-slate-500' ?> hover:text-white transition-colors"><?= $seq['status']==='active'?'LIVE':'PAUSED' ?></button>
           </form>
           <form method="post" style="display:inline" onsubmit="event.stopPropagation(); return confirm('Delete sequence?')" onclick="event.stopPropagation()">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="id" value="<?= $seq['id'] ?>">
             <button class="p-1 text-slate-600 hover:text-red-400 transition-colors" title="Delete">
@@ -376,6 +383,7 @@ if ($activeSeqId) {
               <?php if ($step['body_html']): ?><p class="text-xs text-slate-500 mt-1"><?= e(mb_strimwidth(strip_tags($step['body_html']),0,80,'…')) ?></p><?php endif; ?>
             </div>
             <form method="post" onsubmit="return confirm('Remove step?')">
+    <?= Auth::csrfField() ?>
               <input type="hidden" name="action" value="delete_step">
               <input type="hidden" name="step_id" value="<?= $step['id'] ?>">
               <input type="hidden" name="" value="<?= $activeSeqId ?>">
@@ -397,6 +405,7 @@ if ($activeSeqId) {
 <!-- Create Sequence Modal -->
 <dialog id="seqModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-md" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="create_sequence">
     <h2 class="text-lg font-bold text-white">New Automation Sequence</h2>
     <div>
@@ -428,6 +437,7 @@ if ($activeSeqId) {
 <!-- Add Step Modal -->
 <dialog id="stepModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-lg" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="add_step">
     <input type="hidden" name="seq_id" value="<?= $activeSeqId ?>">
     <h2 class="text-lg font-bold text-white">Add Step</h2>

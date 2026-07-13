@@ -89,6 +89,7 @@ $appUrl = getSetting('app_url');
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </a>
           <form method="post" onsubmit="return confirm('Delete form?')" style="display:inline">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="id" value="<?= $form['id'] ?>">
             <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors">
@@ -122,6 +123,7 @@ $appUrl = getSetting('app_url');
 <!-- Create/Edit Modal -->
 <dialog id="formModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-lg" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="save">
     <input type="hidden" name="id" value="<?= $editForm['id'] ?? 0 ?>">
     <h2 class="text-lg font-bold text-white"><?= $editForm ? 'Edit Form' : 'Create Form' ?></h2>
@@ -253,6 +255,7 @@ $appUrl = getSetting('app_url');
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </a>
           <form method="post" onsubmit="return confirm('Delete form?')" style="display:inline">
+    <?= Auth::csrfField() ?>
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="id" value="<?= $form['id'] ?>">
             <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors">
@@ -286,6 +289,7 @@ $appUrl = getSetting('app_url');
 <!-- Create/Edit Modal -->
 <dialog id="formModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-lg" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="save">
     <input type="hidden" name="id" value="<?= $editForm['id'] ?? 0 ?>">
     <h2 class="text-lg font-bold text-white"><?= $editForm ? 'Edit Form' : 'Create Form' ?></h2>

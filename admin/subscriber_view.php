@@ -128,6 +128,7 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
       <div class="card p-5">
         <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Danger Zone</h3>
         <form method="post" onsubmit="return confirm('Delete this subscriber permanently?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="delete">
           <button class="btn btn-danger w-full justify-center" type="submit">Delete Subscriber</button>
         </form>
@@ -139,6 +140,7 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
       <div class="card p-6">
         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Edit Details</h3>
         <form method="post" class="grid grid-cols-2 gap-4">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="update">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">First Name</label>
@@ -325,6 +327,7 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
       <div class="card p-5">
         <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Danger Zone</h3>
         <form method="post" onsubmit="return confirm('Delete this subscriber permanently?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="delete">
           <button class="btn btn-danger w-full justify-center" type="submit">Delete Subscriber</button>
         </form>
@@ -336,6 +339,7 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
       <div class="card p-6">
         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Edit Details</h3>
         <form method="post" class="grid grid-cols-2 gap-4">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="update">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">First Name</label>
@@ -485,6 +489,7 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
       <div class="card p-5">
         <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Danger Zone</h3>
         <form method="post" onsubmit="return confirm('Delete this subscriber permanently?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="delete">
           <button class="btn btn-danger w-full justify-center" type="submit">Delete Subscriber</button>
         </form>
@@ -496,6 +501,7 @@ $statusColors = ['active'=>'text-emerald-400 bg-emerald-900/30','unsubscribed'=>
       <div class="card p-6">
         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Edit Details</h3>
         <form method="post" class="grid grid-cols-2 gap-4">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="update">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1.5">First Name</label>

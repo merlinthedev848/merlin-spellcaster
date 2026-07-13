@@ -55,7 +55,7 @@ try {
 // Lock: grab pending emails
 try {
     $db->beginTransaction();
-    $st = $db->prepare("SELECT eq.id as queue_id, eq.campaign_id, eq.subscriber_id,
+    $st = $db->prepare("SELECT eq.id as queue_id, eq.campaign_id, eq.subscriber_id, eq.ab_subject,
                                c.subject, c.body_html, c.body_text, c.from_name, c.from_email, c.reply_to,
                                s.email, s.first_name, s.last_name
                         FROM email_queue eq
@@ -99,14 +99,15 @@ foreach ($jobs as $job) {
         'first_name'      => $job['first_name'] ?: 'Friend',
         'last_name'       => $job['last_name'],
         'email'           => $job['email'],
-        'unsubscribe_url' => $appUrl . '/unsubscribe.php?c=' . $camId . '&s=' . $subId . '&t=' . $token,
-        'app_name'        => getSetting('app_name', 'Newsletter'),
-        'app_url'         => $appUrl,
+        'unsubscribe_url' => "{$appUrl}/unsubscribe.php?c={$camId}&s={$subId}&t={$token}",
+        'web_view_url'    => "{$appUrl}/v.php?c={$camId}&s={$subId}&t={$token}"
     ];
 
-    // Process HTML: add tracking pixel, wrap links
-    $bodyHtml = $engine->render($job['body_html'], $vars);
-    $bodyText = $job['body_text'] ? $engine->render($job['body_text'], $vars) : null;
+    $subjectLine = !empty($job['ab_subject']) ? $job['ab_subject'] : $job['subject'];
+    
+    $bodyHtml = $engine->render((string)$job['body_html'], $vars);
+    $bodyText = $engine->render((string)$job['body_text'], $vars);
+    $subj = $engine->render((string)$subjectLine, $vars);
 
     // Wrap links for click tracking
     $bodyHtml = preg_replace_callback('/<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>/i', function ($m) use ($appUrl, $camId, $subId, $token) {

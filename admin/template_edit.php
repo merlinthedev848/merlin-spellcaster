@@ -80,6 +80,7 @@ $starters = [
   <?php endif; ?>
 
   <form method="post" class="grid grid-cols-1 xl:grid-cols-4 gap-5">
+    <?= Auth::csrfField() ?>
     <div class="xl:col-span-3 space-y-4">
       <div class="card p-5 space-y-4">
         <div class="grid grid-cols-2 gap-4">
@@ -206,6 +207,7 @@ $starters = [
   <?php endif; ?>
 
   <form method="post" class="grid grid-cols-1 xl:grid-cols-4 gap-5">
+    <?= Auth::csrfField() ?>
     <div class="xl:col-span-3 space-y-4">
       <div class="card p-5 space-y-4">
         <div class="grid grid-cols-2 gap-4">

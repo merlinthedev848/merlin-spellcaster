@@ -74,6 +74,7 @@ $lists = $db->query("SELECT l.*, COUNT(sl.subscriber_id) as real_count FROM list
           <?php if ($list['description']): ?><p class="text-xs text-slate-500"><?= e(mb_strimwidth($list['description'],0,80,'…')) ?></p><?php endif; ?>
         </div>
         <form method="post" onsubmit="return confirm('Delete this list and all subscriber associations?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="id" value="<?= $list['id'] ?>">
           <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
@@ -110,6 +111,7 @@ $lists = $db->query("SELECT l.*, COUNT(sl.subscriber_id) as real_count FROM list
 <!-- Create List Dialog -->
 <dialog id="createListModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-md" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="create">
     <h2 class="text-lg font-bold text-white">Create New List</h2>
     <div>
@@ -199,6 +201,7 @@ $lists = $db->query("SELECT l.*, COUNT(sl.subscriber_id) as real_count FROM list
           <?php if ($list['description']): ?><p class="text-xs text-slate-500"><?= e(mb_strimwidth($list['description'],0,80,'…')) ?></p><?php endif; ?>
         </div>
         <form method="post" onsubmit="return confirm('Delete this list and all subscriber associations?')">
+    <?= Auth::csrfField() ?>
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="id" value="<?= $list['id'] ?>">
           <button class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
@@ -235,6 +238,7 @@ $lists = $db->query("SELECT l.*, COUNT(sl.subscriber_id) as real_count FROM list
 <!-- Create List Dialog -->
 <dialog id="createListModal" class="rounded-2xl border-0 p-0 shadow-2xl w-full max-w-md" style="background:#111827">
   <form method="post" class="p-6 space-y-4">
+    <?= Auth::csrfField() ?>
     <input type="hidden" name="action" value="create">
     <h2 class="text-lg font-bold text-white">Create New List</h2>
     <div>

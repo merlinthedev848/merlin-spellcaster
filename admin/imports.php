@@ -123,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <form method="post" enctype="multipart/form-data" class="space-y-4">
+    <?= Auth::csrfField() ?>
 
         <!-- Mode -->
         <input type="hidden" name="mode" :value="mode" x-bind:value="mode">
@@ -324,6 +325,7 @@ SERVER['REQUEST_URI']); }
       </div>
 
       <form method="post" enctype="multipart/form-data" class="space-y-4">
+    <?= Auth::csrfField() ?>
 
         <!-- Mode -->
         <input type="hidden" name="mode" :value="mode" x-bind:value="mode">

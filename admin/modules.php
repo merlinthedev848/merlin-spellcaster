@@ -90,6 +90,7 @@ $modules = $db->query("SELECT * FROM modules ORDER BY folder_name")->fetchAll();
           <td class="text-right">
             <?php if (isset($discovered[$module['folder_name']])): ?>
             <form method="post">
+    <?= Auth::csrfField() ?>
               <input type="hidden" name="action" value="toggle">
               <input type="hidden" name="id" value="<?= (int)$module['id'] ?>">
               <input type="hidden" name="is_active" value="<?= (int)$module['is_active'] ? 0 : 1 ?>">
@@ -164,6 +165,7 @@ $modules = $db->query("SELECT * FROM modules ORDER BY folder_name")->fetchAll();
           <td class="text-right">
             <?php if (isset($discovered[$module['folder_name']])): ?>
             <form method="post">
+    <?= Auth::csrfField() ?>
               <input type="hidden" name="action" value="toggle">
               <input type="hidden" name="id" value="<?= (int)$module['id'] ?>">
               <input type="hidden" name="is_active" value="<?= (int)$module['is_active'] ? 0 : 1 ?>">
