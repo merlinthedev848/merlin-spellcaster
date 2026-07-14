@@ -44,9 +44,6 @@ class ModuleManager {
             return ['sms_marketing', 'maps_scraper', 'ai_copywriter', 'survey_builder', 'visual_builder', 'deliverability_sentinel', 'workflow_engine', 'predictive_scoring', 'web_personalization', 'data_enrichment', 'domain_warmup', 'ab_testing', 'link_rotator', 'rss_to_email', 'viral_loops', 'webhooks', 'list_scraper', 'fomo_timers', 'email_verifier'];
         }
         $list = explode(',', $enabledStr);
-        if (!in_array('sms_marketing', $list, true)) {
-            $list[] = 'sms_marketing';
-        }
         return $list;
     }
 
