@@ -1,0 +1,9 @@
+{
+    "id": "webhooks",
+    "name": "Outbound & Inbound Webhooks",
+    "description": "Trigger outbound JSON POST webhooks on contact actions, and expose an inbound webhook endpoint for integrations (like Zapier).",
+    "version": "2.0.0",
+    "author": "CK Medis Services",
+    "menu_label": "Webhooks",
+    "menu_path": "/webhooks"
+}

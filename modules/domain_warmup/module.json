@@ -1,0 +1,7 @@
+{
+    "id": "domain_warmup",
+    "name": "Domain Warm-Up Engine",
+    "description": "Automatically throttles your sending volume to a specific list of seeds to build sender reputation and hit the inbox.",
+    "version": "2.0.0",
+    "author": "CK Medis Services"
+}

@@ -1,0 +1,7 @@
+{
+    "id": "rss_to_email",
+    "name": "Automated RSS-to-Email",
+    "description": "Automatically fetch your latest blog posts via RSS and generate beautiful newsletters on autopilot.",
+    "version": "2.0.0",
+    "author": "CK Medis Services"
+}

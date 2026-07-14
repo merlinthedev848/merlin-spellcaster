@@ -1,0 +1,8 @@
+{
+    "id": "workflow_engine",
+    "name": "Behavioral Workflow Engine",
+    "version": "1.0.0",
+    "description": "Visual, node-based automation builder for creating advanced marketing funnels and conditional logic.",
+    "menu_label": "Automations",
+    "menu_path": "/automations"
+}

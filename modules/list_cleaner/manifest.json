@@ -1,7 +1,0 @@
-{
-    "slug": "list_cleaner",
-    "name": "List Cleaner & Verifier",
-    "description": "Automatically verify email addresses against spam traps, hard bounces, and catch-all domains using the ZeroBounce API to protect your sender reputation.",
-    "version": "1.0.0",
-    "author": "Antigravity"
-}

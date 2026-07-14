@@ -1,0 +1,8 @@
+{
+    "id": "survey_builder",
+    "name": "Survey Builder",
+    "version": "1.0.0",
+    "description": "Advanced visual survey builder to collect zero-party data and dynamically segment subscribers.",
+    "menu_label": "Survey Builder",
+    "menu_path": "/survey-builder"
+}

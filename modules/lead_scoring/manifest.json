@@ -1,7 +1,0 @@
-{
-    "slug": "lead_scoring",
-    "name": "Behavioral Lead Scoring",
-    "description": "Automatically scores subscribers based on behavior (+1 for open, +5 for click). Highlights hot leads.",
-    "version": "1.0.0",
-    "author": "Antigravity"
-}

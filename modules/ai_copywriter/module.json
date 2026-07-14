@@ -1,0 +1,8 @@
+{
+    "id": "ai_copywriter",
+    "name": "AI Copywriter",
+    "version": "1.0.0",
+    "description": "Generates high-converting email copy and subject lines using AI.",
+    "menu_label": "AI Copywriter",
+    "menu_path": "/ai-copywriter"
+}

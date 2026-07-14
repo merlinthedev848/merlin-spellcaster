@@ -1,0 +1,7 @@
+{
+    "id": "link_rotator",
+    "name": "Link Rotator & Cloaker",
+    "description": "Hide your affiliate links from spam filters by routing them through your own domain, and automatically rotate traffic between multiple destinations.",
+    "version": "2.0.0",
+    "author": "CK Medis Services"
+}

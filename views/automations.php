@@ -1,0 +1,69 @@
+<?php
+declare(strict_types=1);
+?>
+
+<div class="header-actions">
+    <div class="page-title">
+        <h1>Automations</h1>
+        <p>Build behavioral workflow chains triggered automatically by subscriber events.</p>
+    </div>
+    <div>
+        <a href="<?= e(getSetting('app_url')) ?>/automations/create" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            New Automation
+        </a>
+    </div>
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Automation Name</th>
+                <th>Trigger Event</th>
+                <th>Total Steps</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th style="width: 120px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($automations)): ?>
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No automations configured. Create one to begin automating flows.</td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($automations as $a): ?>
+                    <tr>
+                        <td style="font-weight: 600; color: var(--stripe-dark);"><?= e($a['name']) ?></td>
+                        <td>
+                            <span class="badge" style="background-color: var(--stripe-blurple-light); color: var(--stripe-blurple); font-weight: 500;">
+                                On <?= e($a['trigger_event']) ?>
+                            </span>
+                        </td>
+                        <td style="font-weight: 500;"><?= $a['step_count'] ?> step(s)</td>
+                        <td>
+                            <span class="badge badge-<?= e($a['status']) === 'active' ? 'active' : 'unsubscribed' ?>">
+                                <?= e($a['status']) ?>
+                            </span>
+                        </td>
+                        <td style="color: var(--stripe-dark-slate);"><?= date('M j, Y', strtotime($a['created_at'])) ?></td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <form method="post" action="?action=toggle&id=<?= $a['id'] ?>">
+                                    <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">
+                                        <?= $a['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
+                                    </button>
+                                </form>
+                                <a href="<?= e(getSetting('app_url')) ?>/automations/edit?id=<?= $a['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
+                                <form method="post" action="?action=delete&id=<?= $a['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this automation?');">
+                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>

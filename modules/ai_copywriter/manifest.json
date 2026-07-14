@@ -1,7 +1,0 @@
-{
-    "slug": "ai_copywriter",
-    "name": "AI Copywriter (Magic Wand)",
-    "description": "Injects an AI generation button into the campaign editor to instantly write subject lines and email body copy using OpenAI.",
-    "version": "1.0.0",
-    "author": "Antigravity"
-}

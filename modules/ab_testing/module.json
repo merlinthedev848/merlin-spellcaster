@@ -1,0 +1,7 @@
+{
+    "id": "ab_testing",
+    "name": "A/B Testing Engine",
+    "description": "Split test your campaigns. Sends Test A to 10%, Test B to 10%, and the winner to the remaining 80%.",
+    "version": "2.0.0",
+    "author": "CK Medis Services"
+}

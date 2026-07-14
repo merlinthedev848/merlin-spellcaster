@@ -1,7 +1,0 @@
-{
-    "slug": "openclaw",
-    "name": "OpenClaw API Integrations",
-    "description": "Expose a secure OpenAPI REST endpoint to allow OpenClaw AI Agents to autonomously operate your email marketing platform as a Skill.",
-    "version": "1.0.0",
-    "author": "Antigravity"
-}

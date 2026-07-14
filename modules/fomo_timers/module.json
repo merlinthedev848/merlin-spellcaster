@@ -1,0 +1,7 @@
+{
+    "id": "fomo_timers",
+    "name": "FOMO Countdown Timers",
+    "description": "Generates real-time dynamic countdown timer images (GIFs) that can be embedded directly in emails to drive urgency.",
+    "version": "2.0.0",
+    "author": "CK Medis Services"
+}

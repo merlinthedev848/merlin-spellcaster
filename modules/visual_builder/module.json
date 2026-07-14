@@ -1,0 +1,8 @@
+{
+    "id": "visual_builder",
+    "name": "Visual Email Builder",
+    "version": "1.0.0",
+    "description": "Drag-and-drop visual email designer to create beautiful, responsive templates without coding.",
+    "menu_label": "Email Builder",
+    "menu_path": "/visual-builder"
+}

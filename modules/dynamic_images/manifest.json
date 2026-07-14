@@ -1,7 +1,0 @@
-{
-    "slug": "dynamic_images",
-    "name": "Dynamic Personalization Images",
-    "description": "Generates a personalized image on the fly with the subscriber's name written on it for insane CTRs.",
-    "version": "1.0.0",
-    "author": "Antigravity"
-}

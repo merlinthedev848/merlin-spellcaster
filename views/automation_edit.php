@@ -1,0 +1,347 @@
+<?php
+declare(strict_types=1);
+
+$triggerType = 'subscribe';
+$triggerTagId = '';
+$triggerFormId = '';
+$triggerCampaignId = '';
+$triggerPoints = '';
+
+if ($automation['trigger_event']) {
+    $parts = explode(':', $automation['trigger_event']);
+    $triggerType = $parts[0];
+    if (isset($parts[1])) {
+        if ($triggerType === 'tag_added') $triggerTagId = $parts[1];
+        if ($triggerType === 'form_submit') $triggerFormId = $parts[1];
+        if ($triggerType === 'email_open' || $triggerType === 'link_click') $triggerCampaignId = $parts[1];
+        if ($triggerType === 'points_threshold') $triggerPoints = $parts[1];
+    }
+}
+?>
+
+<div class="header-actions">
+    <div class="page-title">
+        <a href="<?= e(getSetting('app_url')) ?>/automations" style="color: var(--stripe-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Automations
+        </a>
+        <h1>Edit Automation: <?= e($automation['name']) ?></h1>
+        <p>Update your dynamic, step-by-step subscriber workflows.</p>
+    </div>
+</div>
+
+<div style="max-width: 800px; margin: auto;">
+    <form method="post" action="">
+        <input type="hidden" name="id" value="<?= $automation['id'] ?>">
+        
+        <!-- Automation Info -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header"><span class="card-title">Automation Trigger Details</span></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="name">Automation Name</label>
+                    <input class="form-control" type="text" id="name" name="name" required value="<?= e($automation['name']) ?>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="trigger_type">Trigger Type</label>
+                    <select class="form-control" id="trigger_type" name="trigger_type" onchange="toggleTriggerType(this.value)" required>
+                        <option value="subscribe" <?= $triggerType === 'subscribe' ? 'selected' : '' ?>>On Subscriber Joined List (Mautic: Segment Membership)</option>
+                        <option value="tag_added" <?= $triggerType === 'tag_added' ? 'selected' : '' ?>>On Tag Assigned to Contact (Mautic: Contact Tagged)</option>
+                        <option value="form_submit" <?= $triggerType === 'form_submit' ? 'selected' : '' ?>>On Form Submitted (Mautic: Form Submission)</option>
+                        <option value="email_open" <?= $triggerType === 'email_open' ? 'selected' : '' ?>>On Email Opened (Mautic: Email Opened)</option>
+                        <option value="link_click" <?= $triggerType === 'link_click' ? 'selected' : '' ?>>On Link Clicked (Mautic: Email Link Clicked)</option>
+                        <option value="points_threshold" <?= $triggerType === 'points_threshold' ? 'selected' : '' ?>>On Lead Score Exceeds Threshold (Mautic: Lead Score Change)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Trigger Tag Selection -->
+            <div class="form-group trigger-conditional-group" id="trigger_tag_group" style="display: <?= $triggerType === 'tag_added' ? 'block' : 'none' ?>; margin-top: 12px;">
+                <label class="form-label" for="trigger_tag_id">Target Trigger CRM Tag</label>
+                <select class="form-control" id="trigger_tag_id" name="trigger_tag_id" <?= $triggerType === 'tag_added' ? 'required' : '' ?>>
+                    <option value="">-- Select Tag to Trigger On --</option>
+                    <?php foreach ($tags as $t): ?>
+                        <option value="<?= $t['id'] ?>" <?= (string)$t['id'] === $triggerTagId ? 'selected' : '' ?>><?= e($t['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Trigger Form Selection -->
+            <div class="form-group trigger-conditional-group" id="trigger_form_group" style="display: <?= $triggerType === 'form_submit' ? 'block' : 'none' ?>; margin-top: 12px;">
+                <label class="form-label" for="trigger_form_id">Target Trigger Signup Form</label>
+                <select class="form-control" id="trigger_form_id" name="trigger_form_id" <?= $triggerType === 'form_submit' ? 'required' : '' ?>>
+                    <option value="">-- Select Form to Trigger On --</option>
+                    <?php foreach ($forms as $f): ?>
+                        <option value="<?= $f['id'] ?>" <?= (string)$f['id'] === $triggerFormId ? 'selected' : '' ?>><?= e($f['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Trigger Campaign Selection -->
+            <div class="form-group trigger-conditional-group" id="trigger_campaign_group" style="display: <?= ($triggerType === 'email_open' || $triggerType === 'link_click') ? 'block' : 'none' ?>; margin-top: 12px;">
+                <label class="form-label" for="trigger_campaign_id">Target Trigger Campaign</label>
+                <select class="form-control" id="trigger_campaign_id" name="trigger_campaign_id" <?= ($triggerType === 'email_open' || $triggerType === 'link_click') ? 'required' : '' ?>>
+                    <option value="">-- Select Campaign --</option>
+                    <?php foreach ($campaigns as $camp): ?>
+                        <option value="<?= $camp['id'] ?>" <?= (string)$camp['id'] === $triggerCampaignId ? 'selected' : '' ?>><?= e($camp['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Trigger Lead Score Threshold -->
+            <div class="form-group trigger-conditional-group" id="trigger_points_group" style="display: <?= $triggerType === 'points_threshold' ? 'block' : 'none' ?>; margin-top: 12px;">
+                <label class="form-label" for="trigger_points">Target Lead Score Threshold</label>
+                <input class="form-control" type="number" id="trigger_points" name="trigger_points" value="<?= e($triggerPoints) ?>" <?= $triggerType === 'points_threshold' ? 'required' : '' ?>>
+            </div>
+        </div>
+
+        <!-- Automation Steps Pipeline -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header" style="justify-content: space-between; border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 20px;">
+                <span class="card-title">Workflow Steps Sequence</span>
+                <span style="font-size: 11px; color: var(--stripe-dark-slate);">Executed sequentially top to bottom.</span>
+            </div>
+
+            <!-- Steps Container -->
+            <div id="steps_container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+            </div>
+
+            <!-- Actions to Add steps -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="btn btn-secondary" onclick="addStep()">+ Add Next Sequence Step</button>
+                <div style="display: flex; gap: 12px;">
+                    <a href="<?= e(getSetting('app_url')) ?>/automations" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save and Update Flow →</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript Step Builder Controller -->
+<script>
+    let stepIndex = 0;
+
+    // Trigger forms select toggler
+    function toggleTriggerType(val) {
+        document.querySelectorAll(".trigger-conditional-group").forEach(el => {
+            el.style.display = "none";
+            const selectOrInput = el.querySelector("select, input");
+            if (selectOrInput) {
+                selectOrInput.removeAttribute("required");
+                selectOrInput.value = "";
+            }
+        });
+
+        if (val === "tag_added") {
+            const group = document.getElementById("trigger_tag_group");
+            group.style.display = "block";
+            group.querySelector("select").setAttribute("required", "required");
+        } else if (val === "form_submit") {
+            const group = document.getElementById("trigger_form_group");
+            group.style.display = "block";
+            group.querySelector("select").setAttribute("required", "required");
+        } else if (val === "email_open" || val === "link_click") {
+            const group = document.getElementById("trigger_campaign_group");
+            group.style.display = "block";
+            group.querySelector("select").setAttribute("required", "required");
+        } else if (val === "points_threshold") {
+            const group = document.getElementById("trigger_points_group");
+            group.style.display = "block";
+            group.querySelector("input").setAttribute("required", "required");
+        }
+    }
+
+    const campaignsOptions = `
+        <?php foreach ($campaigns as $camp): ?>
+            <option value="<?= $camp['id'] ?>"><?= e(addslashes($camp['name'])) ?></option>
+        <?php endforeach; ?>
+    `;
+    const tagsOptions = `
+        <?php foreach ($tags as $t): ?>
+            <option value="<?= $t['id'] ?>"><?= e(addslashes($t['name'])) ?></option>
+        <?php endforeach; ?>
+    `;
+    const listsOptions = `
+        <?php foreach ($lists as $l): ?>
+            <option value="<?= $l['id'] ?>"><?= e(addslashes($l['name'])) ?></option>
+        <?php endforeach; ?>
+    `;
+
+    function buildStepHtml(idx) {
+        return `
+            <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--stripe-border); border-radius: 8px; background-color: var(--stripe-bg); position: relative; margin-top: 4px;">
+                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--stripe-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;" class="step-badge"></div>
+                
+                <div style="display: flex; gap: 16px; align-items: flex-end;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label class="form-label">Action / Decision Type</label>
+                        <select class="form-control step-type-select" name="steps[${idx}][type]" onchange="toggleStepInputs(this)" required>
+                            <optgroup label="Actions">
+                                <option value="send_email">Send Campaign Email</option>
+                                <option value="send_sms">Send SMS Notification</option>
+                                <option value="wait">Wait Delay</option>
+                                <option value="add_tag">Add Tag to Contact</option>
+                                <option value="remove_tag">Remove Tag from Contact</option>
+                                <option value="add_to_list">Add to Subscriber List</option>
+                                <option value="remove_from_list">Remove from List</option>
+                                <option value="adjust_points">Adjust CRM Lead Score</option>
+                                <option value="trigger_webhook">Trigger Custom Outbound Webhook</option>
+                            </optgroup>
+                            <optgroup label="Decisions & Conditions">
+                                <option value="send_if_opened">Send Email if Opened</option>
+                                <option value="send_if_not_opened">Send Email if NOT Opened</option>
+                                <option value="tag_if_not_opened">Add Tag if NOT Opened</option>
+                                <option value="send_if_clicked">Send Email if Link Clicked</option>
+                                <option value="tag_if_clicked">Add Tag if Link Clicked</option>
+                                <option value="send_if_has_tag">Send Email if has tag</option>
+                                <option value="send_if_has_no_tag">Send Email if doesn't have tag</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div style="flex: 2; display: flex; flex-direction: column; gap: 12px;" class="step-value-inputs">
+                        <div class="input-block block-campaign" style="display: none;">
+                            <label class="form-label">Select Campaign</label>
+                            <select class="form-control step-campaign" name="steps[${idx}][campaign_id]">
+                                ${campaignsOptions}
+                            </select>
+                        </div>
+                        <div class="input-block block-sms" style="display: none;">
+                            <label class="form-label">SMS Notification Text Message</label>
+                            <input class="form-control step-sms" type="text" name="steps[${idx}][sms_message]" placeholder="e.g. Hey {first_name}, check your inbox!">
+                        </div>
+                        <div class="input-block block-wait" style="display: none;">
+                            <label class="form-label">Wait Duration</label>
+                            <input class="form-control step-wait" type="text" name="steps[${idx}][wait_value]" placeholder="e.g. 7 days, 2 hours">
+                        </div>
+                        <div class="input-block block-tag" style="display: none;">
+                            <label class="form-label">Select CRM Tag</label>
+                            <select class="form-control step-tag" name="steps[${idx}][tag_id]">
+                                ${tagsOptions}
+                            </select>
+                        </div>
+                        <div class="input-block block-list" style="display: none;">
+                            <label class="form-label">Select Subscriber List</label>
+                            <select class="form-control step-list" name="steps[${idx}][list_id]">
+                                ${listsOptions}
+                            </select>
+                        </div>
+                        <div class="input-block block-points" style="display: none;">
+                            <label class="form-label">Adjust CRM Lead Score</label>
+                            <input class="form-control step-points" type="text" name="steps[${idx}][points_value]" placeholder="e.g. +10, -5">
+                        </div>
+                        <div class="input-block block-webhook" style="display: none;">
+                            <label class="form-label">Outbound Webhook URL</label>
+                            <input class="form-control step-webhook" type="url" name="steps[${idx}][webhook_url]" placeholder="https://api.my-crm.com/webhook">
+                        </div>
+                        <div class="input-block block-prev-campaign" style="display: none;">
+                            <label class="form-label">Relative to Campaign</label>
+                            <select class="form-control step-prev-campaign" name="steps[${idx}][prev_campaign_id]">
+                                <option value="">-- Choose Previous Campaign --</option>
+                                ${campaignsOptions}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-danger" onclick="removeStep(this)" style="padding: 10px; line-height: 1; height: 38px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div>
+            </div>
+        `;
+    }
+
+    function addStep() {
+        const container = document.getElementById("steps_container");
+        const idx = stepIndex++;
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = buildStepHtml(idx).trim();
+        const stepElement = tempDiv.firstChild;
+        container.appendChild(stepElement);
+        
+        // Trigger the select onchange to show the right input
+        toggleStepInputs(stepElement.querySelector('.step-type-select'));
+        reindexSteps();
+        
+        return stepElement;
+    }
+
+    function removeStep(btn) {
+        const container = document.getElementById("steps_container");
+        if (container.children.length > 1) {
+            btn.closest(".step-card").remove();
+            reindexSteps();
+        } else {
+            alert("Your automation requires at least one sequence step.");
+        }
+    }
+
+    function reindexSteps() {
+        const cards = document.querySelectorAll("#steps_container .step-card");
+        cards.forEach((card, index) => {
+            const badge = card.querySelector(".step-badge");
+            if (badge) badge.textContent = `Step ${index + 1}`;
+        });
+    }
+
+    function toggleStepInputs(select) {
+        const card = select.closest(".step-card");
+        card.querySelectorAll(".input-block").forEach(block => block.style.display = "none");
+        const val = select.value;
+        
+        if (val === "wait") card.querySelector(".block-wait").style.display = "block";
+        else if (val === "send_email") card.querySelector(".block-campaign").style.display = "block";
+        else if (val === "send_sms") card.querySelector(".block-sms").style.display = "block";
+        else if (val === "add_tag" || val === "remove_tag" || val === "send_if_has_tag" || val === "send_if_has_no_tag") {
+            card.querySelector(".block-tag").style.display = "block";
+            if (val === "send_if_has_tag" || val === "send_if_has_no_tag") card.querySelector(".block-campaign").style.display = "block";
+        } 
+        else if (val === "add_to_list" || val === "remove_from_list") card.querySelector(".block-list").style.display = "block";
+        else if (val === "adjust_points") card.querySelector(".block-points").style.display = "block";
+        else if (val === "trigger_webhook") card.querySelector(".block-webhook").style.display = "block";
+        else if (val === "send_if_opened" || val === "send_if_not_opened" || val === "send_if_clicked") {
+            card.querySelector(".block-campaign").style.display = "block";
+            card.querySelector(".block-prev-campaign").style.display = "block";
+        } 
+        else if (val === "tag_if_not_opened" || val === "tag_if_clicked") {
+            card.querySelector(".block-tag").style.display = "block";
+            card.querySelector(".block-prev-campaign").style.display = "block";
+        }
+    }
+
+    // Prefill Existing Steps
+    window.onload = function() {
+        const existingSteps = <?= json_encode($automationSteps) ?>;
+        if (existingSteps && existingSteps.length > 0) {
+            existingSteps.forEach(step => {
+                const el = addStep();
+                el.querySelector('.step-type-select').value = step.step_type;
+                toggleStepInputs(el.querySelector('.step-type-select'));
+                
+                // Parse step_value
+                if (step.step_type === 'wait') el.querySelector('.step-wait').value = step.step_value;
+                if (step.step_type === 'send_email') el.querySelector('.step-campaign').value = step.step_value;
+                if (step.step_type === 'send_sms') el.querySelector('.step-sms').value = step.step_value;
+                if (step.step_type === 'add_tag' || step.step_type === 'remove_tag') el.querySelector('.step-tag').value = step.step_value;
+                if (step.step_type === 'add_to_list' || step.step_type === 'remove_from_list') el.querySelector('.step-list').value = step.step_value;
+                if (step.step_type === 'adjust_points') el.querySelector('.step-points').value = step.step_value;
+                if (step.step_type === 'trigger_webhook') el.querySelector('.step-webhook').value = step.step_value;
+                
+                if (step.step_type.includes('send_if_') || step.step_type.includes('tag_if_')) {
+                    const parts = step.step_value.split(':');
+                    if (step.step_type.includes('send_if_')) {
+                        el.querySelector('.step-campaign').value = parts[0];
+                    } else if (step.step_type.includes('tag_if_')) {
+                        el.querySelector('.step-tag').value = parts[0];
+                    }
+                    if (step.step_type === 'send_if_has_tag' || step.step_type === 'send_if_has_no_tag') {
+                         el.querySelector('.step-tag').value = parts[1];
+                    } else {
+                         el.querySelector('.step-prev-campaign').value = parts[1];
+                    }
+                }
+            });
+        } else {
+            addStep(); // add at least 1 empty step
+        }
+    };
+</script>
