@@ -57,7 +57,7 @@ class InboxMonitor {
             if ($emails) {
                 foreach ($emails as $emailNumber) {
                     $header = imap_headerinfo($inbox, $emailNumber);
-                    $body = imap_body($inbox, $emailNumber);
+                    $body = imap_body($inbox, $emailNumber, FT_PEEK); // Use FT_PEEK to avoid marking as Seen automatically
                     
                     $subject = strtolower($header->subject ?? '');
                     
@@ -103,21 +103,24 @@ class InboxMonitor {
                         }
                     }
                     
-                    // Post-processing action
-                    if ($action === 'delete') {
-                        imap_delete($inbox, (string)$emailNumber);
-                    } elseif ($action === 'move') {
-                        if ($isBounce && !empty(trim($archiveBounces))) {
-                            imap_mail_move($inbox, (string)$emailNumber, trim($archiveBounces));
-                        } elseif ($isReply && !empty(trim($archiveReplies))) {
-                            imap_mail_move($inbox, (string)$emailNumber, trim($archiveReplies));
+                    // Post-processing action ONLY for bounces and replies!
+                    if ($isBounce || $isReply) {
+                        if ($action === 'delete') {
+                            imap_delete($inbox, (string)$emailNumber);
+                        } elseif ($action === 'move') {
+                            if ($isBounce && !empty(trim($archiveBounces))) {
+                                imap_mail_move($inbox, (string)$emailNumber, trim($archiveBounces));
+                            } elseif ($isReply && !empty(trim($archiveReplies))) {
+                                imap_mail_move($inbox, (string)$emailNumber, trim($archiveReplies));
+                            } else {
+                                imap_setflag_full($inbox, (string)$emailNumber, '\\Seen');
+                            }
                         } else {
+                            // Default: just mark as read
                             imap_setflag_full($inbox, (string)$emailNumber, '\\Seen');
                         }
-                    } else {
-                        // Default: just mark as read
-                        imap_setflag_full($inbox, (string)$emailNumber, '\\Seen');
                     }
+                    // If it's a normal email, we do nothing and it remains UNSEEN.
                 }
             }
             

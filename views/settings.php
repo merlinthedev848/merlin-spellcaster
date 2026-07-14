@@ -308,7 +308,7 @@ document.getElementById('btn_fetch_imap_folders').addEventListener('click', asyn
             status.innerHTML = `<span style="color:var(--danger)">Error: ${data.error}</span>`;
         }
     } catch (e) {
-        status.innerHTML = '<span style="color:var(--danger)">Network error while contacting server.</span>';
+        status.innerHTML = '<span style="color:var(--danger)">Network error or invalid response while contacting server. (' + e.message + ')</span>';
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'Test Connection & Fetch Folders';
