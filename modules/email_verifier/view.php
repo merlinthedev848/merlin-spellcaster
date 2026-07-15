@@ -12,8 +12,8 @@ declare(strict_types=1);
 <!-- Stats Indicators -->
 <div class="grid grid-4" style="margin-bottom: 24px;">
     <div class="card" style="padding: 16px;">
-        <span style="font-size: 11px; font-weight: 600; color: var(--stripe-dark-slate); text-transform: uppercase;">Total CRM Contacts</span>
-        <h2 style="font-size: 28px; font-weight: 700; color: var(--stripe-dark); margin-top: 4px;"><?= $total ?></h2>
+        <span style="font-size: 11px; font-weight: 600; color: var(--theme-dark-slate); text-transform: uppercase;">Total CRM Contacts</span>
+        <h2 style="font-size: 28px; font-weight: 700; color: var(--theme-dark); margin-top: 4px;"><?= $total ?></h2>
     </div>
     
     <div class="card" style="padding: 16px;">
@@ -27,8 +27,8 @@ declare(strict_types=1);
     </div>
 
     <div class="card" style="padding: 16px;">
-        <span style="font-size: 11px; font-weight: 600; color: var(--stripe-dark-slate); text-transform: uppercase;">Unsubscribed</span>
-        <h2 style="font-size: 28px; font-weight: 700; color: var(--stripe-dark); margin-top: 4px;"><?= $unsubscribed ?></h2>
+        <span style="font-size: 11px; font-weight: 600; color: var(--theme-dark-slate); text-transform: uppercase;">Unsubscribed</span>
+        <h2 style="font-size: 28px; font-weight: 700; color: var(--theme-dark); margin-top: 4px;"><?= $unsubscribed ?></h2>
     </div>
 </div>
 
@@ -39,7 +39,7 @@ declare(strict_types=1);
             <span class="card-title">List Verification Scan</span>
         </div>
         
-        <p style="font-size: 13px; color: var(--stripe-dark-slate); line-height: 1.5; margin-bottom: 24px;">
+        <p style="font-size: 13px; color: var(--theme-dark-slate); line-height: 1.5; margin-bottom: 24px;">
             Run a deliverability audit across all active contacts. The verifier will query DNS records for valid mail servers (MX) and screen domains against known disposable address blacklists. Flagged contacts will be automatically moved to <strong>bounced</strong> status to keep your list clean.
         </p>
 
@@ -52,16 +52,16 @@ declare(strict_types=1);
         <!-- Progress Indicator -->
         <div id="scan_progress_container" style="display: none; margin-top: 24px;">
             <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
-                <span id="scan_status_label" style="color: var(--stripe-dark);">Initializing Scan...</span>
-                <span id="scan_percentage" style="color: var(--stripe-blurple);">0%</span>
+                <span id="scan_status_label" style="color: var(--theme-dark);">Initializing Scan...</span>
+                <span id="scan_percentage" style="color: var(--theme-blurple);">0%</span>
             </div>
             
             <!-- Progress Bar -->
-            <div style="background-color: var(--stripe-border); border-radius: 6px; height: 10px; overflow: hidden; width: 100%; margin-bottom: 12px;">
-                <div id="scan_progress_bar" style="background-color: var(--stripe-blurple); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+            <div style="background-color: var(--theme-border); border-radius: 6px; height: 10px; overflow: hidden; width: 100%; margin-bottom: 12px;">
+                <div id="scan_progress_bar" style="background-color: var(--theme-blurple); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--stripe-dark-slate);">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--theme-dark-slate);">
                 <span>Processed: <strong id="processed_count">0</strong> / <strong id="total_count">0</strong></span>
                 <span>Flagged: <strong id="flagged_count" style="color: var(--danger);">0</strong></span>
             </div>

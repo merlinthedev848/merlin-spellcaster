@@ -24,7 +24,7 @@ class TagController {
         
         $st = $db->query("
             SELECT t.*, 
-            (SELECT COUNT(*) FROM subscriber_tags WHERE tag_id = t.id) as subscriber_count 
+            (SELECT COUNT(*) FROM subscriber_tags st JOIN subscribers s ON s.id = st.subscriber_id WHERE st.tag_id = t.id AND s.status = 'active') as subscriber_count 
             FROM tags t 
             ORDER BY t.created_at DESC
         ");

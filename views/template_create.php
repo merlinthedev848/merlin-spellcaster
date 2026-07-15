@@ -13,7 +13,7 @@ $textVal = $isEdit ? $template['body_text'] : '';
 
 <div class="header-actions">
     <div class="page-title">
-        <a href="<?= e(getSetting('app_url')) ?>/templates" style="color: var(--stripe-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+        <a href="<?= e(getSetting('app_url')) ?>/templates" style="color: var(--theme-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back to Templates
         </a>
@@ -45,12 +45,16 @@ $textVal = $isEdit ? $template['body_text'] : '';
             </div>
 
             <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <label class="form-label" for="body_html" style="margin-bottom: 0;">HTML Body Content</label>
-                    <span style="font-size: 11px; color: var(--stripe-dark-slate);">Supports <code>{{first_name}}</code>, <code>{{unsubscribe_url}}</code></span>
-                </div>
-                <textarea class="form-control" id="body_html" name="body_html" required style="font-family: monospace; font-size: 13px; min-height: 280px;"><?= e($htmlVal) ?></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label class="form-label" for="body_html" style="margin-bottom: 0;">HTML Base Template Content</label>
+                <span style="font-size: 11px; color: var(--theme-dark-slate);">Use standard variables like <code>{{first_name}}</code></span>
             </div>
+            <!-- WYSIWYG Editor Container -->
+            <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+            <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+            <div id="quill-editor" style="height: 350px; background: white; font-family: monospace; font-size: 13px;"></div>
+            <textarea class="form-control" id="body_html" name="body_html" required style="display: none;"><?= e($htmlVal) ?></textarea>
+        </div>
 
             <div class="form-group" style="margin-bottom: 24px;">
                 <label class="form-label" for="body_text">Plain Text Alternative (Optional)</label>
@@ -59,7 +63,7 @@ $textVal = $isEdit ? $template['body_text'] : '';
 
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <a href="<?= e(getSetting('app_url')) ?>/templates" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save Template Framework →</button>
+                <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Save Changes' : 'Create Template Framework' ?></button>
             </div>
         </form>
     </div>
@@ -67,7 +71,7 @@ $textVal = $isEdit ? $template['body_text'] : '';
     <!-- Live Preview -->
     <div style="display: flex; flex-direction: column; height: 100%;">
         <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 480px;">
-            <div class="card-header" style="border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 0;">
+            <div class="card-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 0;">
                 <span class="card-title">HTML Live Preview Renderer</span>
                 <span style="font-size: 11px; background-color: var(--success-light); color: var(--success); font-weight: 600; padding: 2px 6px; border-radius: 4px;">Active</span>
             </div>
@@ -83,6 +87,27 @@ $textVal = $isEdit ? $template['body_text'] : '';
         const textarea = document.getElementById("body_html");
         const iframe = document.getElementById("template_preview");
 
+        // Initialize Quill
+        window.quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean'],
+                    ['code-block']
+                ]
+            }
+        });
+        
+        // Set initial content
+        if (textarea.value) {
+            window.quill.root.innerHTML = textarea.value;
+        }
+
         function updatePreview() {
             let html = textarea.value;
             
@@ -96,6 +121,12 @@ $textVal = $isEdit ? $template['body_text'] : '';
             doc.write(html);
             doc.close();
         }
+
+        // Sync Quill to textarea and update live preview
+        window.quill.on('text-change', function() {
+            textarea.value = window.quill.root.innerHTML;
+            updatePreview();
+        });
 
         textarea.addEventListener("input", updatePreview);
         updatePreview();

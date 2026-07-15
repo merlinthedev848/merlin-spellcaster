@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($form['headline'] ?? 'Subscribe') ?> — <?= e($appName) ?></title>
-    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/stripe.css">
+    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/theme.css">
     <style>
         body {
-            background-color: var(--stripe-bg);
+            background-color: var(--theme-bg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -22,12 +22,12 @@
             box-shadow: 0 50px 100px -20px rgba(50,50,93,0.08), 0 30px 60px -30px rgba(0,0,0,0.12), 0 -18px 60px -10px rgba(0,0,0,0.015);
             padding: 32px;
             background-color: white;
-            border: 1px solid var(--stripe-border);
+            border: 1px solid var(--theme-border);
         }
         .subscribe-icon {
             font-size: 40px;
             margin-bottom: 20px;
-            color: var(--stripe-blurple);
+            color: var(--theme-blurple);
             text-align: center;
         }
         .subscribe-header {
@@ -37,13 +37,13 @@
         .subscribe-header h1 {
             font-size: 22px;
             font-weight: 800;
-            color: var(--stripe-dark);
+            color: var(--theme-dark);
             letter-spacing: -0.5px;
             margin-bottom: 8px;
             line-height: 1.3;
         }
         .subscribe-header p {
-            color: var(--stripe-dark-slate);
+            color: var(--theme-dark-slate);
             font-size: 13px;
             line-height: 1.6;
         }
@@ -70,8 +70,8 @@
         <?php if ($success): ?>
             <div class="success-box">
                 <div class="success-badge">✓</div>
-                <h1 style="font-size: 20px; font-weight: 800; color: var(--stripe-dark); margin-bottom: 12px; line-height: 1.3;">Subscription Confirmed</h1>
-                <p style="color: var(--stripe-dark-slate); font-size: 13px; line-height: 1.6; margin-bottom: 24px;"><?= e($form['success_message']) ?></p>
+                <h1 style="font-size: 20px; font-weight: 800; color: var(--theme-dark); margin-bottom: 12px; line-height: 1.3;">Subscription Confirmed</h1>
+                <p style="color: var(--theme-dark-slate); font-size: 13px; line-height: 1.6; margin-bottom: 24px;"><?= e($form['success_message']) ?></p>
                 
                 <?php if ($form['download_url']): ?>
                     <a href="<?= e($form['download_url']) ?>" class="btn btn-primary" target="_blank" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 600; justify-content: center; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99, 91, 255, 0.25);">

@@ -14,7 +14,7 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
 <div class="grid grid-2">
     <!-- Configuration Form -->
     <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card-header" style="border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 0;">
+        <div class="card-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 0;">
             <span class="card-title">Add RSS Feed Monitor</span>
         </div>
         
@@ -49,11 +49,11 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
 
     <!-- Feeds List -->
     <div class="card" style="display: flex; flex-direction: column; gap: 16px;">
-        <div class="card-header" style="border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 0;">
+        <div class="card-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 0;">
             <span class="card-title">Active RSS Feed Subscriptions</span>
         </div>
 
-        <div class="table-wrapper" style="border: 1px solid var(--stripe-border);">
+        <div class="table-wrapper" style="border: 1px solid var(--theme-border);">
             <table>
                 <thead>
                     <tr>
@@ -67,7 +67,7 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
                 <tbody>
                     <?php if (empty($feeds)): ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No feeds registered. Add a feed on the left to start automated campaigns!</td>
+                            <td colspan="5" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No feeds registered. Add a feed on the left to start automated campaigns!</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($feeds as $f): ?>
@@ -77,9 +77,9 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
                                         <?= e($f['feed_url']) ?>
                                     </div>
                                 </td>
-                                <td><span style="font-weight: 600; color: var(--stripe-dark);"><?= e($f['list_name']) ?></span></td>
-                                <td><span class="badge" style="background-color: var(--stripe-blurple-light); color: var(--stripe-blurple); text-transform: uppercase; font-size: 9px; font-weight: 700;"><?= e($f['frequency']) ?></span></td>
-                                <td style="color: var(--stripe-dark-slate); font-size: 11px;">
+                                <td><span style="font-weight: 600; color: var(--theme-dark);"><?= e($f['list_name']) ?></span></td>
+                                <td><span class="badge" style="background-color: var(--theme-blurple-light); color: var(--theme-blurple); text-transform: uppercase; font-size: 9px; font-weight: 700;"><?= e($f['frequency']) ?></span></td>
+                                <td style="color: var(--theme-dark-slate); font-size: 11px;">
                                     <?= $f['last_checked_at'] ? date('M j, H:i', strtotime($f['last_checked_at'])) : 'Never' ?>
                                 </td>
                                 <td>
@@ -95,8 +95,8 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
         </div>
 
         <div>
-            <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--stripe-dark); margin: 0 0 6px;">Autopilot Cron Trigger URL</h4>
-            <p style="font-size: 12px; color: var(--stripe-dark-slate); line-height: 1.5; margin: 0 0 10px;">
+            <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--theme-dark); margin: 0 0 6px;">Autopilot Cron Trigger URL</h4>
+            <p style="font-size: 12px; color: var(--theme-dark-slate); line-height: 1.5; margin: 0 0 10px;">
                 Trigger the RSS checking scanner automatically using this endpoint inside your cron jobs scheduler:
             </p>
             <input class="form-control" type="text" readonly value="curl -s <?= e($runUrl) ?>" onclick="this.select()" style="font-family: monospace; font-size: 12px; margin-bottom: 0; background-color: #fafbfc;">

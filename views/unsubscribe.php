@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unsubscribe — <?= e($appName) ?></title>
-    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/stripe.css">
+    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/theme.css">
     <style>
         body {
-            background-color: var(--stripe-bg);
+            background-color: var(--theme-bg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -23,16 +23,16 @@
         .unsub-icon {
             font-size: 48px;
             margin-bottom: 16px;
-            color: var(--stripe-blurple);
+            color: var(--theme-blurple);
         }
         h1 {
             font-size: 22px;
             font-weight: 700;
-            color: var(--stripe-dark);
+            color: var(--theme-dark);
             margin-bottom: 12px;
         }
         p {
-            color: var(--stripe-dark-slate);
+            color: var(--theme-dark-slate);
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 24px;
@@ -45,7 +45,7 @@
             <div class="unsub-icon">✓</div>
             <h1>Unsubscribed Successfully</h1>
             <p>You have been removed from our marketing mailing lists and will no longer receive campaigns from <strong><?= e($appName) ?></strong>.</p>
-            <span style="font-size: 12px; color: var(--stripe-dark-slate);">It may take up to 24 hours to process fully.</span>
+            <span style="font-size: 12px; color: var(--theme-dark-slate);">It may take up to 24 hours to process fully.</span>
         <?php elseif ($error): ?>
             <div class="unsub-icon" style="color: var(--danger);">⚠️</div>
             <h1>Unsubscribe Error</h1>
@@ -57,7 +57,7 @@
             <p>Are you sure you want to unsubscribe <strong><?= e($email) ?></strong> from all future campaign mailings from <strong><?= e($appName) ?></strong>?</p>
             
             <form method="post" action="">
-                <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px; margin-bottom: 12px; font-weight: 600;">Yes, Unsubscribe Me</button>
+                <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px; margin-bottom: 12px; font-weight: 600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Yes, Unsubscribe Me</button>
                 <a href="javascript:history.back()" class="btn btn-secondary" style="width: 100%; padding: 12px;">Go Back</a>
             </form>
         <?php endif; ?>

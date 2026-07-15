@@ -35,16 +35,26 @@ class ModuleManager {
         return $modules;
     }
 
-    /**
-     * Get list of enabled module IDs
-     */
     public static function getEnabledModuleIds(): array {
-        $enabledStr = getSetting('enabled_modules_list', '');
-        if ($enabledStr === '') {
-            return ['sms_marketing', 'maps_scraper', 'ai_copywriter', 'survey_builder', 'visual_builder', 'deliverability_sentinel', 'workflow_engine', 'predictive_scoring', 'web_personalization', 'data_enrichment', 'domain_warmup', 'ab_testing', 'link_rotator', 'rss_to_email', 'viral_loops', 'webhooks', 'list_scraper', 'fomo_timers', 'email_verifier'];
+        $enabledStr = getSetting('enabled_modules_list', 'INITIAL_STATE');
+        
+        $suites = ['scoring_analytics', 'lead_generation', 'deliverability_suite', 'conversion_suite'];
+        
+        if ($enabledStr === 'INITIAL_STATE' || $enabledStr === '') {
+            $list = array_merge(['ai_copywriter', 'ai_settings', 'seo_auditor'], $suites);
+            setSetting('enabled_modules_list', implode(',', $list));
+            return $list;
         }
+        
+        if ($enabledStr === 'NONE') {
+            return [];
+        }
+        
         $list = explode(',', $enabledStr);
-        return $list;
+        $archived = ['lead_scoring', 'predictive_scoring', 'list_scraper', 'maps_scraper', 'data_enrichment', 'deliverability_sentinel', 'domain_warmup', 'email_verifier', 'fomo_timers', 'link_rotator', 'viral_loops', 'survey_builder', 'ab_testing', 'web_personalization', 'hello_world'];
+        $list = array_diff($list, $archived);
+        
+        return array_values(array_unique(array_filter($list)));
     }
 
     /**
@@ -85,7 +95,9 @@ class ModuleManager {
             $status = true;
         }
 
-        setSetting('enabled_modules_list', implode(',', array_filter($enabled)));
+        $enabled = array_filter($enabled);
+        $saveValue = empty($enabled) ? 'NONE' : implode(',', $enabled);
+        setSetting('enabled_modules_list', $saveValue);
         return $status;
     }
 }

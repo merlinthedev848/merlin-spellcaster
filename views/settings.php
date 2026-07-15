@@ -11,7 +11,7 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
         <p>Manage connection settings, SMTP credentials, and cron automation tokens.</p>
     </div>
     <div>
-        <button type="submit" form="settings_form" class="btn btn-primary" style="padding: 10px 20px;">Save Settings Profile</button>
+        <button type="submit" form="settings_form" class="btn btn-primary" style="padding: 10px 20px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Save Settings Profile</button>
     </div>
 </div>
 
@@ -32,7 +32,7 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
                 <div class="form-group">
                     <label class="form-label" for="setting_app_url">Application Base URL</label>
                     <input class="form-control" type="url" id="setting_app_url" name="setting_app_url" value="<?= e($appUrl) ?>" required>
-                    <p style="font-size: 11px; color: var(--stripe-dark-slate); margin-top: 4px;">Important for absolute tracking links (open pixel and redirects).</p>
+                    <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Important for absolute tracking links (open pixel and redirects).</p>
                 </div>
 
                 <div class="form-group">
@@ -46,7 +46,7 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
                 <div class="form-group">
                     <label class="form-label" for="setting_company_address">Company Physical Postal Address</label>
                     <textarea class="form-control" id="setting_company_address" name="setting_company_address" style="min-height: 60px; font-size: 13px;" placeholder="e.g. CK Media Services, 123 Main St, Suite 100, Austin, TX 78701"><?= e(getSetting('company_address', '')) ?></textarea>
-                    <p style="font-size: 11px; color: var(--stripe-dark-slate); margin-top: 4px;">Required for compliance with the US CAN-SPAM Act. This address is automatically appended to the footer of all outgoing marketing broadcasts.</p>
+                    <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Required for compliance with the US CAN-SPAM Act. This address is automatically appended to the footer of all outgoing marketing broadcasts.</p>
                 </div>
             </div>
 
@@ -98,38 +98,28 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
             </div>
 
             <!-- IMAP Bounce Inbox Connection -->
+            <?php
+            $imapHost = getSetting('bounce_imap_host');
+            $imapUser = getSetting('bounce_imap_user');
+            $imapPass = getSetting('bounce_imap_pass');
+            
+            if (!$imapHost && !ModuleManager::isEnabled('multi_smtp')) {
+                $imapHost = str_replace('smtp.', 'imap.', getSetting('smtp_host', ''));
+                $imapUser = getSetting('smtp_user', '');
+                $imapPass = getSetting('smtp_pass', '');
+            }
+            ?>
             <div class="card">
-                <div class="card-header"><span class="card-title">IMAP Bounce Inbox Connection</span></div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="setting_bounce_imap_host">IMAP Host Address</label>
-                        <input class="form-control" type="text" id="setting_bounce_imap_host" name="setting_bounce_imap_host" value="<?= e(getSetting('bounce_imap_host')) ?>" placeholder="e.g. imap.mail.com">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="setting_bounce_imap_port">IMAP Port</label>
-                        <input class="form-control" type="number" id="setting_bounce_imap_port" name="setting_bounce_imap_port" value="<?= e(getSetting('bounce_imap_port', '993')) ?>">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="setting_bounce_imap_user">IMAP Username</label>
-                        <input class="form-control" type="text" id="setting_bounce_imap_user" name="setting_bounce_imap_user" value="<?= e(getSetting('bounce_imap_user')) ?>" placeholder="e.g. bounce@yourdomain.com">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="setting_bounce_imap_pass">IMAP Password</label>
-                        <input class="form-control" type="password" id="setting_bounce_imap_pass" name="setting_bounce_imap_pass" value="<?= e(getSetting('bounce_imap_pass')) ?>" placeholder="Enter IMAP password...">
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label" for="setting_bounce_imap_ssl">Use SSL/TLS Connection</label>
-                    <select class="form-control" id="setting_bounce_imap_ssl" name="setting_bounce_imap_ssl">
-                        <option value="1" <?= getSetting('bounce_imap_ssl', '1') === '1' ? 'selected' : '' ?>>Yes (Port 993 - Recommended)</option>
-                        <option value="0" <?= getSetting('bounce_imap_ssl', '1') === '0' ? 'selected' : '' ?>>No (Port 143)</option>
-                    </select>
-                </div>
+                 <div class="card-header"><span class="card-title">IMAP Bounce Inbox Connection</span></div>
+                 
+                 <div style="background-color: #fafbfc; border: 1px solid var(--theme-border); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px;">
+                     <div style="display: flex; gap: 8px; align-items: flex-start; color: var(--theme-dark-slate); font-size: 13px; line-height: 1.5;">
+                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--primary); margin-top: 2px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                         <div>
+                             <strong>Automatic Sync Enabled:</strong> Connection host, port, username, and password credentials are automatically inherited from your <strong>SMTP Mailer Settings</strong> above. This prevents double configuration and ensures your bounce monitor is always in sync.
+                         </div>
+                     </div>
+                 </div>
 
                 <div style="margin-bottom: 16px;">
                     <button type="button" class="btn btn-secondary" id="btn_fetch_imap_folders" style="width: 100%; justify-content: center;">
@@ -180,12 +170,12 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
                 <div class="card-header"><span class="card-title">Security & API Credentials</span></div>
                 <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">App Cryptographic Secret Key</span>
-                        <code style="background-color: var(--stripe-bg); padding: 6px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--stripe-border); display: block; word-break: break-all; font-weight: 600;"><?= e($appSecret) ?></code>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">App Cryptographic Secret Key</span>
+                        <code style="background-color: var(--theme-bg); padding: 6px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--theme-border); display: block; word-break: break-all; font-weight: 600;"><?= e($appSecret) ?></code>
                     </div>
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Automation Cron Token</span>
-                        <code style="background-color: var(--stripe-bg); padding: 6px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--stripe-border); display: block; word-break: break-all; font-weight: 600;"><?= e($cronSecret) ?></code>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Automation Cron Token</span>
+                        <code style="background-color: var(--theme-bg); padding: 6px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--theme-border); display: block; word-break: break-all; font-weight: 600;"><?= e($cronSecret) ?></code>
                     </div>
                 </div>
             </div>
@@ -193,23 +183,23 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
             <!-- Cron Instructions -->
             <div class="card">
                 <div class="card-header"><span class="card-title">Cron Job Configuration</span></div>
-                <p style="font-size: 13px; color: var(--stripe-dark-slate); margin-bottom: 16px;">To automate email queue sending and workflow triggers on your Enhance or cPanel hosting account, configure a cron job to run every 5 minutes:</p>
-                <div style="background-color: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid var(--stripe-border); margin-bottom: 12px;">
-                    <span style="font-size: 11px; font-weight: 600; color: var(--stripe-dark-slate); display: block; margin-bottom: 6px; text-transform: uppercase;">Cron Expression Command</span>
+                <p style="font-size: 13px; color: var(--theme-dark-slate); margin-bottom: 16px;">To automate email queue sending and workflow triggers on your Enhance or cPanel hosting account, configure a cron job to run every 5 minutes:</p>
+                <div style="background-color: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid var(--theme-border); margin-bottom: 12px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--theme-dark-slate); display: block; margin-bottom: 6px; text-transform: uppercase;">Cron Expression Command</span>
                     <code style="font-size: 12px; word-break: break-all; font-weight: 600;">*/5 * * * * curl -s "<?= e($appUrl) ?>/cron?secret=<?= e($cronSecret) ?>"</code>
                 </div>
-                <p style="font-size: 11px; color: var(--stripe-dark-slate);">Alternatively, trigger via CLI shell command: <br><code>*/5 * * * * php <?= e(dirname(__DIR__)) ?>/index.php /cron <?= e($cronSecret) ?></code></p>
+                <p style="font-size: 11px; color: var(--theme-dark-slate);">Alternatively, trigger via CLI shell command: <br><code>*/5 * * * * php <?= e(dirname(__DIR__)) ?>/index.php /cron <?= e($cronSecret) ?></code></p>
             </div>
 
             <!-- Webhook Config (Mailgun) -->
             <div class="card">
                 <div class="card-header"><span class="card-title">Mailgun Webhook Integration</span></div>
-                <p style="font-size: 13px; color: var(--stripe-dark-slate); margin-bottom: 16px;">Configure Mailgun webhooks to track permanent bounces, complaints, and spam events automatically in your CRM:</p>
-                <div style="background-color: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid var(--stripe-border); margin-bottom: 12px;">
-                    <span style="font-size: 11px; font-weight: 600; color: var(--stripe-dark-slate); display: block; margin-bottom: 6px; text-transform: uppercase;">Webhook target URL</span>
+                <p style="font-size: 13px; color: var(--theme-dark-slate); margin-bottom: 16px;">Configure Mailgun webhooks to track permanent bounces, complaints, and spam events automatically in your CRM:</p>
+                <div style="background-color: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid var(--theme-border); margin-bottom: 12px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--theme-dark-slate); display: block; margin-bottom: 6px; text-transform: uppercase;">Webhook target URL</span>
                     <code style="font-size: 12px; word-break: break-all; font-weight: 600;"><?= e($appUrl) ?>/api/webhooks</code>
                 </div>
-                <p style="font-size: 11px; color: var(--stripe-dark-slate);">In Mailgun Dashboard under <strong>Sending > Webhooks</strong>, select events: <br>• Permanent Failure (Bounce) <br>• Spam Complaint</p>
+                <p style="font-size: 11px; color: var(--theme-dark-slate);">In Mailgun Dashboard under <strong>Sending > Webhooks</strong>, select events: <br>• Permanent Failure (Bounce) <br>• Spam Complaint</p>
             </div>
         </div>
     </div>
@@ -220,16 +210,24 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
 document.getElementById('btn_fetch_imap_folders').addEventListener('click', async function() {
     const btn = this;
     const status = document.getElementById('imap_fetch_status');
-    const host = document.getElementById('setting_bounce_imap_host').value;
-    const port = document.getElementById('setting_bounce_imap_port').value;
-    const user = document.getElementById('setting_bounce_imap_user').value;
-    const pass = document.getElementById('setting_bounce_imap_pass').value;
-    const ssl = document.getElementById('setting_bounce_imap_ssl').value;
+    const smtpHost = document.getElementById('setting_smtp_host').value.trim();
+    const smtpUser = document.getElementById('setting_smtp_user').value.trim();
+    const smtpPass = document.getElementById('setting_smtp_pass').value;
+    const smtpEnc = document.getElementById('setting_smtp_encryption').value;
 
-    if (!host || !user || !pass) {
-        status.innerHTML = '<span style="color:var(--danger)">Please fill in Host, Username, and Password first.</span>';
+    if (!smtpHost || !smtpUser || !smtpPass) {
+        status.innerHTML = '<span style="color:var(--danger)">Please fill in SMTP Host, Username, and Password first.</span>';
         return;
     }
+
+    let host = smtpHost;
+    if (smtpHost.toLowerCase().startsWith('smtp.')) {
+        host = 'imap.' + smtpHost.substring(5);
+    }
+    const user = smtpUser;
+    const pass = smtpPass;
+    const ssl = (smtpEnc === 'ssl' || smtpEnc === 'tls') ? '1' : '0';
+    const port = (smtpEnc === 'ssl' || smtpEnc === 'tls') ? '993' : '143';
 
     btn.disabled = true;
     btn.innerHTML = 'Connecting...';
@@ -243,7 +241,7 @@ document.getElementById('btn_fetch_imap_folders').addEventListener('click', asyn
     formData.append('ssl', ssl);
 
     try {
-        const response = await fetch('<?= e(getSetting('app_url')) ?>/api/imap-folders', {
+        const response = await fetch('<?= rtrim(e(getSetting('app_url')), '/') ?>/api/imap-folders', {
             method: 'POST',
             body: formData
         });

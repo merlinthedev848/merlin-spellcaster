@@ -40,6 +40,22 @@ class AutomationController {
             ORDER BY a.created_at DESC
         ");
         $automations = $st->fetchAll();
+
+        // Mappings for human-readable triggers
+        $tags = [];
+        foreach ($db->query("SELECT id, name FROM tags")->fetchAll() as $row) {
+            $tags[(int)$row['id']] = $row['name'];
+        }
+
+        $forms = [];
+        foreach ($db->query("SELECT id, name FROM forms")->fetchAll() as $row) {
+            $forms[(int)$row['id']] = $row['name'];
+        }
+
+        $campaigns = [];
+        foreach ($db->query("SELECT id, name FROM campaigns")->fetchAll() as $row) {
+            $campaigns[(int)$row['id']] = $row['name'];
+        }
         
         $title = 'Automations';
         $viewPath = dirname(__DIR__) . '/views/automations.php';
@@ -80,8 +96,9 @@ class AutomationController {
                     $db->beginTransaction();
                     
                     // 1. Insert Automation Header
-                    $stAuto = $db->prepare("INSERT INTO automations (name, trigger_event, status, created_at) VALUES (?, ?, 'active', NOW())");
-                    $stAuto->execute([$name, $triggerEvent]);
+                    $excludeTagId = isset($_POST['exclude_tag_id']) && $_POST['exclude_tag_id'] !== '' ? (int)$_POST['exclude_tag_id'] : null;
+                    $stAuto = $db->prepare("INSERT INTO automations (name, trigger_event, status, exclude_tag_id, created_at) VALUES (?, ?, 'active', ?, NOW())");
+                    $stAuto->execute([$name, $triggerEvent, $excludeTagId]);
                     $autoId = (int)$db->lastInsertId();
                     
                     // 2. Insert Automation Steps Sequentially
@@ -245,10 +262,18 @@ class AutomationController {
                 $_SESSION['flash_error'] = 'Automation name and at least one step are required.';
             } else {
                 try {
+                    // Force schema upgrade to ensure step_type accepts all values
+                    try {
+                        $db->exec("ALTER TABLE automation_steps MODIFY step_type VARCHAR(64) NOT NULL");
+                    } catch (Throwable $e) {
+                        throw new RuntimeException("Schema Migration Failed: " . $e->getMessage());
+                    }
+
                     $db->beginTransaction();
                     
                     // Update Automation Header
-                    $db->prepare("UPDATE automations SET name = ?, trigger_event = ? WHERE id = ?")->execute([$name, $triggerEvent, $id]);
+                    $excludeTagId = isset($_POST['exclude_tag_id']) && $_POST['exclude_tag_id'] !== '' ? (int)$_POST['exclude_tag_id'] : null;
+                    $db->prepare("UPDATE automations SET name = ?, trigger_event = ?, exclude_tag_id = ? WHERE id = ?")->execute([$name, $triggerEvent, $excludeTagId, $id]);
                     
                     // Clear existing steps
                     $db->prepare("DELETE FROM automation_steps WHERE automation_id = ?")->execute([$id]);

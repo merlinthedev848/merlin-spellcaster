@@ -34,11 +34,12 @@ class CampaignController {
         
         // Fetch all campaigns
         $st = $db->query("
-            SELECT *, 
-                   ROUND(open_count / NULLIF(send_count, 0) * 100, 1) as open_rate,
-                   ROUND(click_count / NULLIF(send_count, 0) * 100, 1) as click_rate
-            FROM campaigns 
-            ORDER BY created_at DESC
+            SELECT c.*, 
+                   ROUND(c.open_count / NULLIF(c.send_count, 0) * 100, 1) as open_rate,
+                   ROUND(c.click_count / NULLIF(c.send_count, 0) * 100, 1) as click_rate,
+                   (SELECT COUNT(*) FROM email_queue eq WHERE eq.campaign_id = c.id AND eq.status = 'pending') as pending_count
+            FROM campaigns c
+            ORDER BY c.created_at DESC
         ");
         $campaigns = $st->fetchAll();
         
@@ -98,7 +99,8 @@ class CampaignController {
                         $this->queueCampaignEmails($db, $campaignId, $listId, $selectedTags, $sqlSched);
                     }
 
-                    Hook::fire('campaign_saved', ['campaign_id' => $campaignId, 'post_data' => $_POST]);
+                    $hookData = ['campaign_id' => $campaignId, 'post_data' => $_POST];
+                    Hook::fire('campaign_saved', $hookData);
                     $db->commit();
                     $_SESSION['flash_success'] = $scheduleSend ? 'Campaign saved and queued successfully!' : 'Campaign saved as draft.';
                     header('Location: ' . getSetting('app_url') . '/campaigns');
@@ -192,7 +194,8 @@ class CampaignController {
                         $this->queueCampaignEmails($db, $id, $listId, $selectedTags, $sqlSched);
                     }
 
-                    Hook::fire('campaign_saved', ['campaign_id' => $id, 'post_data' => $_POST]);
+                    $hookData = ['campaign_id' => $id, 'post_data' => $_POST];
+                    Hook::fire('campaign_saved', $hookData);
                     $db->commit();
                     $_SESSION['flash_success'] = 'Campaign updated successfully!';
                     header('Location: ' . getSetting('app_url') . '/campaigns');
@@ -264,12 +267,23 @@ class CampaignController {
 
         if (!empty($subs)) {
             $sendAtVal = $sendAt ?: date('Y-m-d H:i:s');
+            
+            // Generate a backend automation to act as the "brain" of the campaign broadcast
+            $autoName = "System: Campaign Broadcast #" . $campaignId . " (" . date('M j') . ")";
+            $db->prepare("INSERT INTO automations (name, trigger_event, status) VALUES (?, 'system_broadcast', 'active')")
+               ->execute([$autoName]);
+            $autoId = (int)$db->lastInsertId();
+
+            $db->prepare("INSERT INTO automation_steps (automation_id, step_type, step_value, order_num) VALUES (?, 'send_email', ?, 1)")
+               ->execute([$autoId, $campaignId]);
+            $stepId = (int)$db->lastInsertId();
+
             $stQueue = $db->prepare("
-                INSERT IGNORE INTO email_queue (campaign_id, subscriber_id, status, send_at) 
-                VALUES (?, ?, 'pending', ?)
+                INSERT INTO automation_queue (automation_id, subscriber_id, step_id, status, execute_at) 
+                VALUES (?, ?, ?, 'pending', ?)
             ");
             foreach ($subs as $subId) {
-                $stQueue->execute([$campaignId, (int)$subId, $sendAtVal]);
+                $stQueue->execute([$autoId, (int)$subId, $stepId, $sendAtVal]);
             }
         } else {
             // Keep draft if empty targets
@@ -333,10 +347,11 @@ class CampaignController {
                 $db->prepare("UPDATE campaigns SET open_count = open_count + 1 WHERE id = ?")->execute([$c]);
                 logActivity($s, 'open', "Opened Campaign #{$c} (Unique)");
                 
-                // Fire Mautic workflow automations for email open
+                // Fire  workflow automations for email open
                 Automation::trigger("email_open:{$c}", $s);
                 
-                Hook::fire('email_opened', ['campaign_id' => $c, 'subscriber_id' => $s]);
+                $hookData = ['campaign_id' => $c, 'subscriber_id' => $s];
+                Hook::fire('email_opened', $hookData);
             } else {
                 logActivity($s, 'open', "Opened Campaign #{$c} (Repeat)");
             }
@@ -402,10 +417,11 @@ class CampaignController {
                 $db->prepare("UPDATE campaigns SET click_count = click_count + 1 WHERE id = ?")->execute([$c]);
                 logActivity($s, 'click', "Clicked link in Campaign #{$c}: {$url} (Unique)");
                 
-                // Fire Mautic workflow automations for link click
+                // Fire  workflow automations for link click
                 Automation::trigger("link_click:{$c}", $s);
                 
-                Hook::fire('link_clicked', ['campaign_id' => $c, 'subscriber_id' => $s, 'url' => $url]);
+                $hookData = ['campaign_id' => $c, 'subscriber_id' => $s, 'url' => $url];
+                Hook::fire('link_clicked', $hookData);
             } else {
                 logActivity($s, 'click', "Clicked link in Campaign #{$c}: {$url} (Repeat)");
             }

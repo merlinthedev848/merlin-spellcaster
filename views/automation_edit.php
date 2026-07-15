@@ -21,7 +21,7 @@ if ($automation['trigger_event']) {
 
 <div class="header-actions">
     <div class="page-title">
-        <a href="<?= e(getSetting('app_url')) ?>/automations" style="color: var(--stripe-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+        <a href="<?= e(getSetting('app_url')) ?>/automations" style="color: var(--theme-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back to Automations
         </a>
@@ -45,12 +45,12 @@ if ($automation['trigger_event']) {
                 <div class="form-group">
                     <label class="form-label" for="trigger_type">Trigger Type</label>
                     <select class="form-control" id="trigger_type" name="trigger_type" onchange="toggleTriggerType(this.value)" required>
-                        <option value="subscribe" <?= $triggerType === 'subscribe' ? 'selected' : '' ?>>On Subscriber Joined List (Mautic: Segment Membership)</option>
-                        <option value="tag_added" <?= $triggerType === 'tag_added' ? 'selected' : '' ?>>On Tag Assigned to Contact (Mautic: Contact Tagged)</option>
-                        <option value="form_submit" <?= $triggerType === 'form_submit' ? 'selected' : '' ?>>On Form Submitted (Mautic: Form Submission)</option>
-                        <option value="email_open" <?= $triggerType === 'email_open' ? 'selected' : '' ?>>On Email Opened (Mautic: Email Opened)</option>
-                        <option value="link_click" <?= $triggerType === 'link_click' ? 'selected' : '' ?>>On Link Clicked (Mautic: Email Link Clicked)</option>
-                        <option value="points_threshold" <?= $triggerType === 'points_threshold' ? 'selected' : '' ?>>On Lead Score Exceeds Threshold (Mautic: Lead Score Change)</option>
+                        <option value="subscribe" <?= $triggerType === 'subscribe' ? 'selected' : '' ?>>On Subscriber Joined List (Segment Membership)</option>
+                        <option value="tag_added" <?= $triggerType === 'tag_added' ? 'selected' : '' ?>>On Tag Assigned to Contact (Contact Tagged)</option>
+                        <option value="form_submit" <?= $triggerType === 'form_submit' ? 'selected' : '' ?>>On Form Submitted (Form Submission)</option>
+                        <option value="email_open" <?= $triggerType === 'email_open' ? 'selected' : '' ?>>On Email Opened (Email Opened)</option>
+                        <option value="link_click" <?= $triggerType === 'link_click' ? 'selected' : '' ?>>On Link Clicked (Email Link Clicked)</option>
+                        <option value="points_threshold" <?= $triggerType === 'points_threshold' ? 'selected' : '' ?>>On Lead Score Exceeds Threshold (Lead Score Change)</option>
                     </select>
                 </div>
             </div>
@@ -60,9 +60,13 @@ if ($automation['trigger_event']) {
                 <label class="form-label" for="trigger_tag_id">Target Trigger CRM Tag</label>
                 <select class="form-control" id="trigger_tag_id" name="trigger_tag_id" <?= $triggerType === 'tag_added' ? 'required' : '' ?>>
                     <option value="">-- Select Tag to Trigger On --</option>
-                    <?php foreach ($tags as $t): ?>
-                        <option value="<?= $t['id'] ?>" <?= (string)$t['id'] === $triggerTagId ? 'selected' : '' ?>><?= e($t['name']) ?></option>
-                    <?php endforeach; ?>
+                    <?php if (empty($tags)): ?>
+                        <option value="">-- No tags found. Create one first --</option>
+                    <?php else: ?>
+                        <?php foreach ($tags as $t): ?>
+                            <option value="<?= $t['id'] ?>" <?= (string)$t['id'] === $triggerTagId ? 'selected' : '' ?>><?= e($t['name']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
 
@@ -71,9 +75,13 @@ if ($automation['trigger_event']) {
                 <label class="form-label" for="trigger_form_id">Target Trigger Signup Form</label>
                 <select class="form-control" id="trigger_form_id" name="trigger_form_id" <?= $triggerType === 'form_submit' ? 'required' : '' ?>>
                     <option value="">-- Select Form to Trigger On --</option>
-                    <?php foreach ($forms as $f): ?>
-                        <option value="<?= $f['id'] ?>" <?= (string)$f['id'] === $triggerFormId ? 'selected' : '' ?>><?= e($f['name']) ?></option>
-                    <?php endforeach; ?>
+                    <?php if (empty($forms)): ?>
+                        <option value="">-- No forms found. Create one first --</option>
+                    <?php else: ?>
+                        <?php foreach ($forms as $f): ?>
+                            <option value="<?= $f['id'] ?>" <?= (string)$f['id'] === $triggerFormId ? 'selected' : '' ?>><?= e($f['name']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
 
@@ -82,9 +90,13 @@ if ($automation['trigger_event']) {
                 <label class="form-label" for="trigger_campaign_id">Target Trigger Campaign</label>
                 <select class="form-control" id="trigger_campaign_id" name="trigger_campaign_id" <?= ($triggerType === 'email_open' || $triggerType === 'link_click') ? 'required' : '' ?>>
                     <option value="">-- Select Campaign --</option>
-                    <?php foreach ($campaigns as $camp): ?>
-                        <option value="<?= $camp['id'] ?>" <?= (string)$camp['id'] === $triggerCampaignId ? 'selected' : '' ?>><?= e($camp['name']) ?></option>
-                    <?php endforeach; ?>
+                    <?php if (empty($campaigns)): ?>
+                        <option value="">-- No campaigns found. Create one first --</option>
+                    <?php else: ?>
+                        <?php foreach ($campaigns as $camp): ?>
+                            <option value="<?= $camp['id'] ?>" <?= (string)$camp['id'] === $triggerCampaignId ? 'selected' : '' ?>><?= e($camp['name']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
 
@@ -93,13 +105,29 @@ if ($automation['trigger_event']) {
                 <label class="form-label" for="trigger_points">Target Lead Score Threshold</label>
                 <input class="form-control" type="number" id="trigger_points" name="trigger_points" value="<?= e($triggerPoints) ?>" <?= $triggerType === 'points_threshold' ? 'required' : '' ?>>
             </div>
+
+            <!-- Exclude Contacts with Tag -->
+            <div class="form-group" style="margin-top: 16px; border-top: 1px solid var(--theme-border); padding-top: 16px;">
+                <label class="form-label" for="exclude_tag_id">Exclude Contacts with Tag (Optional)</label>
+                <select class="form-control" id="exclude_tag_id" name="exclude_tag_id">
+                    <option value="">-- No Exclusion Tag (All Contacts Eligible) --</option>
+                    <?php if (empty($tags)): ?>
+                        <option value="">-- No tags found. Create one first --</option>
+                    <?php else: ?>
+                        <?php foreach ($tags as $t): ?>
+                            <option value="<?= $t['id'] ?>" <?= (isset($automation['exclude_tag_id']) && (int)$automation['exclude_tag_id'] === (int)$t['id']) ? 'selected' : '' ?>><?= e($t['name']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+                <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Contacts carrying this tag will be automatically skipped and removed from the queue for this automation.</p>
+            </div>
         </div>
 
         <!-- Automation Steps Pipeline -->
         <div class="card" style="margin-bottom: 24px;">
-            <div class="card-header" style="justify-content: space-between; border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 20px;">
+            <div class="card-header" style="justify-content: space-between; border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 20px;">
                 <span class="card-title">Workflow Steps Sequence</span>
-                <span style="font-size: 11px; color: var(--stripe-dark-slate);">Executed sequentially top to bottom.</span>
+                <span style="font-size: 11px; color: var(--theme-dark-slate);">Executed sequentially top to bottom.</span>
             </div>
 
             <!-- Steps Container -->
@@ -111,7 +139,7 @@ if ($automation['trigger_event']) {
                 <button type="button" class="btn btn-secondary" onclick="addStep()">+ Add Next Sequence Step</button>
                 <div style="display: flex; gap: 12px;">
                     <a href="<?= e(getSetting('app_url')) ?>/automations" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Save and Update Flow →</button>
+                    <button type="submit" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Save and Update Flow →</button>
                 </div>
             </div>
         </div>
@@ -153,25 +181,37 @@ if ($automation['trigger_event']) {
     }
 
     const campaignsOptions = `
-        <?php foreach ($campaigns as $camp): ?>
-            <option value="<?= $camp['id'] ?>"><?= e(addslashes($camp['name'])) ?></option>
-        <?php endforeach; ?>
+        <?php if (empty($campaigns)): ?>
+            <option value="">-- No campaigns found. Create one first --</option>
+        <?php else: ?>
+            <?php foreach ($campaigns as $camp): ?>
+                <option value="<?= $camp['id'] ?>"><?= e(addslashes($camp['name'])) ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
     `;
     const tagsOptions = `
-        <?php foreach ($tags as $t): ?>
-            <option value="<?= $t['id'] ?>"><?= e(addslashes($t['name'])) ?></option>
-        <?php endforeach; ?>
+        <?php if (empty($tags)): ?>
+            <option value="">-- No tags found. Create one first --</option>
+        <?php else: ?>
+            <?php foreach ($tags as $t): ?>
+                <option value="<?= $t['id'] ?>"><?= e(addslashes($t['name'])) ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
     `;
     const listsOptions = `
-        <?php foreach ($lists as $l): ?>
-            <option value="<?= $l['id'] ?>"><?= e(addslashes($l['name'])) ?></option>
-        <?php endforeach; ?>
+        <?php if (empty($lists)): ?>
+            <option value="">-- No lists found. Create one first --</option>
+        <?php else: ?>
+            <?php foreach ($lists as $l): ?>
+                <option value="<?= $l['id'] ?>"><?= e(addslashes($l['name'])) ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
     `;
 
     function buildStepHtml(idx) {
         return `
-            <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--stripe-border); border-radius: 8px; background-color: var(--stripe-bg); position: relative; margin-top: 4px;">
-                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--stripe-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;" class="step-badge"></div>
+            <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--theme-border); border-radius: 8px; background-color: var(--theme-bg); position: relative; margin-top: 4px;">
+                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;" class="step-badge"></div>
                 
                 <div style="display: flex; gap: 16px; align-items: flex-end;">
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">

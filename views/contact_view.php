@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 <div class="header-actions">
     <div class="page-title">
-        <a href="<?= e(getSetting('app_url')) ?>/contacts" style="color: var(--stripe-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+        <a href="<?= e(getSetting('app_url')) ?>/contacts" style="color: var(--theme-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back to Contacts
         </a>
@@ -17,7 +17,7 @@ declare(strict_types=1);
             Export Profile Data (GDPR)
         </a>
         <form method="post" action="<?= e(getSetting('app_url')) ?>/contacts?action=delete_contact&id=<?= $contact['id'] ?>" onsubmit="return confirm('Are you sure you want to permanently delete this contact? This will remove all their tag mappings, list memberships, and activity timelines.');" style="display: inline; margin: 0;">
-            <button type="submit" class="btn btn-danger">Delete Contact</button>
+            <button type="submit" class="btn btn-danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete Contact</button>
         </form>
     </div>
 </div>
@@ -29,44 +29,74 @@ declare(strict_types=1);
             <div class="card-header"><span class="card-title">Contact Information</span></div>
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Email Address</span>
-                    <span style="font-weight: 600; color: var(--stripe-dark);"><?= e($contact['email']) ?></span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Email Address</span>
+                    <span style="font-weight: 600; color: var(--theme-dark);"><?= e($contact['email']) ?></span>
                 </div>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">First Name</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">First Name</span>
                     <span><?= e($contact['first_name']) ?: '—' ?></span>
                 </div>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Last Name</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Last Name</span>
                     <span><?= e($contact['last_name']) ?: '—' ?></span>
                 </div>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Deliverability Status</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Deliverability Status</span>
                     <span class="badge badge-<?= e($contact['status']) ?>"><?= e($contact['status']) ?></span>
                 </div>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Joined At</span>
-                    <span style="color: var(--stripe-dark-slate);"><?= date('M j, Y H:i:s', strtotime($contact['created_at'])) ?></span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Joined At</span>
+                    <span style="color: var(--theme-dark-slate);"><?= date('M j, Y H:i:s', strtotime($contact['created_at'])) ?></span>
                 </div>
-                <?php if (isset($contact['lead_score'])): ?>
+                <?php if (isset($heatScore)): ?>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Behavioral Lead Score</span>
-                    <span class="badge" style="font-weight: 700; background-color: rgba(99, 91, 255, 0.1); color: var(--stripe-blurple); border: 1px solid rgba(99, 91, 255, 0.15);"><?= (int)$contact['lead_score'] ?> pts</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Engagement Heat Score</span>
+                    <span class="badge" style="font-weight: 700; background-color: rgba(255, 99, 132, 0.1); color: #ff6384; border: 1px solid rgba(255, 99, 132, 0.15); font-size: 14px;">🔥 <?= (int)$heatScore ?> pts</span>
                 </div>
+                <!-- Heat Score Visualization Chart -->
+                <div style="margin-top: 16px;">
+                    <canvas id="heatChart" height="150"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    const ctx = document.getElementById('heatChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: <?= json_encode($dates ?? []) ?>,
+                            datasets: [
+                                { label: 'Opens', data: <?= json_encode($openSeries ?? []) ?>, borderColor: '#3b82f6', tension: 0.3, fill: false },
+                                { label: 'Clicks', data: <?= json_encode($clickSeries ?? []) ?>, borderColor: '#10b981', tension: 0.3, fill: false },
+                                { label: 'Visits', data: <?= json_encode($visitSeries ?? []) ?>, borderColor: '#ff6384', tension: 0.3, fill: false }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { precision: 0 } },
+                                x: { display: false }
+                            }
+                        }
+                    });
+                </script>
                 <?php endif; ?>
 
                 <?php if (!empty($contact['ip_address'])): ?>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Last Known IP</span>
-                    <code style="font-family: monospace; font-size: 12px; background-color: var(--stripe-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--stripe-border);"><?= e($contact['ip_address']) ?></code>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Last Known IP</span>
+                    <code style="font-family: monospace; font-size: 12px; background-color: var(--theme-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--theme-border);"><?= e($contact['ip_address']) ?></code>
                 </div>
                 <?php endif; ?>
 
                 <?php if (!empty($contact['country_code'])): ?>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--stripe-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Geographic Location</span>
-                    <span style="display: inline-flex; align-items: center; gap: 8px; font-weight: 500; color: var(--stripe-dark);">
-                        <img src="https://flagcdn.com/w20/<?= e(strtolower($contact['country_code'])) ?>.png" alt="<?= e($contact['country_name']) ?>" style="border-radius: 2px; border: 1px solid var(--stripe-border);" width="20">
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--theme-dark-slate); font-weight: 600; display: block; margin-bottom: 4px;">Geographic Location</span>
+                    <span style="display: inline-flex; align-items: center; gap: 8px; font-weight: 500; color: var(--theme-dark);">
+                        <img src="https://flagcdn.com/w20/<?= e(strtolower($contact['country_code'])) ?>.png" alt="<?= e($contact['country_name']) ?>" style="border-radius: 2px; border: 1px solid var(--theme-border);" width="20">
                         <?= e($contact['city']) ? e($contact['city']) . ', ' : '' ?><?= e($contact['country_name']) ?>
                     </span>
                 </div>
@@ -79,7 +109,7 @@ declare(strict_types=1);
             <div class="card-header"><span class="card-title">Assigned CRM Tags</span></div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                 <?php if (empty($contactTags)): ?>
-                    <span style="color: var(--stripe-dark-slate); font-size: 13px;">No tags assigned.</span>
+                    <span style="color: var(--theme-dark-slate); font-size: 13px;">No tags assigned.</span>
                 <?php else: ?>
                     <?php foreach ($contactTags as $t): ?>
                         <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background-color: <?= e($t['color']) ?>20; color: <?= e($t['color']) ?>; border: 1px solid <?= e($t['color']) ?>30;">
@@ -95,11 +125,40 @@ declare(strict_types=1);
             <div class="card-header"><span class="card-title">Assigned Segments</span></div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                 <?php if (empty($lists)): ?>
-                    <span style="color: var(--stripe-dark-slate); font-size: 13px;">No lists assigned.</span>
+                    <span style="color: var(--theme-dark-slate); font-size: 13px;">No lists assigned.</span>
                 <?php else: ?>
                     <?php foreach ($lists as $l): ?>
-                        <span style="background-color: var(--stripe-blurple-light); color: var(--stripe-blurple); font-weight: 600; font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(99,91,255,0.1);"><?= e($l['name']) ?></span>
+                        <span style="background-color: var(--theme-blurple-light); color: var(--theme-blurple); font-weight: 600; font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(99,91,255,0.1);"><?= e($l['name']) ?></span>
                     <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Top Web Pages Card -->
+        <div class="card">
+            <div class="card-header"><span class="card-title">Top Visited Pages</span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <?php if (empty($topPages)): ?>
+                    <span style="color: var(--theme-dark-slate); font-size: 13px;">No website visits tracked yet. Ensure the tracking pixel is installed on your site!</span>
+                <?php else: ?>
+                    <table style="width: 100%; font-size: 13px; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--theme-border);">
+                                <th style="padding: 8px 4px; color: var(--theme-dark-slate);">URL</th>
+                                <th style="padding: 8px 4px; color: var(--theme-dark-slate); width: 60px; text-align: right;">Visits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($topPages as $tp): ?>
+                                <tr style="border-bottom: 1px solid var(--theme-border);">
+                                    <td style="padding: 8px 4px; word-break: break-all;">
+                                        <a href="<?= e($tp['url']) ?>" target="_blank" style="color: var(--theme-blurple); text-decoration: none; font-weight: 500;"><?= e($tp['url']) ?></a>
+                                    </td>
+                                    <td style="padding: 8px 4px; text-align: right; font-weight: 600; color: var(--theme-dark);"><?= (int)$tp['visit_count'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 <?php endif; ?>
             </div>
         </div>
@@ -109,7 +168,7 @@ declare(strict_types=1);
     <div class="card">
         <div class="card-header"><span class="card-title">Event Timeline</span></div>
         <?php if (empty($activities)): ?>
-            <p style="text-align: center; color: var(--stripe-dark-slate); padding: 60px;">No timeline actions logged for this subscriber.</p>
+            <p style="text-align: center; color: var(--theme-dark-slate); padding: 60px;">No timeline actions logged for this subscriber.</p>
         <?php else: ?>
             <ul class="timeline">
                 <?php foreach ($activities as $act): 
@@ -120,8 +179,8 @@ declare(strict_types=1);
                 ?>
                     <li class="timeline-item <?= $class ?>">
                         <div class="timeline-time"><?= date('M j, Y H:i:s', strtotime($act['created_at'])) ?></div>
-                        <div class="timeline-content" style="color: var(--stripe-dark); font-weight: 500;">
-                            <span class="badge" style="background-color: var(--stripe-bg); color: var(--stripe-dark-slate); font-size: 10px; padding: 2px 6px; border: 1px solid var(--stripe-border); margin-right: 6px; text-transform: uppercase;"><?= e($act['activity_type']) ?></span>
+                        <div class="timeline-content" style="color: var(--theme-dark); font-weight: 500;">
+                            <span class="badge" style="background-color: var(--theme-bg); color: var(--theme-dark-slate); font-size: 10px; padding: 2px 6px; border: 1px solid var(--theme-border); margin-right: 6px; text-transform: uppercase;"><?= e($act['activity_type']) ?></span>
                             <?= e($act['description']) ?>
                         </div>
                     </li>

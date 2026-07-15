@@ -73,7 +73,7 @@ window.addEventListener('merlin_ready', function(e) {
             </div>
             
             <div style="background: rgba(99,91,255,0.05); border: 1px solid rgba(99,91,255,0.1); padding: 16px; border-radius: 8px;">
-                <p style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--stripe-blurple);">
+                <p style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--theme-blurple);">
                     ℹ️ Merlin Personalization supports cookie caching, ensuring that visitors still see their tailored offers when navigating between multiple pages.
                 </p>
             </div>

@@ -57,24 +57,24 @@ declare(strict_types=1);
     </div>
     
     <div class="grid grid-3" style="margin-bottom: 0; gap: 16px;">
-        <div style="background-color: var(--stripe-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--stripe-border);">
-            <h4 style="color: var(--stripe-dark); margin-bottom: 4px; font-weight: 700;">Automatic Tagging</h4>
-            <p style="font-size: 12px; color: var(--stripe-dark-slate); line-height: 1.4;">
+        <div style="background-color: var(--theme-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--theme-border);">
+            <h4 style="color: var(--theme-dark); margin-bottom: 4px; font-weight: 700;">Automatic Tagging</h4>
+            <p style="font-size: 12px; color: var(--theme-dark-slate); line-height: 1.4;">
                 All harvested contacts are automatically tagged under the teal <strong>scraped</strong> tag, allowing you to segment or target them cleanly in campaigns.
             </p>
         </div>
         
-        <div style="background-color: var(--stripe-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--stripe-border);">
-            <h4 style="color: var(--stripe-dark); margin-bottom: 4px; font-weight: 700;">Deliverability Verification</h4>
-            <p style="font-size: 12px; color: var(--stripe-dark-slate); line-height: 1.4;">
+        <div style="background-color: var(--theme-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--theme-border);">
+            <h4 style="color: var(--theme-dark); margin-bottom: 4px; font-weight: 700;">Deliverability Verification</h4>
+            <p style="font-size: 12px; color: var(--theme-dark-slate); line-height: 1.4;">
                 Connects directly to the <strong>Email Address Verifier</strong> module. Addresses are verified for valid format, MX server records, and disposable domains before entry.
             </p>
         </div>
 
-        <div style="background-color: var(--stripe-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--stripe-border);">
-            <h4 style="color: var(--stripe-dark); margin-bottom: 4px; font-weight: 700;">Harvester Status</h4>
-            <p style="font-size: 12px; color: var(--stripe-dark-slate); line-height: 1.4;">
-                Currently holds <strong id="scraped_stat_count" style="color: var(--stripe-blurple);"><?= $scrapedCount ?></strong> scraped contacts in your mailing database list directory.
+        <div style="background-color: var(--theme-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--theme-border);">
+            <h4 style="color: var(--theme-dark); margin-bottom: 4px; font-weight: 700;">Harvester Status</h4>
+            <p style="font-size: 12px; color: var(--theme-dark-slate); line-height: 1.4;">
+                Currently holds <strong id="scraped_stat_count" style="color: var(--theme-blurple);"><?= $scrapedCount ?></strong> scraped contacts in your mailing database list directory.
             </p>
         </div>
     </div>

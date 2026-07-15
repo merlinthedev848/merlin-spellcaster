@@ -126,8 +126,51 @@ class ModuleController {
                 } else {
                     $_SESSION['flash_error'] = 'Failed to open ZIP archive. File may be corrupted.';
                 }
-            } else {
-                $_SESSION['flash_error'] = 'Module ZIP file upload failed.';
+            }
+        }
+        header('Location: ' . getSetting('app_url') . '/extensions');
+        exit;
+    }
+
+    /**
+     * Uninstall and remove module directory
+     */
+    public function uninstall(): void {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = trim($_GET['id'] ?? '');
+            if ($id !== '') {
+                // Ensure it's not trying to traverse paths
+                if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $id)) {
+                    $_SESSION['flash_error'] = 'Invalid module ID.';
+                    header('Location: ' . getSetting('app_url') . '/extensions');
+                    exit;
+                }
+
+                $targetDir = dirname(__DIR__) . '/modules/' . $id;
+                
+                // Disable it first
+                if (ModuleManager::isEnabled($id)) {
+                    ModuleManager::toggleModule($id);
+                }
+
+                if (file_exists($targetDir) && is_dir($targetDir)) {
+                    // Recursive delete function
+                    $deleteDir = function($dir) use (&$deleteDir) {
+                        $files = array_diff(scandir($dir), ['.','..']);
+                        foreach ($files as $file) {
+                            (is_dir("$dir/$file")) ? $deleteDir("$dir/$file") : unlink("$dir/$file");
+                        }
+                        return rmdir($dir);
+                    };
+                    
+                    if ($deleteDir($targetDir)) {
+                        $_SESSION['flash_success'] = "Module '{$id}' uninstalled completely.";
+                    } else {
+                        $_SESSION['flash_error'] = "Failed to delete module directory '{$id}'.";
+                    }
+                } else {
+                    $_SESSION['flash_error'] = "Module directory '{$id}' not found.";
+                }
             }
         }
         header('Location: ' . getSetting('app_url') . '/extensions');

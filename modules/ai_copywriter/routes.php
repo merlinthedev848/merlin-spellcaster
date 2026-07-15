@@ -21,31 +21,45 @@ if ($routePath === '/ai-copywriter/generate') {
     }
 
     try {
-        // Mock AI generation delay
-        sleep(3);
+        $systemPrompt = "You are an expert email marketing copywriter. Write a highly converting email with a '$tone' tone targeting '$audience'. Respond in strict JSON format: {\"subject\": \"...\", \"body\": \"...\"}. Do not use markdown blocks for the JSON. Use HTML for the body content.";
+        $userPrompt = $prompt;
+
+        $content = AI::generate($systemPrompt, $userPrompt, 'json_object');
         
-        // Mock responses based on tone
-        $subject = "Unlock Your Potential with Our New Solution";
-        $body = "Hi {first_name},\n\nWe know how hard you work to achieve your goals. That's why we built a solution designed specifically for {$audience}.\n\n" . 
-                "With our latest offering, you can streamline your workflow and get back to what matters most.\n\n" .
-                "Are you ready to transform your process?\n\nBest,\nThe Team";
-        
-        if ($tone === 'witty') {
-            $subject = "Don't let your workflow be a joke. (Unless it's a good one)";
-            $body = "Hey {first_name},\n\nTired of doing things the hard way? We thought so. We made something for {$audience} that actually works.\n\n" . 
-                    "No magic tricks, just solid results. Give it a spin.\n\nCheers,\nYour Friends";
-        } elseif ($tone === 'urgent') {
-            $subject = "Action Required: Elevate Your Strategy Today";
-            $body = "Hi {first_name},\n\nTime is running out to capitalize on the latest trends for {$audience}. Our new solution is built to give you the edge immediately.\n\n" . 
-                    "Act now to secure your advantage.\n\nRegards,\nThe Team";
+        $parsed = json_decode($content, true);
+        if (!$parsed || !isset($parsed['subject']) || !isset($parsed['body'])) {
+            echo json_encode(['success' => false, 'error' => 'AI Provider returned invalid JSON structure: ' . $content]);
+            exit;
         }
 
         echo json_encode([
             'success' => true, 
-            'subject' => $subject,
-            'body' => $body
+            'subject' => $parsed['subject'],
+            'body' => $parsed['body']
         ]);
 
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($routePath === '/ai-copywriter/save-draft') {
+    header('Content-Type: application/json');
+    $subject = trim($_POST['subject'] ?? '');
+    $body = trim($_POST['body'] ?? '');
+
+    if (empty($subject) || empty($body)) {
+        echo json_encode(['success' => false, 'error' => 'Subject and body are required.']);
+        exit;
+    }
+
+    try {
+        $db = Database::getConnection();
+        $db->prepare("INSERT INTO campaigns (name, subject, body_html, body_text, status) VALUES (?, ?, ?, ?, 'draft')")
+           ->execute([$subject, $subject, $body, strip_tags($body)]);
+        
+        echo json_encode(['success' => true]);
     } catch (Throwable $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }

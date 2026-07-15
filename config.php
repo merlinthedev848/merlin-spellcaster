@@ -295,7 +295,7 @@ function _bootstrapSchema(PDO $db): void {
         "CREATE TABLE IF NOT EXISTS automation_steps (
             id INT AUTO_INCREMENT PRIMARY KEY,
             automation_id INT NOT NULL,
-            step_type ENUM('wait', 'send_email', 'add_tag', 'remove_tag', 'send_if_opened', 'send_if_not_opened', 'tag_if_not_opened') NOT NULL,
+            step_type VARCHAR(64) NOT NULL,
             step_value VARCHAR(255) NOT NULL,
             order_num INT NOT NULL,
             FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE
@@ -398,6 +398,13 @@ function _runMigrations(PDO $db): void {
         } catch (Throwable $e) {
             error_log("Migration Error (list_id): " . $e->getMessage());
         }
+    }
+    
+    // Convert automation_steps.step_type from ENUM to VARCHAR(64) to support modular expansion
+    try {
+        $db->exec("ALTER TABLE automation_steps MODIFY step_type VARCHAR(64) NOT NULL");
+    } catch (Throwable $e) {
+        error_log("Migration Error (step_type varchar): " . $e->getMessage());
     }
 
     try {
@@ -556,4 +563,97 @@ function _runMigrations(PDO $db): void {
             error_log("Migration Error (smtp_servers): " . $e->getMessage());
         }
     }
+
+    // 7. Create contact_visits table for Web Tracking module
+    try {
+        $db->query("SELECT 1 FROM contact_visits LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS contact_visits (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                subscriber_id INT NOT NULL,
+                url VARCHAR(2048) NOT NULL,
+                ip_address VARCHAR(45) DEFAULT NULL,
+                visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (subscriber_id) REFERENCES subscribers(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {
+            error_log("Migration Error (contact_visits): " . $e->getMessage());
+        }
+    }
+
+    // 8. Create seo_reports table for SEO Auditor module
+    try {
+        $db->query("SELECT 1 FROM seo_reports LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS seo_reports (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                url VARCHAR(2048) NOT NULL,
+                score INT DEFAULT 0,
+                title VARCHAR(255) DEFAULT NULL,
+                meta_description TEXT,
+                h1_tags TEXT,
+                word_count INT DEFAULT 0,
+                recommendations TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {
+            error_log("Migration Error (seo_reports): " . $e->getMessage());
+        }
+    }
+
+    // 9. Create backlink_submissions table for Backlink Builder module
+    try {
+        $db->query("SELECT 1 FROM backlink_submissions LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS backlink_submissions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                directory_name VARCHAR(128) NOT NULL,
+                directory_url VARCHAR(2048) NOT NULL,
+                target_url VARCHAR(2048) NOT NULL,
+                status ENUM('pending', 'submitted', 'live', 'rejected') DEFAULT 'pending',
+                notes TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {
+            error_log("Migration Error (backlink_submissions): " . $e->getMessage());
+        }
+    }
+
+    // 10. Add exclude_tag_id to automations table
+    try {
+        $db->query("SELECT exclude_tag_id FROM automations LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("ALTER TABLE automations ADD COLUMN exclude_tag_id INT DEFAULT NULL, ADD FOREIGN KEY (exclude_tag_id) REFERENCES tags(id) ON DELETE SET NULL");
+        } catch (Throwable $e) {
+            error_log("Migration Error (automations exclude_tag_id): " . $e->getMessage());
+        }
+    }
+}
+
+/**
+ * Flash a session message
+ */
+function flash(string $type, string $message): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['flash_' . $type] = $message;
+}
+
+/**
+ * Redirect to a specific URL path and exit
+ */
+function sc_redirect(string $path): void {
+    $url = getSetting('app_url', (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]");
+    $url = rtrim($url, '/');
+    if (!str_starts_with($path, '/')) {
+        $path = '/' . $path;
+    }
+    header('Location: ' . $url . $path);
+    exit;
 }

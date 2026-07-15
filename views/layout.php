@@ -11,7 +11,7 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title ?? 'Dashboard') ?> — <?= e($appName) ?></title>
-    <link rel="stylesheet" href="<?= e($appUrl) ?>/assets/css/stripe.css?v=2.2">
+    <link rel="stylesheet" href="<?= e($appUrl) ?>/assets/css/theme.css?v=2.2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Top Navigation Header Styles */
@@ -20,9 +20,9 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
             justify-content: space-between;
             align-items: center;
             height: 60px;
-            border-bottom: 1px solid var(--stripe-border);
+            border-bottom: 1px solid var(--theme-border);
             padding: 0 48px;
-            background-color: var(--stripe-white);
+            background-color: var(--theme-white);
             position: sticky;
             top: 0;
             z-index: 90;
@@ -36,23 +36,23 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
         .top-navbar-search svg {
             position: absolute;
             left: 12px;
-            color: var(--stripe-dark-slate);
+            color: var(--theme-dark-slate);
             pointer-events: none;
         }
         .top-navbar-search input {
             padding: 8px 12px 8px 36px;
             font-size: 13px;
             border-radius: 20px;
-            border: 1px solid var(--stripe-border);
+            border: 1px solid var(--theme-border);
             width: 240px;
             outline: none;
-            background-color: var(--stripe-bg);
+            background-color: var(--theme-bg);
             transition: all 0.15s ease;
         }
         .top-navbar-search input:focus {
             width: 320px;
-            border-color: var(--stripe-blurple);
-            background-color: var(--stripe-white);
+            border-color: var(--theme-blurple);
+            background-color: var(--theme-white);
             box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
         }
         .user-menu {
@@ -71,13 +71,13 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
             transition: all 0.15s ease;
         }
         .user-menu-trigger:hover {
-            background-color: var(--stripe-bg);
+            background-color: var(--theme-bg);
         }
         .user-avatar {
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            background-color: var(--stripe-blurple);
+            background-color: var(--theme-blurple);
             color: white;
             display: flex;
             align-items: center;
@@ -89,17 +89,17 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
         .user-email-display {
             font-size: 13px;
             font-weight: 500;
-            color: var(--stripe-dark);
+            color: var(--theme-dark);
         }
         .user-dropdown-menu {
             display: none;
             position: absolute;
             right: 0;
             top: 36px;
-            background-color: var(--stripe-white);
+            background-color: var(--theme-white);
             min-width: 160px;
             box-shadow: var(--shadow-md);
-            border: 1px solid var(--stripe-border);
+            border: 1px solid var(--theme-border);
             border-radius: 6px;
             z-index: 120;
             padding: 4px 0;
@@ -108,19 +108,19 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
         .user-dropdown-link {
             display: block;
             padding: 10px 16px;
-            color: var(--stripe-dark);
+            color: var(--theme-dark);
             text-decoration: none;
             font-size: 13px;
             font-weight: 500;
             transition: all 0.1s ease;
         }
         .user-dropdown-link:hover {
-            background-color: var(--stripe-bg);
-            color: var(--stripe-blurple);
+            background-color: var(--theme-bg);
+            color: var(--theme-blurple);
         }
         .user-dropdown-link.logout {
             color: var(--danger);
-            border-top: 1px solid var(--stripe-border);
+            border-top: 1px solid var(--theme-border);
         }
         .user-dropdown-link.logout:hover {
             background-color: var(--danger-light);
@@ -174,7 +174,7 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                 border: none;
                 cursor: pointer;
                 padding: 8px;
-                color: var(--stripe-dark);
+                color: var(--theme-dark);
                 margin-right: 12px;
             }
         }
@@ -287,6 +287,16 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                     }
                 }
                 ?>
+                <li>
+                    <a href="<?= e($appUrl) ?>/media" class="sidebar-link <?= (str_starts_with($currentRoute, '/media')) ? 'active' : '' ?>">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        Media Library
+                    </a>
+                </li>
                 <li class="menu-item-has-children">
                     <a href="<?= e($appUrl) ?>/extensions" class="sidebar-link <?= $isModuleActive ? 'active' : '' ?>" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -311,8 +321,8 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                                 $isActive = (str_starts_with($currentRoute, $path)) ? 'active' : '';
                             ?>
                                 <li>
-                                    <a href="<?= e($appUrl . $path) ?>" class="sidebar-link <?= $isActive ?>" style="padding: 6px 12px; font-size: 13px; color: <?= $isActive ? 'var(--stripe-white)' : '#adbdcc' ?>; background-color: <?= $isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent' ?>; justify-content: flex-start; gap: 8px;">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; flex-shrink: 0; color: <?= $isActive ? 'var(--stripe-blurple)' : 'inherit' ?>;">
+                                    <a href="<?= e($appUrl . $path) ?>" class="sidebar-link <?= $isActive ?>" style="padding: 6px 12px; font-size: 13px; color: <?= $isActive ? 'var(--theme-white)' : '#adbdcc' ?>; background-color: <?= $isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent' ?>; justify-content: flex-start; gap: 8px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; flex-shrink: 0; color: <?= $isActive ? 'var(--theme-blurple)' : 'inherit' ?>;">
                                             <circle cx="12" cy="12" r="10"></circle>
                                         </svg>
                                         <span><?= e($label) ?></span>
@@ -373,7 +383,7 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                 <button class="user-menu-trigger" onclick="toggleUserDropdown(event)">
                     <div class="user-avatar"><?= substr(e($adminEmail), 0, 1) ?></div>
                     <span class="user-email-display"><?= e($adminEmail) ?></span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--stripe-dark-slate);"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--theme-dark-slate);"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </button>
                 <div class="user-dropdown-menu" id="userDropdown">
                     <a href="<?= e($appUrl) ?>/settings" class="user-dropdown-link">Settings Profile</a>
@@ -387,14 +397,14 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
         <main class="main-content" style="padding-top: 32px;">
             <div class="toast-container" id="toastContainer">
                 <?php if (isset($_SESSION['flash_success'])): ?>
-                    <div class="toast" style="background-color: var(--stripe-dark); border-left: 4px solid var(--success);">
+                    <div class="toast" style="background-color: var(--theme-dark); border-left: 4px solid var(--success);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <?= e($_SESSION['flash_success']) ?>
                     </div>
                     <?php unset($_SESSION['flash_success']); ?>
                 <?php endif; ?>
                 <?php if (isset($_SESSION['flash_error'])): ?>
-                    <div class="toast" style="background-color: var(--stripe-dark); border-left: 4px solid var(--danger);">
+                    <div class="toast" style="background-color: var(--theme-dark); border-left: 4px solid var(--danger);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                         <?= e($_SESSION['flash_error']) ?>
                     </div>

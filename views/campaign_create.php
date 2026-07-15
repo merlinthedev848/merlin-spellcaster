@@ -14,7 +14,7 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
 
 <div class="header-actions">
     <div class="page-title">
-        <a href="<?= e(getSetting('app_url')) ?>/campaigns" style="color: var(--stripe-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+        <a href="<?= e(getSetting('app_url')) ?>/campaigns" style="color: var(--theme-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back to Campaigns
         </a>
@@ -32,7 +32,7 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
 <div class="grid grid-2">
     <!-- Campaign Settings Pane -->
     <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card-header" style="border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 0;">
+        <div class="card-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 0;">
             <span class="card-title">Campaign Settings</span>
         </div>
         
@@ -62,9 +62,19 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <label class="form-label" for="body_html" style="margin-bottom: 0;">HTML Email Body Content</label>
-                    <span style="font-size: 11px; color: var(--stripe-dark-slate);">Supports <code>{{first_name}}</code>, <code>{{unsubscribe_url}}</code></span>
+                    <span style="font-size: 11px; color: var(--theme-dark-slate);">Supports <code>{{first_name}}</code>, <code>{{unsubscribe_url}}</code></span>
                 </div>
-                <textarea class="form-control" id="body_html" name="body_html" required style="font-family: monospace; font-size: 13px; min-height: 250px;"><?= e($htmlVal) ?></textarea>
+                <!-- HTML Code Editor -->
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+                <style>
+                    .CodeMirror { height: 250px; border: 1px solid var(--theme-border); border-radius: 6px; font-family: monospace; font-size: 13px; }
+                </style>
+                <textarea class="form-control" id="body_html" name="body_html" required style="display: none;"><?= e($htmlVal) ?></textarea>
             </div>
 
             <div class="form-group">
@@ -85,16 +95,16 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
             <!-- Target Tag Filtering -->
             <div class="form-group">
                 <label class="form-label">Filter Targeting by CRM Tags (Optional)</label>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--stripe-border); border-radius: 6px; background-color: #fafbfc; max-height: 120px; overflow-y: auto;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--theme-border); border-radius: 6px; background-color: #fafbfc; max-height: 120px; overflow-y: auto;">
                     <?php foreach ($tags as $t): ?>
-                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--stripe-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
-                            <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--stripe-blurple);" <?= ($isEdit && in_array((int)$t['id'], $campTagIds, true)) ? 'checked' : '' ?>>
+                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
+                            <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);" <?= ($isEdit && in_array((int)$t['id'], $campTagIds, true)) ? 'checked' : '' ?>>
                             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
                             <?= e($t['name']) ?>
                         </label>
                     <?php endforeach; ?>
                     <?php if (empty($tags)): ?>
-                        <span style="color: var(--stripe-dark-slate); font-size: 12px;">No tags created.</span>
+                        <span style="color: var(--theme-dark-slate); font-size: 12px;">No tags created.</span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -109,16 +119,16 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
             <div class="form-group">
                 <label class="form-label" for="max_per_hour">Hourly Send Throttle Limit</label>
                 <input class="form-control" type="number" id="max_per_hour" name="max_per_hour" min="0" value="<?= $maxPerHourVal ?>" placeholder="e.g. 50 (0 for unlimited)">
-                <p style="font-size: 11px; color: var(--stripe-dark-slate); margin-top: 4px;">Restricts this campaign to send at most X emails per hour, protecting your SMTP server reputation.</p>
+                <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Restricts this campaign to send at most X emails per hour, protecting your SMTP server reputation.</p>
             </div>
 
             <!-- Unsubscribe Footer Settings -->
             <div class="form-group" style="margin-bottom: 32px;">
                 <label style="display: inline-flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13px; cursor: pointer;">
-                    <input type="checkbox" name="include_unsubscribe" value="1" style="accent-color: var(--stripe-blurple);" <?= $unsubChecked ? 'checked' : '' ?>>
+                    <input type="checkbox" name="include_unsubscribe" value="1" style="accent-color: var(--theme-blurple);" <?= $unsubChecked ? 'checked' : '' ?>>
                     Include automatic unsubscribe link in email footer
                 </label>
-                <p style="font-size: 11px; color: var(--stripe-dark-slate); margin-top: 4px; margin-left: 20px;">
+                <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px; margin-left: 20px;">
                     Uncheck to disable the automatic unsubscribe block (highly recommended for cold outreach to make emails feel personal). Note that manually placed <code>{{unsubscribe_url}}</code> will always be processed.
                 </p>
             </div>
@@ -137,9 +147,9 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
     <!-- Live Preview Pane -->
     <div style="display: flex; flex-direction: column; height: 100%;">
         <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 480px;">
-            <div class="card-header" style="border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 0;">
+            <div class="card-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 0;">
                 <span class="card-title">HTML Live Preview Renderer</span>
-                <span id="preview_indicator" style="font-size: 11px; background-color: var(--stripe-border); color: var(--stripe-dark-slate); font-weight: 600; padding: 2px 6px; border-radius: 4px;">Pre-rendering</span>
+                <span id="preview_indicator" style="font-size: 11px; background-color: var(--theme-border); color: var(--theme-dark-slate); font-weight: 600; padding: 2px 6px; border-radius: 4px;">Pre-rendering</span>
             </div>
             <div style="flex-grow: 1; background: #ffffff; padding: 0; position: relative;">
                 <iframe id="campaign_preview_frame" style="width: 100%; height: 100%; border: none; background: #ffffff; min-height: 400px;"></iframe>
@@ -167,6 +177,9 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
         if (id && templatesMap[id]) {
             const temp = templatesMap[id];
             textarea.value = temp.html;
+            if (window.htmlEditor) {
+                window.htmlEditor.setValue(temp.html);
+            }
             textTextarea.value = temp.text || "";
             if (temp.subject && subjectInput.value === "") {
                 subjectInput.value = temp.subject;
@@ -188,8 +201,8 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
             doc.write("<div style='font-family:sans-serif; text-align:center; padding:60px; color:#4f5b76;'>Write HTML or select a template preset on the left to preview.</div>");
             doc.close();
             indicator.textContent = "Empty Body";
-            indicator.style.backgroundColor = "var(--stripe-border)";
-            indicator.style.color = "var(--stripe-dark-slate)";
+            indicator.style.backgroundColor = "var(--theme-border)";
+            indicator.style.color = "var(--theme-dark-slate)";
             return;
         }
 
@@ -209,7 +222,21 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
 
     document.addEventListener("DOMContentLoaded", function() {
         const textarea = document.getElementById("body_html");
-        textarea.addEventListener("input", updatePreview);
+        
+        // Initialize CodeMirror
+        window.htmlEditor = CodeMirror.fromTextArea(textarea, {
+            mode: "htmlmixed",
+            lineNumbers: true,
+            theme: "default",
+            lineWrapping: true
+        });
+
+        // Sync CodeMirror to textarea and update live preview
+        window.htmlEditor.on('change', function() {
+            window.htmlEditor.save(); // saves to textarea
+            updatePreview();
+        });
+
         updatePreview();
     });
 </script>

@@ -66,8 +66,11 @@ declare(strict_types=1);
                 </div>
             </div>
             
-            <div style="margin-top: 16px; padding: 16px; background: rgba(56, 189, 248, 0.1); border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2);">
-                <p style="margin: 0; color: #38bdf8; font-size: 0.9rem;"><strong>Tip:</strong> Copy these into the Campaign Editor. In the future, this will export directly to a draft campaign.</p>
+            <div style="margin-top: 16px; padding: 16px; background: rgba(56, 189, 248, 0.1); border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <p style="margin: 0; color: #38bdf8; font-size: 0.9rem;"><strong>Tip:</strong> You can export this directly to a new Campaign Draft.</p>
+                <button type="button" class="btn btn-primary" onclick="saveAsDraft()" style="background: #38bdf8; color: #0f172a; font-weight: bold;">
+                    Save as Draft Campaign
+                </button>
             </div>
         </div>
         
@@ -140,5 +143,33 @@ function copyToClipboard(id) {
     el.select();
     document.execCommand('copy');
     alert("Copied to clipboard!");
+}
+
+function saveAsDraft() {
+    const subject = document.getElementById('out_subject').value;
+    const body = document.getElementById('out_body').value;
+    
+    if (!subject || !body) return;
+    
+    const formData = new FormData();
+    formData.append('subject', subject);
+    formData.append('body', body);
+    
+    fetch('/ai-copywriter/save-draft', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Draft saved successfully! You can view it in the Campaigns tab.');
+            window.location.href = '/campaigns';
+        } else {
+            alert('Error saving draft: ' + data.error);
+        }
+    })
+    .catch(err => {
+        alert('A network error occurred while saving the draft.');
+    });
 }
 </script>

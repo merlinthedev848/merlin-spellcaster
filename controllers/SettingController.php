@@ -102,7 +102,43 @@ class SettingController {
             ];
         }
 
-        // 6. Queue Metrics
+        // 6. IP Health (Spam Blacklist Check)
+        $checks['ip_health'] = [
+            'name' => 'IP Health (Spam Blacklist)',
+            'status' => 'pass',
+            'message' => 'Your sending IP is clean.'
+        ];
+        
+        try {
+            $ctx = stream_context_create(['http' => ['timeout' => 2]]);
+            $publicIp = @file_get_contents('https://api.ipify.org', false, $ctx);
+            if ($publicIp && filter_var($publicIp, FILTER_VALIDATE_IP)) {
+                $reverseIp = implode('.', array_reverse(explode('.', $publicIp)));
+                $rbls = ['zen.spamhaus.org', 'b.barracudacentral.org'];
+                $listedIn = [];
+                
+                foreach ($rbls as $rbl) {
+                    if (checkdnsrr($reverseIp . '.' . $rbl, 'A')) {
+                        $listedIn[] = $rbl;
+                    }
+                }
+                
+                if (!empty($listedIn)) {
+                    $checks['ip_health']['status'] = 'fail';
+                    $checks['ip_health']['message'] = "Your Server IP ($publicIp) is blacklisted by: " . implode(', ', $listedIn);
+                } else {
+                    $checks['ip_health']['message'] = "Server IP ($publicIp) is clean (checked Spamhaus, Barracuda).";
+                }
+            } else {
+                $checks['ip_health']['status'] = 'warn';
+                $checks['ip_health']['message'] = "Could not determine public IP to check against blacklists.";
+            }
+        } catch (Throwable $e) {
+            $checks['ip_health']['status'] = 'warn';
+            $checks['ip_health']['message'] = "IP Health check timed out or failed.";
+        }
+
+        // 7. Queue Metrics
         $queueMetrics = $db->query("
             SELECT 
                 COUNT(IF(status='pending', 1, NULL)) as pending,
@@ -131,9 +167,40 @@ class SettingController {
             LIMIT 10
         ")->fetchAll();
 
+        // 9. Fetch Campaign Queue Throttle Estimates
+        $queueEstimates = $db->query("
+            SELECT c.name, c.max_per_hour, COUNT(eq.id) as pending_count
+            FROM email_queue eq
+            JOIN campaigns c ON c.id = eq.campaign_id
+            WHERE eq.status = 'pending'
+            GROUP BY c.id, c.name, c.max_per_hour
+        ")->fetchAll();
+
         $title = 'Diagnostics';
         $viewPath = dirname(__DIR__) . '/views/diagnostics.php';
         include dirname(__DIR__) . '/views/layout.php';
+    }
+
+    /**
+     * Clear failed email delivery logs
+     */
+    public function clearLogs(): void {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . getSetting('app_url') . '/diagnostics');
+            exit;
+        }
+        if (!Auth::checkCsrf()) {
+            $_SESSION['flash_error'] = 'Invalid security token.';
+            header('Location: ' . getSetting('app_url') . '/diagnostics');
+            exit;
+        }
+
+        $db = Database::getConnection();
+        $db->exec("DELETE FROM email_queue WHERE status = 'failed'");
+        
+        $_SESSION['flash_success'] = 'Failed delivery logs cleared successfully.';
+        header('Location: ' . getSetting('app_url') . '/diagnostics');
+        exit;
     }
 
     /**
@@ -194,8 +261,7 @@ class SettingController {
      * Endpoint to fetch IMAP folders dynamically via pure PHP sockets
      */
     public function fetchImapFolders(): void {
-        header('Content-Type: application/json');
-        
+        ob_start();
         $host = trim($_POST['host'] ?? '');
         $port = (int)($_POST['port'] ?? 993);
         $user = trim($_POST['user'] ?? '');
@@ -203,6 +269,8 @@ class SettingController {
         $ssl = (int)($_POST['ssl'] ?? 1) === 1;
 
         if ($host === '' || $user === '' || $pass === '') {
+            ob_clean();
+            header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Missing IMAP credentials (host, user, pass).']);
             return;
         }
@@ -212,8 +280,12 @@ class SettingController {
         try {
             $client = new ImapClient($host, $port, $user, $pass, $ssl);
             $folders = $client->getFolders();
+            ob_clean();
+            header('Content-Type: application/json');
             echo json_encode(['success' => true, 'folders' => $folders]);
         } catch (Throwable $e) {
+            ob_clean();
+            header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit;

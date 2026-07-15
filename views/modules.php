@@ -16,7 +16,7 @@ declare(strict_types=1);
     </div>
     <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/upload" enctype="multipart/form-data" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 280px;">
-            <div style="background-color: var(--stripe-blurple-light); color: var(--stripe-dark-slate); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 12px; border: 1px solid rgba(99,91,255,0.1); line-height: 1.4;">
+            <div style="background-color: var(--theme-blurple-light); color: var(--theme-dark-slate); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 12px; border: 1px solid rgba(99,91,255,0.1); line-height: 1.4;">
                 Upload a <strong>.zip</strong> package containing a valid <code>module.json</code> descriptor at the root directory level.
             </div>
             <div class="form-group" style="margin-bottom: 0;">
@@ -50,7 +50,7 @@ declare(strict_types=1);
             <tbody>
                 <?php if (empty($modules)): ?>
                     <tr>
-                        <td colspan="4" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">
+                        <td colspan="4" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">
                             No modules discovered in the <code>modules/</code> directory.
                         </td>
                     </tr>
@@ -58,24 +58,29 @@ declare(strict_types=1);
                     <?php foreach ($modules as $id => $mod): ?>
                         <tr>
                             <td>
-                                <div style="font-weight: 600; color: var(--stripe-dark);"><?= e($mod['name']) ?></div>
+                                <div style="font-weight: 600; color: var(--theme-dark);"><?= e($mod['name']) ?></div>
                                 <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
-                                    <span style="font-size: 10px; background-color: var(--stripe-bg); color: var(--stripe-dark-slate); padding: 2px 6px; border-radius: 4px; font-weight: 600;">v<?= e($mod['version'] ?? '1.0.0') ?></span>
-                                    <span style="font-size: 11px; color: var(--stripe-dark-slate);"><code>/<?= e($id) ?>/</code></span>
+                                    <span style="font-size: 10px; background-color: var(--theme-bg); color: var(--theme-dark-slate); padding: 2px 6px; border-radius: 4px; font-weight: 600;">v<?= e($mod['version'] ?? '1.0.0') ?></span>
+                                    <span style="font-size: 11px; color: var(--theme-dark-slate);"><code>/<?= e($id) ?>/</code></span>
                                 </div>
                             </td>
-                            <td style="color: var(--stripe-dark-slate); font-size: 13px; line-height: 1.45;">
+                            <td style="color: var(--theme-dark-slate); font-size: 13px; line-height: 1.45;">
                                 <?= e($mod['description'] ?? 'No description provided.') ?>
                             </td>
                             <td style="text-align: center;">
-                                <span class="badge" style="background-color: <?= $mod['enabled'] ? 'var(--stripe-blurple-light)' : 'var(--stripe-bg)' ?>; color: <?= $mod['enabled'] ? 'var(--stripe-blurple)' : 'var(--stripe-dark-slate)' ?>; font-weight: 700; padding: 4px 10px;">
+                                <span class="badge" style="background-color: <?= $mod['enabled'] ? 'var(--theme-blurple-light)' : 'var(--theme-bg)' ?>; color: <?= $mod['enabled'] ? 'var(--theme-blurple)' : 'var(--theme-dark-slate)' ?>; font-weight: 700; padding: 4px 10px;">
                                     ● <?= $mod['enabled'] ? 'Active' : 'Inactive' ?>
                                 </span>
                             </td>
-                            <td style="text-align: right;">
+                            <td style="text-align: right; white-space: nowrap;">
                                 <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/toggle?id=<?= urlencode($id) ?>" style="margin: 0; display: inline-block;">
                                     <button type="submit" class="btn <?= $mod['enabled'] ? 'btn-secondary' : 'btn-primary' ?>" style="padding: 6px 12px; font-size: 12px; min-width: 90px; justify-content: center;">
                                         <?= $mod['enabled'] ? 'Disable' : 'Enable' ?>
+                                    </button>
+                                </form>
+                                <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/uninstall?id=<?= urlencode($id) ?>" onsubmit="return confirm('Are you sure you want to permanently uninstall and delete this module? This cannot be undone.');" style="margin: 0; display: inline-block; margin-left: 4px;">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; justify-content: center;">
+                                        Uninstall
                                     </button>
                                 </form>
                             </td>

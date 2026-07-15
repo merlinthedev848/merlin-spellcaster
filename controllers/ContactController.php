@@ -29,7 +29,7 @@ class ContactController {
             if ($action === 'create_tag') {
                 $name = trim($_POST['name'] ?? '');
                 if ($name !== '') {
-                    // Predefined Stripe-style pastel colors
+                    // Predefined theme-style pastel colors
                     $colors = ['#635bff', '#00d4b2', '#8b5cf6', '#ff5b60', '#ffba52', '#3b82f6', '#ec4899', '#10b981'];
                     $color = $colors[array_rand($colors)];
                     
@@ -195,7 +195,8 @@ class ContactController {
                         
                         // Trigger automations
                         Automation::trigger('subscribe', $subId);
-                        Hook::fire('contact_added', ['subscriber_id' => $subId]);
+                        $hookDataAfter = ['subscriber_id' => $subId];
+                        Hook::fire('contact_added', $hookDataAfter);
                         
                         $_SESSION['flash_success'] = "Contact {$email} added successfully!";
                     } catch (Throwable $e) {
@@ -284,7 +285,8 @@ class ContactController {
                                     
                                     logActivity($subId, 'subscribe', "Subscribed via CSV import to list #{$listId}");
                                     Automation::trigger('subscribe', $subId);
-                                    Hook::fire('contact_added', ['subscriber_id' => $subId]);
+                                    $hookDataAfter = ['subscriber_id' => $subId];
+                                    Hook::fire('contact_added', $hookDataAfter);
                                     
                                     $imported++;
                                 } else {
@@ -489,9 +491,48 @@ class ContactController {
         $stTags->execute([$id]);
         $contactTags = $stTags->fetchAll();
 
+        // Fetch web visits
+        $stVisits = $db->prepare("SELECT url, COUNT(id) as visit_count FROM contact_visits WHERE subscriber_id = ? GROUP BY url ORDER BY visit_count DESC LIMIT 5");
+        $stVisits->execute([$id]);
+        $topPages = $stVisits->fetchAll();
+
+        // Calculate Heat Score
+        // Opens (1 pt), Clicks (2 pts), Visits (5 pts)
+        $stOpens = $db->prepare("SELECT COUNT(*) FROM campaign_opens WHERE subscriber_id = ?"); $stOpens->execute([$id]); $cOpens = (int)$stOpens->fetchColumn();
+        $stClicks = $db->prepare("SELECT COUNT(*) FROM campaign_clicks WHERE subscriber_id = ?"); $stClicks->execute([$id]); $cClicks = (int)$stClicks->fetchColumn();
+        $stVisitsTotal = $db->prepare("SELECT COUNT(*) FROM contact_visits WHERE subscriber_id = ?"); $stVisitsTotal->execute([$id]); $cVisits = (int)$stVisitsTotal->fetchColumn();
+        $heatScore = ($cOpens * 1) + ($cClicks * 2) + ($cVisits * 5);
+
         $stLogs = $db->prepare("SELECT * FROM activity_log WHERE subscriber_id = ? ORDER BY created_at DESC");
         $stLogs->execute([$id]);
         $activities = $stLogs->fetchAll();
+
+        // Heat Score Chart Data (Last 30 Days)
+        $stChart = $db->prepare("
+            SELECT DATE(created_at) as date, activity_type as action, COUNT(*) as count 
+            FROM activity_log 
+            WHERE subscriber_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY date, activity_type
+            ORDER BY date ASC
+        ");
+        $stChart->execute([$id]);
+        $chartRaw = $stChart->fetchAll();
+        
+        $chartData = [];
+        foreach ($chartRaw as $row) {
+            $date = $row['date'];
+            if (!isset($chartData[$date])) {
+                $chartData[$date] = ['open' => 0, 'click' => 0, 'visit' => 0];
+            }
+            if (isset($chartData[$date][$row['action']])) {
+                $chartData[$date][$row['action']] = (int)$row['count'];
+            }
+        }
+        
+        $dates = array_keys($chartData);
+        $openSeries = array_column($chartData, 'open');
+        $clickSeries = array_column($chartData, 'click');
+        $visitSeries = array_column($chartData, 'visit');
 
         $title = 'Contact Profile';
         $viewPath = dirname(__DIR__) . '/views/contact_view.php';

@@ -32,15 +32,43 @@ declare(strict_types=1);
     </div>
 </div>
 
-<!-- Stripe Stats Grid -->
+<style>
+@keyframes scPulse {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(99, 91, 255, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(99, 91, 255, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(99, 91, 255, 0); }
+}
+</style>
+
+<?php if ($pendingEmailsCount > 0): ?>
+    <div style="background-color: #f5f6ff; border: 1px solid rgba(99,91,255,0.15); border-radius: 8px; padding: 14px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="background-color: var(--theme-blurple); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span style="position: absolute; top: -1px; right: -1px; width: 8px; height: 8px; border-radius: 50%; background-color: #00d4b2; border: 2px solid #f5f6ff; display: inline-block; animation: scPulse 2s infinite;"></span>
+            </div>
+            <div>
+                <span style="font-weight: 700; font-size: 14px; color: var(--theme-dark); display: block; margin-bottom: 2px;">Active Campaign Send in Progress</span>
+                <span style="font-size: 12px; color: var(--theme-dark-slate);">There are <strong><?= number_format($pendingEmailsCount) ?></strong> emails pending in the outgoing delivery queue.</span>
+            </div>
+        </div>
+        <div>
+            <a href="<?= e(getSetting('app_url')) ?>/diagnostics" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; font-weight: 600;">
+                Monitor Delivery & Speed →
+            </a>
+        </div>
+    </div>
+<?php endif; ?>
+
+<!-- theme Stats Grid -->
 <div class="grid grid-4">
     <div class="card">
         <div class="stat-group">
             <span class="stat-label">Total Emails Sent</span>
             <span class="stat-value"><?= number_format($totalSent) ?></span>
             <span class="stat-meta">
-                <span style="font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background-color: var(--stripe-bg); color: var(--stripe-dark-slate); border: 1px solid var(--stripe-border);">● Broadcast</span>
-                <span style="color: var(--stripe-dark-slate);">delivery attempts total</span>
+                <span style="font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background-color: var(--theme-bg); color: var(--theme-dark-slate); border: 1px solid var(--theme-border);">● Broadcast</span>
+                <span style="color: var(--theme-dark-slate);">delivery attempts total</span>
             </span>
         </div>
     </div>
@@ -51,7 +79,7 @@ declare(strict_types=1);
             <span class="stat-value"><?= number_format($subCount) ?></span>
             <span class="stat-meta">
                 <span class="stat-trend-up">✓ Live</span>
-                <span style="color: var(--stripe-dark-slate);">contacts receiving campaigns</span>
+                <span style="color: var(--theme-dark-slate);">contacts receiving campaigns</span>
             </span>
         </div>
     </div>
@@ -65,7 +93,7 @@ declare(strict_types=1);
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><polyline points="18 15 12 9 6 15"></polyline></svg>
                     Opens
                 </span>
-                <span style="color: var(--stripe-dark-slate);"><?= number_format($totalOpens) ?> total views logged</span>
+                <span style="color: var(--theme-dark-slate);"><?= number_format($totalOpens) ?> total views logged</span>
             </span>
         </div>
     </div>
@@ -79,7 +107,7 @@ declare(strict_types=1);
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><polyline points="18 15 12 9 6 15"></polyline></svg>
                     Clicks
                 </span>
-                <span style="color: var(--stripe-dark-slate);"><?= number_format($totalClicks) ?> total redirects tracked</span>
+                <span style="color: var(--theme-dark-slate);"><?= number_format($totalClicks) ?> total redirects tracked</span>
             </span>
         </div>
     </div>
@@ -90,7 +118,7 @@ declare(strict_types=1);
     <div class="card">
         <div class="card-header">
             <span class="card-title">Campaign Performance</span>
-            <span style="font-size: 12px; color: var(--stripe-dark-slate);">Last 10 Sent Campaigns</span>
+            <span style="font-size: 12px; color: var(--theme-dark-slate);">Last 10 Sent Campaigns</span>
         </div>
         <div style="position: relative; height: 300px; width: 100%;">
             <canvas id="campaignChart"></canvas>
@@ -129,11 +157,11 @@ declare(strict_types=1);
 <div class="card">
     <div class="card-header">
         <span class="card-title">Live CRM Activity Log</span>
-        <span style="font-size: 12px; color: var(--stripe-dark-slate);">Real-time Subscriber Action Feed</span>
+        <span style="font-size: 12px; color: var(--theme-dark-slate);">Real-time Subscriber Action Feed</span>
     </div>
     
     <?php if (empty($activities)): ?>
-        <p style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No recent subscriber activity logged.</p>
+        <p style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No recent subscriber activity logged.</p>
     <?php else: ?>
         <ul class="timeline">
             <?php foreach ($activities as $act): 
@@ -145,10 +173,10 @@ declare(strict_types=1);
                 <li class="timeline-item <?= $class ?>">
                     <div class="timeline-time"><?= date('M j, Y H:i:s', strtotime($act['created_at'])) ?></div>
                     <div class="timeline-content">
-                        <a href="<?= e(getSetting('app_url')) ?>/contacts/view?id=<?= $act['subscriber_id'] ?>" style="font-weight: 600; color: var(--stripe-blurple); text-decoration: none;">
+                        <a href="<?= e(getSetting('app_url')) ?>/contacts/view?id=<?= $act['subscriber_id'] ?>" style="font-weight: 600; color: var(--theme-blurple); text-decoration: none;">
                             <?= e($act['first_name'] . ' ' . $act['last_name']) ?: e($act['email']) ?>
                         </a>
-                        <span style="color: var(--stripe-dark-slate); font-weight: 400;">
+                        <span style="color: var(--theme-dark-slate); font-weight: 400;">
                             <?= e($act['description']) ?>
                         </span>
                     </div>
@@ -167,6 +195,7 @@ declare(strict_types=1);
         const sentData = <?= json_encode(array_column($chartCampaigns, 'send_count')) ?>;
         const openData = <?= json_encode(array_column($chartCampaigns, 'open_count')) ?>;
         const clickData = <?= json_encode(array_column($chartCampaigns, 'click_count')) ?>;
+        const notOpenedData = sentData.map((sent, i) => Math.max(0, sent - openData[i]));
 
         new Chart(ctx, {
             type: 'bar',
@@ -174,16 +203,23 @@ declare(strict_types=1);
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Emails Sent',
+                        label: 'Total Sent',
                         data: sentData,
                         backgroundColor: '#e3e8ee',
                         borderRadius: 4,
                         barPercentage: 0.8
                     },
                     {
-                        label: 'Opens',
+                        label: 'Opened',
                         data: openData,
                         backgroundColor: '#635bff',
+                        borderRadius: 4,
+                        barPercentage: 0.8
+                    },
+                    {
+                        label: 'Not Opened',
+                        data: notOpenedData,
+                        backgroundColor: '#ffb3c6',
                         borderRadius: 4,
                         barPercentage: 0.8
                     },

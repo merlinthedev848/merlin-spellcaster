@@ -21,6 +21,7 @@ declare(strict_types=1);
             <tr>
                 <th>Campaign Details</th>
                 <th>Status</th>
+                <th style="text-align: right;">Pending</th>
                 <th style="text-align: right;">Sent</th>
                 <th style="text-align: right;">Unique Opens</th>
                 <th style="text-align: right;">Unique Clicks</th>
@@ -32,16 +33,16 @@ declare(strict_types=1);
         <tbody>
             <?php if (empty($campaigns)): ?>
                 <tr>
-                    <td colspan="8" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No campaigns created yet.</td>
+                    <td colspan="8" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No campaigns created yet.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($campaigns as $c): ?>
                     <tr>
                         <td>
-                            <div style="font-weight: 600; color: var(--stripe-dark); margin-bottom: 2px;"><?= e($c['name']) ?></div>
-                            <div style="font-size: 12px; color: var(--stripe-dark-slate); margin-bottom: 2px;">Subject: <?= e($c['subject']) ?></div>
+                            <div style="font-weight: 600; color: var(--theme-dark); margin-bottom: 2px;"><?= e($c['name']) ?></div>
+                            <div style="font-size: 12px; color: var(--theme-dark-slate); margin-bottom: 2px;">Subject: <?= e($c['subject']) ?></div>
                             <?php if ($c['scheduled_at']): ?>
-                                <div style="font-size: 11px; background-color: var(--warning-light); color: var(--stripe-dark); font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; border: 1px solid rgba(255,186,82,0.2);">
+                                <div style="font-size: 11px; background-color: var(--warning-light); color: var(--theme-dark); font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; border: 1px solid rgba(255,186,82,0.2);">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                     Scheduled: <?= date('M j, Y H:i', strtotime($c['scheduled_at'])) ?>
                                 </div>
@@ -52,22 +53,21 @@ declare(strict_types=1);
                                 <?= e($c['status']) ?>
                             </span>
                         </td>
+                        <td style="text-align: right; font-weight: 500; color: var(--warning);"><?= number_format((int)$c['pending_count']) ?></td>
                         <td style="text-align: right; font-weight: 500;"><?= number_format((int)$c['send_count']) ?></td>
                         <td style="text-align: right; font-weight: 500;">
                             <?= number_format((int)$c['open_count']) ?> 
-                            <span style="font-size: 11px; font-weight: 400; color: var(--stripe-dark-slate); margin-left: 4px;">(<?= $c['open_rate'] ?? '0.0' ?>%)</span>
+                            <span style="font-size: 11px; font-weight: 400; color: var(--theme-dark-slate); margin-left: 4px;">(<?= $c['open_rate'] ?? '0.0' ?>%)</span>
                         </td>
                         <td style="text-align: right; font-weight: 500;">
                             <?= number_format((int)$c['click_count']) ?>
-                            <span style="font-size: 11px; font-weight: 400; color: var(--stripe-dark-slate); margin-left: 4px;">(<?= $c['click_rate'] ?? '0.0' ?>%)</span>
+                            <span style="font-size: 11px; font-weight: 400; color: var(--theme-dark-slate); margin-left: 4px;">(<?= $c['click_rate'] ?? '0.0' ?>%)</span>
                         </td>
                         <td style="text-align: right; color: var(--danger); font-weight: 500;"><?= number_format((int)$c['bounce_count']) ?></td>
-                        <td style="color: var(--stripe-dark-slate);"><?= date('M j, Y', strtotime($c['created_at'])) ?></td>
+                        <td style="color: var(--theme-dark-slate);"><?= date('M j, Y', strtotime($c['created_at'])) ?></td>
                         <td>
                             <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                <?php if ($c['status'] !== 'sent'): ?>
-                                    <a href="<?= e(getSetting('app_url')) ?>/campaigns/edit?id=<?= $c['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
-                                <?php endif; ?>
+                                <a href="<?= e(getSetting('app_url')) ?>/campaigns/edit?id=<?= $c['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
 
                                 <?php if ($c['status'] === 'sending' || $c['status'] === 'queued'): ?>
                                     <form method="post" action="?action=pause&id=<?= $c['id'] ?>" style="margin: 0;">
@@ -80,7 +80,7 @@ declare(strict_types=1);
                                 <?php endif; ?>
                                 
                                 <form method="post" action="?action=delete&id=<?= $c['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this campaign? This will remove all associated logs and cancel pending queues.');" style="margin: 0;">
-                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;">Delete</button>
+                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
                                 </form>
                             </div>
                         </td>

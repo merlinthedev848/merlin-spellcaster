@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 <div class="header-actions">
     <div class="page-title">
-        <a href="<?= e(getSetting('app_url')) ?>/automations" style="color: var(--stripe-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+        <a href="<?= e(getSetting('app_url')) ?>/automations" style="color: var(--theme-dark-slate); font-weight: 500; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back to Automations
         </a>
@@ -26,12 +26,12 @@ declare(strict_types=1);
                 <div class="form-group">
                     <label class="form-label" for="trigger_type">Trigger Type</label>
                     <select class="form-control" id="trigger_type" name="trigger_type" onchange="toggleTriggerType(this.value)" required>
-                        <option value="subscribe">On Subscriber Joined List (Mautic: Segment Membership)</option>
-                        <option value="tag_added">On Tag Assigned to Contact (Mautic: Contact Tagged)</option>
-                        <option value="form_submit">On Form Submitted (Mautic: Form Submission)</option>
-                        <option value="email_open">On Email Opened (Mautic: Email Opened)</option>
-                        <option value="link_click">On Link Clicked (Mautic: Email Link Clicked)</option>
-                        <option value="points_threshold">On Lead Score Exceeds Threshold (Mautic: Lead Score Change)</option>
+                        <option value="subscribe">On Subscriber Joined List (Segment Membership)</option>
+                        <option value="tag_added">On Tag Assigned to Contact (Contact Tagged)</option>
+                        <option value="form_submit">On Form Submitted (Form Submission)</option>
+                        <option value="email_open">On Email Opened (Email Opened)</option>
+                        <option value="link_click">On Link Clicked (Email Link Clicked)</option>
+                        <option value="points_threshold">On Lead Score Exceeds Threshold (Lead Score Change)</option>
                     </select>
                 </div>
             </div>
@@ -74,20 +74,36 @@ declare(strict_types=1);
                 <label class="form-label" for="trigger_points">Target Lead Score Threshold</label>
                 <input class="form-control" type="number" id="trigger_points" name="trigger_points" placeholder="e.g. 50">
             </div>
+
+            <!-- Exclude Contacts with Tag -->
+            <div class="form-group" style="margin-top: 16px; border-top: 1px solid var(--theme-border); padding-top: 16px;">
+                <label class="form-label" for="exclude_tag_id">Exclude Contacts with Tag (Optional)</label>
+                <select class="form-control" id="exclude_tag_id" name="exclude_tag_id">
+                    <option value="">-- No Exclusion Tag (All Contacts Eligible) --</option>
+                    <?php if (empty($tags)): ?>
+                        <option value="">-- No tags found. Create one first --</option>
+                    <?php else: ?>
+                        <?php foreach ($tags as $t): ?>
+                            <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+                <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Contacts carrying this tag will be automatically skipped and removed from the queue for this automation.</p>
+            </div>
         </div>
 
         <!-- Automation Steps Pipeline -->
         <div class="card" style="margin-bottom: 24px;">
-            <div class="card-header" style="justify-content: space-between; border-bottom: 1px solid var(--stripe-border); padding-bottom: 16px; margin-bottom: 20px;">
+            <div class="card-header" style="justify-content: space-between; border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 20px;">
                 <span class="card-title">Workflow Steps Sequence</span>
-                <span style="font-size: 11px; color: var(--stripe-dark-slate);">Executed sequentially top to bottom.</span>
+                <span style="font-size: 11px; color: var(--theme-dark-slate);">Executed sequentially top to bottom.</span>
             </div>
 
             <!-- Steps Container -->
             <div id="steps_container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
                 <!-- Initial Step 1 -->
-                <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--stripe-border); border-radius: 8px; background-color: var(--stripe-bg); position: relative;">
-                    <div style="position: absolute; top: -10px; left: 16px; background-color: var(--stripe-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Step 1</div>
+                <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--theme-border); border-radius: 8px; background-color: var(--theme-bg); position: relative;">
+                    <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Step 1</div>
                     
                     <div style="display: flex; gap: 16px; align-items: flex-end;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
@@ -123,9 +139,13 @@ declare(strict_types=1);
                             <div class="input-block block-campaign">
                                 <label class="form-label">Select Campaign to Send</label>
                                 <select class="form-control" name="steps[0][campaign_id]">
-                                    <?php foreach ($campaigns as $camp): ?>
-                                        <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
-                                    <?php endforeach; ?>
+                                    <?php if (empty($campaigns)): ?>
+                                        <option value="">-- No campaigns found. Create one first --</option>
+                                    <?php else: ?>
+                                        <?php foreach ($campaigns as $camp): ?>
+                                            <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
@@ -145,9 +165,13 @@ declare(strict_types=1);
                             <div class="input-block block-tag" style="display: none;">
                                 <label class="form-label">Select CRM Tag</label>
                                 <select class="form-control" name="steps[0][tag_id]">
-                                    <?php foreach ($tags as $t): ?>
-                                        <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
-                                    <?php endforeach; ?>
+                                    <?php if (empty($tags)): ?>
+                                        <option value="">-- No tags found. Create one first --</option>
+                                    <?php else: ?>
+                                        <?php foreach ($tags as $t): ?>
+                                            <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
@@ -155,9 +179,13 @@ declare(strict_types=1);
                             <div class="input-block block-list" style="display: none;">
                                 <label class="form-label">Select Subscriber List</label>
                                 <select class="form-control" name="steps[0][list_id]">
-                                    <?php foreach ($lists as $l): ?>
-                                        <option value="<?= $l['id'] ?>"><?= e($l['name']) ?></option>
-                                    <?php endforeach; ?>
+                                    <?php if (empty($lists)): ?>
+                                        <option value="">-- No lists found. Create one first --</option>
+                                    <?php else: ?>
+                                        <?php foreach ($lists as $l): ?>
+                                            <option value="<?= $l['id'] ?>"><?= e($l['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
@@ -178,9 +206,13 @@ declare(strict_types=1);
                                 <label class="form-label">Relative to Campaign</label>
                                 <select class="form-control" name="steps[0][prev_campaign_id]">
                                     <option value="">-- Choose Previous Campaign --</option>
-                                    <?php foreach ($campaigns as $camp): ?>
-                                        <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
-                                    <?php endforeach; ?>
+                                    <?php if (empty($campaigns)): ?>
+                                        <option value="">-- No campaigns found. Create one first --</option>
+                                    <?php else: ?>
+                                        <?php foreach ($campaigns as $camp): ?>
+                                            <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
@@ -196,7 +228,7 @@ declare(strict_types=1);
                 <button type="button" class="btn btn-secondary" onclick="addStep()">+ Add Next Sequence Step</button>
                 <div style="display: flex; gap: 12px;">
                     <a href="<?= e(getSetting('app_url')) ?>/automations" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Save and Activate Flow →</button>
+                    <button type="submit" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Save and Activate Flow →</button>
                 </div>
             </div>
         </div>
@@ -240,21 +272,33 @@ declare(strict_types=1);
 
     // HTML templates for dynamic injection
     const campaignsOptions = `
-        <?php foreach ($campaigns as $camp): ?>
-            <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
-        <?php endforeach; ?>
+        <?php if (empty($campaigns)): ?>
+            <option value="">-- No campaigns found. Create one first --</option>
+        <?php else: ?>
+            <?php foreach ($campaigns as $camp): ?>
+                <option value="<?= $camp['id'] ?>"><?= e(addslashes($camp['name'])) ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
     `;
 
     const tagsOptions = `
-        <?php foreach ($tags as $t): ?>
-            <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
-        <?php endforeach; ?>
+        <?php if (empty($tags)): ?>
+            <option value="">-- No tags found. Create one first --</option>
+        <?php else: ?>
+            <?php foreach ($tags as $t): ?>
+                <option value="<?= $t['id'] ?>"><?= e(addslashes($t['name'])) ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
     `;
 
     const listsOptions = `
-        <?php foreach ($lists as $l): ?>
-            <option value="<?= $l['id'] ?>"><?= e($l['name']) ?></option>
-        <?php endforeach; ?>
+        <?php if (empty($lists)): ?>
+            <option value="">-- No lists found. Create one first --</option>
+        <?php else: ?>
+            <?php foreach ($lists as $l): ?>
+                <option value="<?= $l['id'] ?>"><?= e(addslashes($l['name'])) ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
     `;
 
     function addStep() {
@@ -262,13 +306,13 @@ declare(strict_types=1);
         const idx = stepIndex++;
         
         const stepHtml = `
-            <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--stripe-border); border-radius: 8px; background-color: var(--stripe-bg); position: relative; margin-top: 4px;">
-                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--stripe-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Step \${container.children.length + 1}</div>
+            <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--theme-border); border-radius: 8px; background-color: var(--theme-bg); position: relative; margin-top: 4px;">
+                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Step ${container.children.length + 1}</div>
                 
                 <div style="display: flex; gap: 16px; align-items: flex-end;">
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label class="form-label">Action / Decision Type</label>
-                        <select class="form-control step-type-select" name="steps[\${idx}][type]" onchange="toggleStepInputs(this)" required>
+                        <select class="form-control step-type-select" name="steps[${idx}][type]" onchange="toggleStepInputs(this)" required>
                             <optgroup label="Actions">
                                 <option value="send_email">Send Campaign Email</option>
                                 <option value="send_sms">Send SMS Notification</option>
@@ -295,50 +339,50 @@ declare(strict_types=1);
                     <div style="flex: 2; display: flex; flex-direction: column; gap: 12px;" class="step-value-inputs">
                         <div class="input-block block-campaign">
                             <label class="form-label">Select Campaign to Send</label>
-                            <select class="form-control" name="steps[\${idx}][campaign_id]">
-                                \${campaignsOptions}
+                            <select class="form-control" name="steps[${idx}][campaign_id]">
+                                ${campaignsOptions}
                             </select>
                         </div>
 
                         <div class="input-block block-sms" style="display: none;">
                             <label class="form-label">SMS Notification Text Message</label>
-                            <input class="form-control" type="text" name="steps[\${idx}][sms_message]" placeholder="e.g. Hey {first_name}, check your inbox for our guide!">
+                            <input class="form-control" type="text" name="steps[${idx}][sms_message]" placeholder="e.g. Hey {first_name}, check your inbox for our guide!">
                         </div>
 
                         <div class="input-block block-wait" style="display: none;">
                             <label class="form-label">Wait Duration</label>
-                            <input class="form-control" type="text" name="steps[\${idx}][wait_value]" placeholder="e.g. 7 days, 2 hours, 3 days">
+                            <input class="form-control" type="text" name="steps[${idx}][wait_value]" placeholder="e.g. 7 days, 2 hours, 3 days">
                         </div>
 
                         <div class="input-block block-tag" style="display: none;">
                             <label class="form-label">Select CRM Tag</label>
-                            <select class="form-control" name="steps[\${idx}][tag_id]">
-                                \${tagsOptions}
+                            <select class="form-control" name="steps[${idx}][tag_id]">
+                                ${tagsOptions}
                             </select>
                         </div>
 
                         <div class="input-block block-list" style="display: none;">
                             <label class="form-label">Select Subscriber List</label>
-                            <select class="form-control" name="steps[\${idx}][list_id]">
-                                \${listsOptions}
+                            <select class="form-control" name="steps[${idx}][list_id]">
+                                ${listsOptions}
                             </select>
                         </div>
 
                         <div class="input-block block-points" style="display: none;">
                             <label class="form-label">Adjust CRM Lead Score Points (+/-)</label>
-                            <input class="form-control" type="text" name="steps[\${idx}][points_value]" placeholder="e.g. +10, -5">
+                            <input class="form-control" type="text" name="steps[${idx}][points_value]" placeholder="e.g. +10, -5">
                         </div>
 
                         <div class="input-block block-webhook" style="display: none;">
                             <label class="form-label">Outbound Webhook URL</label>
-                            <input class="form-control" type="url" name="steps[\${idx}][webhook_url]" placeholder="https://api.my-crm.com/webhook">
+                            <input class="form-control" type="url" name="steps[${idx}][webhook_url]" placeholder="https://api.my-crm.com/webhook">
                         </div>
 
                         <div class="input-block block-prev-campaign" style="display: none;">
                             <label class="form-label">Relative to Campaign</label>
-                            <select class="form-control" name="steps[\${idx}][prev_campaign_id]">
+                            <select class="form-control" name="steps[${idx}][prev_campaign_id]">
                                 <option value="">-- Choose Previous Campaign --</option>
-                                \${campaignsOptions}
+                                ${campaignsOptions}
                             </select>
                         </div>
                     </div>

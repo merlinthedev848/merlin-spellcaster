@@ -20,6 +20,9 @@ class DashboardController {
         $openRate = $totalSent > 0 ? round(($totalOpens / $totalSent) * 100, 1) : 0.0;
         $clickRate = $totalSent > 0 ? round(($totalClicks / $totalSent) * 100, 1) : 0.0;
 
+        // 1b. Fetch pending emails in the sending queue
+        $pendingEmailsCount = (int)$db->query("SELECT COUNT(*) FROM email_queue WHERE status = 'pending'")->fetchColumn();
+
         // 2. Fetch last 10 campaigns for charting
         $stCampaigns = $db->query("
             SELECT name, send_count, open_count, click_count 

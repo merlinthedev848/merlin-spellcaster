@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in to Merlin Spellcaster</title>
-    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/stripe.css">
+    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/theme.css">
     <style>
         body {
-            background-color: var(--stripe-bg);
+            background-color: var(--theme-bg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -24,7 +24,7 @@
         .login-logo {
             text-align: center;
             margin-bottom: 24px;
-            color: var(--stripe-blurple);
+            color: var(--theme-blurple);
         }
         .login-logo svg {
             width: 40px;
@@ -36,12 +36,12 @@
         .login-header h1 {
             font-size: 22px;
             font-weight: 700;
-            color: var(--stripe-dark);
+            color: var(--theme-dark);
             letter-spacing: -0.5px;
             margin-bottom: 6px;
         }
         .login-header p {
-            color: var(--stripe-dark-slate);
+            color: var(--theme-dark-slate);
             font-size: 13px;
         }
     </style>

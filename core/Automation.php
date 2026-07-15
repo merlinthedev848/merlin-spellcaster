@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Mautic-style Workflow Automation Engine for Merlin V2.
+ * Workflow Automation Engine for Merlin V2.
  * Triggers automations on actions (like 'subscribe' or 'tag_added:x') and schedules step-by-step queues.
  */
 class Automation {
@@ -14,12 +14,22 @@ class Automation {
 
         try {
             // Find active automations for this event
-            $st = $db->prepare("SELECT id FROM automations WHERE trigger_event = ? AND status = 'active'");
+            $st = $db->prepare("SELECT id, exclude_tag_id FROM automations WHERE trigger_event = ? AND status = 'active'");
             $st->execute([$event]);
             $automations = $st->fetchAll();
 
             foreach ($automations as $auto) {
                 $autoId = (int)$auto['id'];
+                $excludeTagId = $auto['exclude_tag_id'] !== null ? (int)$auto['exclude_tag_id'] : null;
+
+                if ($excludeTagId !== null) {
+                    $stCheckTag = $db->prepare("SELECT COUNT(*) FROM subscriber_tags WHERE subscriber_id = ? AND tag_id = ?");
+                    $stCheckTag->execute([$subscriberId, $excludeTagId]);
+                    if (((int)$stCheckTag->fetchColumn()) > 0) {
+                        // Contact has the exclusion tag, skip triggering this automation
+                        continue;
+                    }
+                }
                 
                 // Fetch the first step (lowest order_num)
                 $stStep = $db->prepare("SELECT * FROM automation_steps WHERE automation_id = ? ORDER BY order_num ASC LIMIT 1");
@@ -45,9 +55,10 @@ class Automation {
         try {
             // Fetch pending queue items that are due
             $st = $db->prepare("
-                SELECT aq.*, ast.step_type, ast.step_value, ast.order_num
+                SELECT aq.*, ast.step_type, ast.step_value, ast.order_num, a.exclude_tag_id
                 FROM automation_queue aq
                 JOIN automation_steps ast ON ast.id = aq.step_id
+                JOIN automations a ON a.id = aq.automation_id
                 WHERE aq.status = 'pending' AND aq.execute_at <= NOW()
                 LIMIT 50
             ");
@@ -62,6 +73,17 @@ class Automation {
                 $stepType = $item['step_type'];
                 $stepValue = $item['step_value'];
                 $orderNum = (int)$item['order_num'];
+                $excludeTagId = $item['exclude_tag_id'] !== null ? (int)$item['exclude_tag_id'] : null;
+
+                if ($excludeTagId !== null) {
+                    $stCheckTag = $db->prepare("SELECT COUNT(*) FROM subscriber_tags WHERE subscriber_id = ? AND tag_id = ?");
+                    $stCheckTag->execute([$subId, $excludeTagId]);
+                    if (((int)$stCheckTag->fetchColumn()) > 0) {
+                        // Contact has the exclusion tag, delete their workflow queue and skip
+                        $db->prepare("DELETE FROM automation_queue WHERE subscriber_id = ? AND automation_id = ?")->execute([$subId, $autoId]);
+                        continue;
+                    }
+                }
 
                 $db->beginTransaction();
 

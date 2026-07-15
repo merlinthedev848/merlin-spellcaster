@@ -79,7 +79,7 @@
     <div style="display: flex; flex-direction: column; gap: 16px;">
         
         <?php if (empty($servers)): ?>
-            <div class="card" style="padding: 40px; text-align: center; color: var(--stripe-dark-slate);">
+            <div class="card" style="padding: 40px; text-align: center; color: var(--theme-dark-slate);">
                 <p>No extra SMTP endpoints configured.</p>
                 <p style="font-size: 13px; margin-top: 8px;">The system will use your global Default SMTP configuration.</p>
             </div>
@@ -88,8 +88,8 @@
                 <div class="card" style="padding: 20px; border-left: 4px solid <?= $s['status'] == 1 ? 'var(--success)' : 'var(--danger)' ?>;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                         <div>
-                            <h3 style="margin: 0; font-size: 16px; color: var(--stripe-dark);"><?= e($s['name']) ?></h3>
-                            <div style="font-size: 12px; color: var(--stripe-dark-slate); margin-top: 4px;">
+                            <h3 style="margin: 0; font-size: 16px; color: var(--theme-dark);"><?= e($s['name']) ?></h3>
+                            <div style="font-size: 12px; color: var(--theme-dark-slate); margin-top: 4px;">
                                 <?= e($s['host']) ?>:<?= e($s['port']) ?> &bull; <?= strtoupper(e($s['encryption'])) ?>
                             </div>
                         </div>
@@ -107,7 +107,7 @@
                         </div>
                     </div>
                     
-                    <div style="background: var(--stripe-bg); padding: 12px; border-radius: 6px; font-size: 12px; color: var(--stripe-dark-slate); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: var(--theme-bg); padding: 12px; border-radius: 6px; font-size: 12px; color: var(--theme-dark-slate); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
                             <strong>Daily Limit:</strong> <?= $s['daily_limit'] > 0 ? number_format((float)$s['daily_limit']) : 'Unlimited' ?>
                         </div>
@@ -136,12 +136,12 @@
                     <?php if ($s['daily_limit'] > 0): ?>
                         <?php $pct = min(100, round(($s['sent_today'] / max(1, $s['daily_limit'])) * 100)); ?>
                         <div style="margin-top: 16px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; font-weight: 600; color: var(--stripe-dark-slate);">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; font-weight: 600; color: var(--theme-dark-slate);">
                                 <span>Volume Utilization</span>
                                 <span><?= $pct ?>%</span>
                             </div>
-                            <div style="background-color: var(--stripe-border); height: 6px; border-radius: 3px; overflow: hidden;">
-                                <div style="width: <?= $pct ?>%; height: 100%; background-color: <?= $pct > 90 ? 'var(--danger)' : 'var(--stripe-blurple)' ?>; border-radius: 3px; transition: width 0.3s ease;"></div>
+                            <div style="background-color: var(--theme-border); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="width: <?= $pct ?>%; height: 100%; background-color: <?= $pct > 90 ? 'var(--danger)' : 'var(--theme-blurple)' ?>; border-radius: 3px; transition: width 0.3s ease;"></div>
                             </div>
                         </div>
                     <?php endif; ?>

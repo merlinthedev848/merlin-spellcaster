@@ -57,6 +57,16 @@ class FormController {
             $requireName = isset($_POST['require_name']) ? 1 : 0;
             $doubleOptin = isset($_POST['double_optin']) ? 1 : 0;
 
+            if (isset($_FILES['upload_file']) && $_FILES['upload_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = dirname(__DIR__) . '/uploads';
+                if (!file_exists($uploadDir)) @mkdir($uploadDir, 0755, true);
+                $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['upload_file']['name']));
+                $target = $uploadDir . '/' . $filename;
+                if (move_uploaded_file($_FILES['upload_file']['tmp_name'], $target)) {
+                    $downloadUrl = getSetting('app_url') . '/uploads/' . rawurlencode($filename);
+                }
+            }
+
             if (empty($name)) {
                 $error = 'Form name is required.';
             } else {
@@ -78,6 +88,18 @@ class FormController {
 
         // Fetch lists for targeting dropdown
         $lists = $db->query("SELECT * FROM lists ORDER BY name ASC")->fetchAll();
+
+        $mediaFiles = [];
+        $uploadDir = dirname(__DIR__) . '/uploads';
+        if (is_dir($uploadDir)) {
+            $dir = opendir($uploadDir);
+            while (($file = readdir($dir)) !== false) {
+                if ($file !== '.' && $file !== '..' && $file !== '.htaccess') {
+                    $mediaFiles[] = ['name' => $file, 'url' => getSetting('app_url') . '/uploads/' . rawurlencode($file)];
+                }
+            }
+            closedir($dir);
+        }
 
         $title = 'Create Form';
         $isEdit = false;
@@ -118,6 +140,16 @@ class FormController {
             $requireName = isset($_POST['require_name']) ? 1 : 0;
             $doubleOptin = isset($_POST['double_optin']) ? 1 : 0;
 
+            if (isset($_FILES['upload_file']) && $_FILES['upload_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = dirname(__DIR__) . '/uploads';
+                if (!file_exists($uploadDir)) @mkdir($uploadDir, 0755, true);
+                $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['upload_file']['name']));
+                $target = $uploadDir . '/' . $filename;
+                if (move_uploaded_file($_FILES['upload_file']['tmp_name'], $target)) {
+                    $downloadUrl = getSetting('app_url') . '/uploads/' . rawurlencode($filename);
+                }
+            }
+
             if (empty($name)) {
                 $error = 'Form name is required.';
             } else {
@@ -140,6 +172,18 @@ class FormController {
 
         // Fetch lists for targeting
         $lists = $db->query("SELECT * FROM lists ORDER BY name ASC")->fetchAll();
+
+        $mediaFiles = [];
+        $uploadDir = dirname(__DIR__) . '/uploads';
+        if (is_dir($uploadDir)) {
+            $dir = opendir($uploadDir);
+            while (($file = readdir($dir)) !== false) {
+                if ($file !== '.' && $file !== '..' && $file !== '.htaccess') {
+                    $mediaFiles[] = ['name' => $file, 'url' => getSetting('app_url') . '/uploads/' . rawurlencode($file)];
+                }
+            }
+            closedir($dir);
+        }
 
         $title = 'Edit Form';
         $isEdit = true;
@@ -236,11 +280,12 @@ class FormController {
                         logActivity($subId, 'subscribe', "Subscribed via Form: '{$form['name']}'");
                         $db->commit();
                         
-                        // Fire Mautic workflow automations for form submission
+                        // Fire  workflow automations for form submission
                         Automation::trigger("form_submit:{$formId}", $subId);
                         Automation::trigger("subscribe", $subId);
                         
-                        Hook::fire('contact_added', ['subscriber_id' => $subId]);
+                        $hookDataAfter = ['subscriber_id' => $subId];
+                        Hook::fire('contact_added', $hookDataAfter);
                         $success = true;
 
                         // Support redirecting on success

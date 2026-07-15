@@ -28,19 +28,19 @@ declare(strict_types=1);
         <tbody>
             <?php if (empty($templates)): ?>
                 <tr>
-                    <td colspan="4" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No templates configured. Create one to begin designing campaigns.</td>
+                    <td colspan="4" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No templates configured. Create one to begin designing campaigns.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($templates as $t): ?>
                     <tr>
-                        <td style="font-weight: 600; color: var(--stripe-dark);"><?= e($t['name']) ?></td>
-                        <td style="color: var(--stripe-dark-slate);"><?= e($t['subject']) ?: '—' ?></td>
-                        <td style="color: var(--stripe-dark-slate);"><?= date('M j, Y H:i:s', strtotime($t['created_at'])) ?></td>
+                        <td style="font-weight: 600; color: var(--theme-dark);"><?= e($t['name']) ?></td>
+                        <td style="color: var(--theme-dark-slate);"><?= e($t['subject']) ?: '—' ?></td>
+                        <td style="color: var(--theme-dark-slate);"><?= date('M j, Y H:i:s', strtotime($t['created_at'])) ?></td>
                         <td>
                             <div style="display: flex; gap: 8px;">
                                 <a href="<?= e(getSetting('app_url')) ?>/templates/edit?id=<?= $t['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
                                 <form method="post" action="?action=delete&id=<?= $t['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this template? Campaigns already sent using this layout will not be affected.');">
-                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;">Delete</button>
+                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
                                 </form>
                             </div>
                         </td>

@@ -30,16 +30,47 @@ declare(strict_types=1);
         <tbody>
             <?php if (empty($automations)): ?>
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No automations configured. Create one to begin automating flows.</td>
+                    <td colspan="6" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No automations configured. Create one to begin automating flows.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($automations as $a): ?>
                     <tr>
-                        <td style="font-weight: 600; color: var(--stripe-dark);"><?= e($a['name']) ?></td>
+                        <td style="font-weight: 600; color: var(--theme-dark);"><?= e($a['name']) ?></td>
                         <td>
-                            <span class="badge" style="background-color: var(--stripe-blurple-light); color: var(--stripe-blurple); font-weight: 500;">
-                                On <?= e($a['trigger_event']) ?>
+                            <?php
+                            $trig = $a['trigger_event'];
+                            $label = 'Subscriber Joined List';
+                            if ($trig !== 'subscribe') {
+                                $parts = explode(':', $trig);
+                                $type = $parts[0];
+                                $val = isset($parts[1]) ? (int)$parts[1] : 0;
+                                if ($type === 'tag_added') {
+                                    $tagName = $tags[$val] ?? "Tag #{$val}";
+                                    $label = "Tag Added: \"{$tagName}\"";
+                                } elseif ($type === 'form_submit') {
+                                    $formName = $forms[$val] ?? "Form #{$val}";
+                                    $label = "Form Submitted: \"{$formName}\"";
+                                } elseif ($type === 'email_open') {
+                                    $campName = $campaigns[$val] ?? "Campaign #{$val}";
+                                    $label = "Email Opened: \"{$campName}\"";
+                                } elseif ($type === 'link_click') {
+                                    $campName = $campaigns[$val] ?? "Campaign #{$val}";
+                                    $label = "Link Clicked: \"{$campName}\"";
+                                } elseif ($type === 'points_threshold') {
+                                    $label = "Lead Score >= {$val}";
+                                }
+                            }
+                            ?>
+                            <span class="badge" style="background-color: var(--theme-blurple-light); color: var(--theme-blurple); font-weight: 500;">
+                                On <?= e($label) ?>
                             </span>
+                            <?php if (!empty($a['exclude_tag_id'])): 
+                                $exTagName = $tags[(int)$a['exclude_tag_id']] ?? "Tag #{$a['exclude_tag_id']}";
+                            ?>
+                                <span class="badge" style="background-color: #fff1f2; color: #e11d48; border: 1px solid rgba(225,29,72,0.15); font-weight: 500; margin-left: 6px;">
+                                    Excludes: <?= e($exTagName) ?>
+                                </span>
+                            <?php endif; ?>
                         </td>
                         <td style="font-weight: 500;"><?= $a['step_count'] ?> step(s)</td>
                         <td>
@@ -47,7 +78,7 @@ declare(strict_types=1);
                                 <?= e($a['status']) ?>
                             </span>
                         </td>
-                        <td style="color: var(--stripe-dark-slate);"><?= date('M j, Y', strtotime($a['created_at'])) ?></td>
+                        <td style="color: var(--theme-dark-slate);"><?= date('M j, Y', strtotime($a['created_at'])) ?></td>
                         <td>
                             <div style="display: flex; gap: 8px;">
                                 <form method="post" action="?action=toggle&id=<?= $a['id'] ?>">
@@ -57,7 +88,7 @@ declare(strict_types=1);
                                 </form>
                                 <a href="<?= e(getSetting('app_url')) ?>/automations/edit?id=<?= $a['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
                                 <form method="post" action="?action=delete&id=<?= $a['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this automation?');">
-                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;">Delete</button>
+                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
                                 </form>
                             </div>
                         </td>

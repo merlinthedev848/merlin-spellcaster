@@ -10,13 +10,13 @@ Hook::register('campaign_form_after_subject', function() {
     <div class="form-group" style="margin-top: 16px; background-color: rgba(255, 91, 96, 0.05); border: 1px dashed rgba(255, 91, 96, 0.2); border-radius: 8px; padding: 16px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
             <span style="font-size: 16px;">⏰</span>
-            <strong style="font-size: 13px; color: var(--stripe-dark);">Dynamic Countdown Timer (FOMO)</strong>
+            <strong style="font-size: 13px; color: var(--theme-dark);">Dynamic Countdown Timer (FOMO)</strong>
         </div>
-        <p style="font-size: 12px; color: var(--stripe-dark-slate); line-height: 1.5; margin-bottom: 8px;">
+        <p style="font-size: 12px; color: var(--theme-dark-slate); line-height: 1.5; margin-bottom: 8px;">
             Drive urgency by embedding a live countdown clock in your campaign email body. Copy the HTML code below and insert it into your HTML body where you want the clock to display:
         </p>
         <input class="form-control" type="text" readonly value='<img src="<?= e($embedUrl) ?>" alt="Countdown" width="600" style="display:block; max-width:100%; border-radius:8px;">' onclick="this.select()" style="font-family: monospace; font-size: 12px; margin-bottom: 0; background-color: white;">
-        <span style="font-size: 11px; color: var(--stripe-dark-slate); margin-top: 4px; display: block;">You can change the <code>end</code> URL parameter date value to adjust your target deadline.</span>
+        <span style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px; display: block;">You can change the <code>end</code> URL parameter date value to adjust your target deadline.</span>
     </div>
     <?php
 });

@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Setup Merlin Spellcaster</title>
-    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/stripe.css">
+    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/theme.css">
     <style>
         body {
-            background-color: var(--stripe-bg);
+            background-color: var(--theme-bg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -22,7 +22,7 @@
         .setup-logo {
             text-align: center;
             margin-bottom: 24px;
-            color: var(--stripe-blurple);
+            color: var(--theme-blurple);
         }
         .setup-logo svg {
             width: 48px;
@@ -35,11 +35,11 @@
         .setup-header h1 {
             font-size: 24px;
             font-weight: 700;
-            color: var(--stripe-dark);
+            color: var(--theme-dark);
             margin-bottom: 8px;
         }
         .setup-header p {
-            color: var(--stripe-dark-slate);
+            color: var(--theme-dark-slate);
             font-size: 14px;
         }
         .setup-section-title {
@@ -47,9 +47,9 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--stripe-dark-slate);
+            color: var(--theme-dark-slate);
             margin: 24px 0 12px;
-            border-bottom: 1px solid var(--stripe-border);
+            border-bottom: 1px solid var(--theme-border);
             padding-bottom: 6px;
         }
     </style>
@@ -122,7 +122,7 @@
                 $detectedUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
                 ?>
                 <input class="form-control" type="url" id="app_url" name="app_url" value="<?= e($detectedUrl) ?>" required>
-                <p style="font-size: 11px; color: var(--stripe-dark-slate); margin-top: 4px;">Make sure this URL matches where the platform is located on your server.</p>
+                <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Make sure this URL matches where the platform is located on your server.</p>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 600;">Complete Installation & Setup →</button>

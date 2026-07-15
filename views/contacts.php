@@ -28,10 +28,10 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
         <p>Manage lists, create CRM records, filter tags, and run CSV imports.</p>
     </div>
     <div style="display: flex; gap: 12px;">
-        <a href="?action=add" class="btn btn-primary">Add Contact</a>
-        <a href="?action=import" class="btn btn-secondary">Import CSV</a>
-        <a href="?action=new_list" class="btn btn-secondary">Create List</a>
-        <a href="?action=new_tag" class="btn btn-secondary">Create Tag</a>
+        <a href="?action=add" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add Contact</a>
+        <a href="?action=import" class="btn btn-secondary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Import CSV</a>
+        <a href="?action=new_list" class="btn btn-secondary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Create List</a>
+        <a href="?action=new_tag" class="btn btn-secondary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Create Tag</a>
     </div>
 </div>
 
@@ -50,7 +50,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             </div>
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <a href="?" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save List</button>
+                <button type="submit" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Save List</button>
             </div>
         </form>
     </div>
@@ -64,7 +64,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             </div>
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <a href="?" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Create Tag</button>
+                <button type="submit" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Create Tag</button>
             </div>
         </form>
     </div>
@@ -97,10 +97,10 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             </div>
             <div class="form-group" style="margin-bottom: 24px;">
                 <label class="form-label">Assign CRM Tags</label>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--stripe-border); border-radius: 6px; background-color: #fafbfc;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--theme-border); border-radius: 6px; background-color: #fafbfc;">
                     <?php foreach ($tags as $t): ?>
-                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--stripe-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
-                            <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--stripe-blurple);">
+                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
+                            <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);">
                             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
                             <?= e($t['name']) ?>
                         </label>
@@ -109,7 +109,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             </div>
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <a href="?" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save Contact →</button>
+                <button type="submit" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Save Contact →</button>
             </div>
         </form>
     </div>
@@ -117,7 +117,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     <div class="card" style="margin-bottom: 24px; max-width: 680px;">
         <div class="card-header"><span class="card-title">Import Contacts from CSV</span></div>
         <form method="post" action="?action=import_csv" enctype="multipart/form-data">
-            <div style="background-color: var(--stripe-blurple-light); color: var(--stripe-dark-slate); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 16px; border: 1px solid rgba(99,91,255,0.1);">
+            <div style="background-color: var(--theme-blurple-light); color: var(--theme-dark-slate); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 16px; border: 1px solid rgba(99,91,255,0.1);">
                 <strong>Required CSV Headers:</strong> <code>email</code>. <br>
                 <strong>Optional Headers:</strong> <code>first_name</code>, <code>last_name</code>.
             </div>
@@ -136,10 +136,10 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             </div>
             <div class="form-group" style="margin-bottom: 24px;">
                 <label class="form-label">Apply CRM Tags to All Imported Contacts</label>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--stripe-border); border-radius: 6px; background-color: #fafbfc;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--theme-border); border-radius: 6px; background-color: #fafbfc;">
                     <?php foreach ($tags as $t): ?>
-                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--stripe-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
-                            <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--stripe-blurple);">
+                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
+                            <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);">
                             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
                             <?= e($t['name']) ?>
                         </label>
@@ -148,7 +148,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             </div>
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <a href="?" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Process Import</button>
+                <button type="submit" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Process Import</button>
             </div>
         </form>
     </div>
@@ -161,13 +161,13 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
         <div class="card" style="padding: 16px;">
             <div class="card-header" style="margin-bottom: 12px;"><span class="card-title">Segments</span></div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <a href="?" class="sidebar-link <?= ($currentListId === 0 && $currentTagId === 0) ? 'active' : '' ?>" style="color: var(--stripe-dark); background-color: <?= ($currentListId === 0 && $currentTagId === 0) ? 'var(--stripe-blurple-light)' : 'transparent' ?>; justify-content: space-between;">
+                <a href="?" class="sidebar-link <?= ($currentListId === 0 && $currentTagId === 0) ? 'active' : '' ?>" style="color: var(--theme-dark); background-color: <?= ($currentListId === 0 && $currentTagId === 0) ? 'var(--theme-blurple-light)' : 'transparent' ?>; justify-content: space-between;">
                     <span>All Contacts</span>
                 </a>
                 <?php foreach ($lists as $l): ?>
-                    <a href="?list_id=<?= $l['id'] ?>" class="sidebar-link <?= ($currentListId === (int)$l['id']) ? 'active' : '' ?>" style="color: var(--stripe-dark); background-color: <?= ($currentListId === (int)$l['id']) ? 'var(--stripe-blurple-light)' : 'transparent' ?>; justify-content: space-between;">
+                    <a href="?list_id=<?= $l['id'] ?>" class="sidebar-link <?= ($currentListId === (int)$l['id']) ? 'active' : '' ?>" style="color: var(--theme-dark); background-color: <?= ($currentListId === (int)$l['id']) ? 'var(--theme-blurple-light)' : 'transparent' ?>; justify-content: space-between;">
                         <span><?= e($l['name']) ?></span>
-                        <span style="background-color: var(--stripe-border); color: var(--stripe-dark-slate); font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 10px;"><?= $l['subscriber_count'] ?></span>
+                        <span style="background-color: var(--theme-border); color: var(--theme-dark-slate); font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 10px;"><?= $l['subscriber_count'] ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -177,8 +177,8 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             <div class="card-header" style="margin-bottom: 12px;"><span class="card-title">CRM Tags</span></div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
                 <?php foreach ($tags as $t): ?>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 6px; background-color: <?= ($currentTagId === (int)$t['id']) ? 'var(--stripe-blurple-light)' : 'transparent' ?>;">
-                        <a href="?tag_id=<?= $t['id'] ?>" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--stripe-dark); flex-grow: 1; font-weight: 500; font-size: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 6px; background-color: <?= ($currentTagId === (int)$t['id']) ? 'var(--theme-blurple-light)' : 'transparent' ?>;">
+                        <a href="?tag_id=<?= $t['id'] ?>" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--theme-dark); flex-grow: 1; font-weight: 500; font-size: 14px;">
                             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
                             <?= e($t['name']) ?>
                         </a>
@@ -218,7 +218,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                 </select>
                 <button type="button" class="btn btn-secondary" onclick="submitBulkTag('add')" style="padding: 6px 12px; font-size: 12px; font-weight: 600;">Add Tag</button>
                 <button type="button" class="btn btn-secondary" onclick="submitBulkTag('remove')" style="padding: 6px 12px; font-size: 12px; font-weight: 600;">Remove Tag</button>
-                <button type="button" class="btn btn-danger" onclick="submitMassDelete()" style="padding: 6px 12px; font-size: 12px; font-weight: 600;">Delete</button>
+                <button type="button" class="btn btn-danger" onclick="submitMassDelete()" style="padding: 6px 12px; font-size: 12px; font-weight: 600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
             </div>
         </div>
 
@@ -231,7 +231,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     <thead>
                         <tr>
                             <th style="width: 40px; padding: 12px 20px; text-align: center;">
-                                <input type="checkbox" id="check_all" onclick="toggleSelectAll(this)" style="cursor: pointer; accent-color: var(--stripe-blurple);">
+                                <input type="checkbox" id="check_all" onclick="toggleSelectAll(this)" style="cursor: pointer; accent-color: var(--theme-blurple);">
                             </th>
                             <th><a href="<?= sortLink('email', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Email Address<?= sortCaret('email', $currentSort, $currentOrder) ?></a></th>
                             <th><a href="<?= sortLink('name', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Name<?= sortCaret('name', $currentSort, $currentOrder) ?></a></th>
@@ -244,16 +244,16 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     <tbody>
                         <?php if (empty($contacts)): ?>
                             <tr>
-                                <td colspan="7" style="text-align: center; color: var(--stripe-dark-slate); padding: 40px;">No contacts matching the criteria.</td>
+                                <td colspan="7" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No contacts matching the criteria.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($contacts as $c): ?>
                                 <tr>
                                     <td style="text-align: center; padding: 16px 20px;">
-                                        <input type="checkbox" name="selected_contacts[]" value="<?= $c['id'] ?>" class="contact-checkbox" style="cursor: pointer; accent-color: var(--stripe-blurple);" onclick="updateHeaderCheckbox()">
+                                        <input type="checkbox" name="selected_contacts[]" value="<?= $c['id'] ?>" class="contact-checkbox" style="cursor: pointer; accent-color: var(--theme-blurple);" onclick="updateHeaderCheckbox()">
                                     </td>
                                     <?php
-                                    $emailColor = 'var(--stripe-dark)';
+                                    $emailColor = 'var(--theme-dark)';
                                     if ($c['status'] === 'bounced') {
                                         $emailColor = '#e53e3e';
                                     } elseif ($c['status'] === 'unsubscribed') {
@@ -263,7 +263,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                                     <td style="font-weight: 600; color: <?= $emailColor ?>;">
                                         <div style="display: inline-flex; align-items: center; gap: 6px; vertical-align: middle;">
                                             <?php if (!empty($c['country_code'])): ?>
-                                                <img src="https://flagcdn.com/w20/<?= e(strtolower($c['country_code'])) ?>.png" alt="<?= e($c['country_name']) ?>" style="border-radius: 1px; border: 1px solid var(--stripe-border); flex-shrink: 0;" width="16" title="<?= e($c['city']) ? e($c['city']) . ', ' : '' ?><?= e($c['country_name']) ?> (IP: <?= e($c['ip_address']) ?>)">
+                                                <img src="https://flagcdn.com/w20/<?= e(strtolower($c['country_code'])) ?>.png" alt="<?= e($c['country_name']) ?>" style="border-radius: 1px; border: 1px solid var(--theme-border); flex-shrink: 0;" width="16" title="<?= e($c['city']) ? e($c['city']) . ', ' : '' ?><?= e($c['country_name']) ?> (IP: <?= e($c['ip_address']) ?>)">
                                             <?php endif; ?>
                                             <?= e($c['email']) ?>
                                         </div>
@@ -283,7 +283,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                                             <?= e($c['status']) ?>
                                         </span>
                                     </td>
-                                    <td style="color: var(--stripe-dark-slate);"><?= date('M j, Y', strtotime($c['created_at'])) ?></td>
+                                    <td style="color: var(--theme-dark-slate);"><?= date('M j, Y', strtotime($c['created_at'])) ?></td>
                                     <td>
                                         <a href="<?= e(getSetting('app_url')) ?>/contacts/view?id=<?= $c['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Profile</a>
                                     </td>
@@ -294,8 +294,8 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                 </table>
                 
                 <!-- Pagination Footer Bar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-top: 1px solid var(--stripe-border); background-color: #fafbfc;">
-                    <span style="font-size: 13px; color: var(--stripe-dark-slate);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-top: 1px solid var(--theme-border); background-color: #fafbfc;">
+                    <span style="font-size: 13px; color: var(--theme-dark-slate);">
                         Showing <strong><?= min($offset + 1, $totalContacts) ?></strong> to <strong><?= min($offset + $limit, $totalContacts) ?></strong> of <strong><?= $totalContacts ?></strong> contacts
                     </span>
                     
@@ -320,7 +320,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                         $endPage = min($totalPages, $page + 2);
                         for ($i = $startPage; $i <= $endPage; $i++):
                         ?>
-                            <a href="<?= $buildUrl($i) ?>" class="btn <?= ($i === $page) ? 'btn-primary' : 'btn-secondary' ?>" style="padding: 4px 8px; font-size: 11px; <?= ($i === $page) ? 'background-color: var(--stripe-blurple); border-color: var(--stripe-blurple); color: white;' : '' ?>">
+                            <a href="<?= $buildUrl($i) ?>" class="btn <?= ($i === $page) ? 'btn-primary' : 'btn-secondary' ?>" style="padding: 4px 8px; font-size: 11px; <?= ($i === $page) ? 'background-color: var(--theme-blurple); border-color: var(--theme-blurple); color: white;' : '' ?>">
                                 <?= $i ?>
                             </a>
                         <?php endfor; ?>
@@ -336,8 +336,8 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     </div>
 </div>
 
-<div id="floating_bulk_bar" style="display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--stripe-dark); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); z-index: 1000; align-items: center; gap: 16px; border: 1px solid rgba(255,255,255,0.1);">
-    <span id="selected_count_badge" style="background: var(--stripe-blurple); color: white; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">0 Selected</span>
+<div id="floating_bulk_bar" style="display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--theme-dark); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); z-index: 1000; align-items: center; gap: 16px; border: 1px solid rgba(255,255,255,0.1);">
+    <span id="selected_count_badge" style="background: var(--theme-blurple); color: white; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">0 Selected</span>
     <select id="bulk_tag_id_bottom" class="form-control" style="margin-bottom: 0; width: 160px; font-size: 13px; padding: 6px 12px; height: auto; background: #1e293b; color: white; border-color: rgba(255,255,255,0.2);">
         <option value="">-- Apply/Remove Tag --</option>
         <?php foreach ($tags as $t): ?>
@@ -346,7 +346,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     </select>
     <button type="button" class="btn btn-secondary" onclick="submitBulkTagBottom('add')" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-color: rgba(255,255,255,0.2); color: white; background: transparent;">Add Tag</button>
     <button type="button" class="btn btn-secondary" onclick="submitBulkTagBottom('remove')" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-color: rgba(255,255,255,0.2); color: white; background: transparent;">Remove Tag</button>
-    <button type="button" class="btn btn-danger" onclick="submitMassDelete()" style="padding: 6px 12px; font-size: 12px; font-weight: 600; background: #ef4444; border-color: #ef4444;">Delete Selected</button>
+    <button type="button" class="btn btn-danger" onclick="submitMassDelete()" style="padding: 6px 12px; font-size: 12px; font-weight: 600; background: #ef4444; border-color: #ef4444;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete Selected</button>
 </div>
 
 <script>

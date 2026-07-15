@@ -10,15 +10,26 @@ declare(strict_types=1);
 class InboxMonitor {
     public static function process(): array {
         $db = Database::getConnection();
-        $host = getSetting('bounce_imap_host', '');
-        $user = getSetting('bounce_imap_user', '');
-        $pass = getSetting('bounce_imap_pass', '');
-        $port = (int)getSetting('bounce_imap_port', '993');
-        $ssl = getSetting('bounce_imap_ssl', '1') === '1';
 
-        if (empty($host) || empty($user) || empty($pass)) {
-            return ['success' => false, 'message' => 'IMAP credentials not configured. Setup in Settings.'];
+        $smtpHost = getSetting('smtp_host', '');
+        $smtpUser = getSetting('smtp_user', '');
+        $smtpPass = getSetting('smtp_pass', '');
+        $smtpEnc  = strtolower(getSetting('smtp_encryption', 'tls'));
+
+        if (empty($smtpHost) || empty($smtpUser) || empty($smtpPass)) {
+            return ['success' => false, 'message' => 'SMTP mailer settings not configured. Please setup SMTP in Settings first.'];
         }
+
+        // Derive IMAP details from SMTP authority settings
+        if (stripos($smtpHost, 'smtp.') === 0) {
+            $host = preg_replace('/^smtp\./i', 'imap.', $smtpHost);
+        } else {
+            $host = $smtpHost;
+        }
+        $user = $smtpUser;
+        $pass = $smtpPass;
+        $ssl = ($smtpEnc === 'ssl' || $smtpEnc === 'tls');
+        $port = $ssl ? 993 : 143;
 
         if (!function_exists('imap_open')) {
             return ['success' => false, 'message' => 'PHP IMAP extension is not loaded on this system.'];

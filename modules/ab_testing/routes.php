@@ -37,12 +37,12 @@ Hook::register('campaign_form_after_subject', function() {
     }
     ?>
     <div style="margin-top: 16px; background-color: rgba(99, 91, 255, 0.05); border: 1px dashed rgba(99, 91, 255, 0.2); border-radius: 8px; padding: 16px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--stripe-dark);">
-            <input type="checkbox" name="ab_test_enabled" value="1" <?= $abEnabled ? 'checked' : '' ?> onchange="document.getElementById('ab-test-fields').style.display = this.checked ? 'block' : 'none';" style="cursor: pointer; accent-color: var(--stripe-blurple);">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--theme-dark);">
+            <input type="checkbox" name="ab_test_enabled" value="1" <?= $abEnabled ? 'checked' : '' ?> onchange="document.getElementById('ab-test-fields').style.display = this.checked ? 'block' : 'none';" style="cursor: pointer; accent-color: var(--theme-blurple);">
             Enable A/B Subject Line Split Testing
         </label>
         <div id="ab-test-fields" style="display: <?= $abEnabled ? 'block' : 'none' ?>; margin-top: 12px;">
-            <p style="font-size: 12px; color: var(--stripe-dark-slate); margin-bottom: 8px; line-height: 1.5;">
+            <p style="font-size: 12px; color: var(--theme-dark-slate); margin-bottom: 8px; line-height: 1.5;">
                 Test A will use the main subject line specified above. Enter the subject line for Test B below.
                 We will send A to 10% of targets, B to 10% of targets, wait 2 hours, select the winning version (by open rates), and send that version to the remaining 80%.
             </p>
