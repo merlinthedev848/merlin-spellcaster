@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
+$runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run?secret=' . urlencode(getSetting('cron_secret'));
 ?>
 
 <div class="header-actions">
@@ -19,6 +19,7 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
         </div>
         
         <form method="post" action="?action=create">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label" for="feed_url">RSS Feed URL</label>
                 <input class="form-control" type="url" id="feed_url" name="feed_url" required placeholder="https://example.com/feed/">
@@ -83,7 +84,8 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/rss/run';
                                     <?= $f['last_checked_at'] ? date('M j, H:i', strtotime($f['last_checked_at'])) : 'Never' ?>
                                 </td>
                                 <td>
-                                    <form method="post" action="?action=delete&id=<?= $f['id'] ?>" onsubmit="return confirm('Remove this RSS feed?');" style="margin: 0;">
+                                    <form method="post" action="?action=delete&id=<?= e($f['id']) ?>" onsubmit="return confirm('Remove this RSS feed?');" style="margin: 0;">
+                                        <?= Auth::csrfField() ?>
                                         <button type="submit" class="btn btn-danger" style="padding: 2px 6px; font-size: 10px;">Remove</button>
                                     </form>
                                 </td>

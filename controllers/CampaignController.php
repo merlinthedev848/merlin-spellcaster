@@ -12,6 +12,11 @@ class CampaignController {
         $id = (int)($_GET['id'] ?? 0);
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/campaigns');
+                exit;
+            }
             if ($action === 'delete' && $id > 0) {
                 $db->prepare("DELETE FROM campaigns WHERE id = ?")->execute([$id]);
                 $_SESSION['flash_success'] = 'Campaign deleted successfully.';
@@ -53,11 +58,13 @@ class CampaignController {
         $error = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $subject = trim($_POST['subject'] ?? '');
-            $templateId = (int)($_POST['template_id'] ?? 0);
-            $listId = (int)($_POST['list_id'] ?? 0);
-            $selectedTags = $_POST['tags'] ?? []; // array of tag IDs
+            if (!Auth::checkCsrf()) {
+                $error = 'CSRF validation failed.';
+            } else {
+                $name = trim($_POST['name'] ?? '');
+                $subject = trim($_POST['subject'] ?? '');
+                $listId = (int)($_POST['list_id'] ?? 0);
+                $selectedTags = $_POST['tags'] ?? []; // array of tag IDs
             $scheduledAt = trim($_POST['scheduled_at'] ?? '');
             $bodyHtml = $_POST['body_html'] ?? '';
             $bodyText = $_POST['body_text'] ?? '';
@@ -111,6 +118,7 @@ class CampaignController {
                     $error = 'Failed to create campaign: ' . $e->getMessage();
                 }
             }
+            }
         }
 
         // Fetch assets
@@ -141,12 +149,14 @@ class CampaignController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $subject = trim($_POST['subject'] ?? '');
-            $templateId = (int)($_POST['template_id'] ?? 0);
-            $listId = (int)($_POST['list_id'] ?? 0);
-            $selectedTags = $_POST['tags'] ?? [];
-            $scheduledAt = trim($_POST['scheduled_at'] ?? '');
+            if (!Auth::checkCsrf()) {
+                $error = 'CSRF validation failed.';
+            } else {
+                $name = trim($_POST['name'] ?? '');
+                $subject = trim($_POST['subject'] ?? '');
+                $listId = (int)($_POST['list_id'] ?? 0);
+                $selectedTags = $_POST['tags'] ?? [];
+                $scheduledAt = trim($_POST['scheduled_at'] ?? '');
             $bodyHtml = $_POST['body_html'] ?? '';
             $bodyText = $_POST['body_text'] ?? '';
             $includeUnsub = isset($_POST['include_unsubscribe']) ? 1 : 0;
@@ -197,7 +207,7 @@ class CampaignController {
                     $hookData = ['campaign_id' => $id, 'post_data' => $_POST];
                     Hook::fire('campaign_saved', $hookData);
                     $db->commit();
-                    $_SESSION['flash_success'] = 'Campaign updated successfully!';
+                    $_SESSION['flash_success'] = 'Campaign updated successfully.';
                     header('Location: ' . getSetting('app_url') . '/campaigns');
                     exit;
 
@@ -206,6 +216,7 @@ class CampaignController {
                     $error = 'Failed to update campaign: ' . $e->getMessage();
                 }
             }
+        }
         }
 
         // Fetch prefilled tags
@@ -356,7 +367,9 @@ class CampaignController {
                 logActivity($s, 'open', "Opened Campaign #{$c} (Repeat)");
             }
 
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            error_log("trackOpen error: " . $e->getMessage());
+        }
         exit;
     }
 
@@ -374,6 +387,11 @@ class CampaignController {
         $target = $url ?: '/';
         if (!filter_var($target, FILTER_VALIDATE_URL)) {
             $target = '/';
+        } else {
+            $parsedUrl = parse_url($target);
+            if (!in_array(strtolower($parsedUrl['scheme'] ?? ''), ['http', 'https'], true)) {
+                $target = '/';
+            }
         }
 
         header('Location: ' . $target);
@@ -426,7 +444,9 @@ class CampaignController {
                 logActivity($s, 'click', "Clicked link in Campaign #{$c}: {$url} (Repeat)");
             }
 
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            error_log("trackClick error: " . $e->getMessage());
+        }
         exit;
     }
 }

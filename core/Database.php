@@ -8,11 +8,6 @@ class Database {
     private static ?PDO $instance = null;
 
     public static function getConnection(): PDO {
-        global $db;
-        if ($db !== null) {
-            return $db;
-        }
-
         if (self::$instance === null) {
             $localConfig = dirname(__DIR__) . '/config.local.php';
             if (!file_exists($localConfig)) {

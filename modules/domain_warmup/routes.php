@@ -7,6 +7,11 @@ if ($routePath === '/warmup') {
     $action = $_GET['action'] ?? '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'update') {
+        if (!Auth::checkCsrf()) {
+            $_SESSION['flash_error'] = 'CSRF validation failed.';
+            header('Location: ' . getSetting('app_url') . '/warmup');
+            exit;
+        }
         $active = isset($_POST['warmup_active']) ? '1' : '0';
         $seedList = (int)($_POST['warmup_seed_list'] ?? 0);
         $startDate = trim($_POST['warmup_start_date'] ?? date('Y-m-d'));
@@ -47,6 +52,15 @@ if ($routePath === '/warmup') {
 // Route: /warmup/run (Trigger daily warmup email sends)
 if ($routePath === '/warmup/run') {
     header('Content-Type: application/json');
+    
+    $provided = $_GET['secret'] ?? '';
+    $secret = getSetting('cron_secret');
+    if ($secret !== '' && !hash_equals($secret, $provided)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Unauthorized: Invalid cron secret.']);
+        exit;
+    }
+
     $db = Database::getConnection();
 
     $active = getSetting('warmup_active', '0') === '1';

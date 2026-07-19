@@ -1,4 +1,7 @@
-<?php declare(strict_types=1); ?>
+<?php 
+declare(strict_types=1); 
+$appUrl = getSetting('app_url');
+?>
 
 <div class="header-actions" style="margin-bottom: 24px;">
     <div class="page-title">
@@ -16,6 +19,7 @@
         </div>
         
         <form method="post" action="<?= e($appUrl) ?>/multi-smtp?action=add">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label">Provider Name (e.g. SendGrid Account 1)</label>
                 <input class="form-control" type="text" name="name" required>
@@ -95,12 +99,14 @@
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <form method="post" action="<?= e($appUrl) ?>/multi-smtp?action=toggle" style="margin:0;">
+                                <?= Auth::csrfField() ?>
                                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                 <button type="submit" class="btn <?= $s['status'] == 1 ? 'btn-secondary' : 'btn-primary' ?>" style="padding: 4px 10px; font-size: 12px;">
                                     <?= $s['status'] == 1 ? 'Disable' : 'Enable' ?>
                                 </button>
                             </form>
                             <form method="post" action="<?= e($appUrl) ?>/multi-smtp?action=delete" style="margin:0;" onsubmit="return confirm('Remove this SMTP provider?');">
+                                <?= Auth::csrfField() ?>
                                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                 <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;">Remove</button>
                             </form>
@@ -126,6 +132,7 @@
                             </div>
                             <?php if ($s['error_count'] > 0): ?>
                                 <form method="post" action="<?= e($appUrl) ?>/multi-smtp?action=reset_errors" style="margin:0;">
+                                    <?= Auth::csrfField() ?>
                                     <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                     <button type="submit" class="btn btn-secondary" style="padding: 2px 6px; font-size: 10px; height: auto;">Clear</button>
                                 </form>

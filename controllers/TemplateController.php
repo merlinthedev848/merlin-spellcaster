@@ -12,6 +12,11 @@ class TemplateController {
         $id = (int)($_GET['id'] ?? 0);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/templates');
+                exit;
+            }
             if ($action === 'delete' && $id > 0) {
                 $db->prepare("DELETE FROM templates WHERE id = ?")->execute([$id]);
                 $_SESSION['flash_success'] = 'Template deleted successfully.';
@@ -19,7 +24,7 @@ class TemplateController {
                 exit;
             }
         }
-
+        
         // Fetch all templates
         $st = $db->query("SELECT * FROM templates ORDER BY created_at DESC");
         $templates = $st->fetchAll();
@@ -34,26 +39,30 @@ class TemplateController {
         $error = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $subject = trim($_POST['subject'] ?? '');
-            $bodyHtml = $_POST['body_html'] ?? '';
-            $bodyText = $_POST['body_text'] ?? '';
-
-            if (empty($name) || empty($bodyHtml)) {
-                $error = 'Template name and HTML content are required.';
+            if (!Auth::checkCsrf()) {
+                $error = 'CSRF validation failed.';
             } else {
-                try {
-                    $st = $db->prepare("
-                        INSERT INTO templates (name, subject, body_html, body_text, created_at) 
-                        VALUES (?, ?, ?, ?, NOW())
-                    ");
-                    $st->execute([$name, $subject, $bodyHtml, $bodyText]);
-                    
-                    $_SESSION['flash_success'] = 'Newsletter template saved successfully!';
-                    header('Location: ' . getSetting('app_url') . '/templates');
-                    exit;
-                } catch (Throwable $e) {
-                    $error = 'Failed to save template: ' . $e->getMessage();
+                $name = trim($_POST['name'] ?? '');
+                $subject = trim($_POST['subject'] ?? '');
+                $bodyHtml = $_POST['body_html'] ?? '';
+                $bodyText = $_POST['body_text'] ?? '';
+
+                if (empty($name) || empty($bodyHtml)) {
+                    $error = 'Template name and HTML content are required.';
+                } else {
+                    try {
+                        $st = $db->prepare("
+                            INSERT INTO templates (name, subject, body_html, body_text, created_at) 
+                            VALUES (?, ?, ?, ?, NOW())
+                        ");
+                        $st->execute([$name, $subject, $bodyHtml, $bodyText]);
+                        
+                        $_SESSION['flash_success'] = 'Newsletter template saved successfully!';
+                        header('Location: ' . getSetting('app_url') . '/templates');
+                        exit;
+                    } catch (Throwable $e) {
+                        $error = 'Failed to save template: ' . $e->getMessage();
+                    }
                 }
             }
         }
@@ -81,27 +90,31 @@ class TemplateController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $subject = trim($_POST['subject'] ?? '');
-            $bodyHtml = $_POST['body_html'] ?? '';
-            $bodyText = $_POST['body_text'] ?? '';
-
-            if (empty($name) || empty($bodyHtml)) {
-                $error = 'Template name and HTML content are required.';
+            if (!Auth::checkCsrf()) {
+                $error = 'CSRF validation failed.';
             } else {
-                try {
-                    $stUpdate = $db->prepare("
-                        UPDATE templates 
-                        SET name = ?, subject = ?, body_html = ?, body_text = ? 
-                        WHERE id = ?
-                    ");
-                    $stUpdate->execute([$name, $subject, $bodyHtml, $bodyText, $id]);
-                    
-                    $_SESSION['flash_success'] = 'Newsletter template updated successfully!';
-                    header('Location: ' . getSetting('app_url') . '/templates');
-                    exit;
-                } catch (Throwable $e) {
-                    $error = 'Failed to update template: ' . $e->getMessage();
+                $name = trim($_POST['name'] ?? '');
+                $subject = trim($_POST['subject'] ?? '');
+                $bodyHtml = $_POST['body_html'] ?? '';
+                $bodyText = $_POST['body_text'] ?? '';
+
+                if (empty($name) || empty($bodyHtml)) {
+                    $error = 'Template name and HTML content are required.';
+                } else {
+                    try {
+                        $stUpdate = $db->prepare("
+                            UPDATE templates 
+                            SET name = ?, subject = ?, body_html = ?, body_text = ? 
+                            WHERE id = ?
+                        ");
+                        $stUpdate->execute([$name, $subject, $bodyHtml, $bodyText, $id]);
+                        
+                        $_SESSION['flash_success'] = 'Newsletter template updated successfully!';
+                        header('Location: ' . getSetting('app_url') . '/templates');
+                        exit;
+                    } catch (Throwable $e) {
+                        $error = 'Failed to update template: ' . $e->getMessage();
+                    }
                 }
             }
         }

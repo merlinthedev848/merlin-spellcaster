@@ -12,6 +12,11 @@ class ContactController {
         
         // 1. Process Actions
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/contacts');
+                exit;
+            }
             if ($action === 'create_list') {
                 $name = trim($_POST['name'] ?? '');
                 $desc = trim($_POST['description'] ?? '');
@@ -179,10 +184,9 @@ class ContactController {
                             $stList->execute([$subId, $listId]);
                         }
 
-                        // Process Tag assignments
-                        $db->prepare("DELETE FROM subscriber_tags WHERE subscriber_id = ?")->execute([$subId]);
+                        // Process Tag assignments (additive tagging)
                         if (!empty($selectedTags)) {
-                            $stTag = $db->prepare("INSERT INTO subscriber_tags (subscriber_id, tag_id) VALUES (?, ?)");
+                            $stTag = $db->prepare("INSERT IGNORE INTO subscriber_tags (subscriber_id, tag_id) VALUES (?, ?)");
                             foreach ($selectedTags as $tagId) {
                                 $stTag->execute([$subId, (int)$tagId]);
                                 Automation::trigger("tag_added:{$tagId}", $subId);
@@ -400,18 +404,32 @@ class ContactController {
         $stSubs->execute($params);
         $contacts = $stSubs->fetchAll();
 
-        // Populate contact tags for display mapping
-        foreach ($contacts as &$c) {
-            $stMyTags = $db->prepare("
-                SELECT t.name, t.color 
+        // Populate contact tags for display mapping in one query to fix N+1
+        if (!empty($contacts)) {
+            $subIds = array_column($contacts, 'id');
+            $placeholders = implode(',', array_fill(0, count($subIds), '?'));
+            $stAllTags = $db->prepare("
+                SELECT st.subscriber_id, t.id, t.name, t.color 
                 FROM tags t 
                 JOIN subscriber_tags st ON st.tag_id = t.id 
-                WHERE st.subscriber_id = ?
+                WHERE st.subscriber_id IN ({$placeholders})
             ");
-            $stMyTags->execute([$c['id']]);
-            $c['tags'] = $stMyTags->fetchAll();
+            $stAllTags->execute($subIds);
+            $allTags = $stAllTags->fetchAll();
+            
+            $tagsBySub = [];
+            foreach ($allTags as $row) {
+                $tagsBySub[$row['subscriber_id']][] = [
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'color' => $row['color']
+                ];
+            }
+            foreach ($contacts as &$c) {
+                $c['tags'] = $tagsBySub[$c['id']] ?? [];
+            }
+            unset($c);
         }
-        unset($c);
 
         $title = 'Contacts (CRM)';
         $viewPath = dirname(__DIR__) . '/views/contacts.php';
@@ -564,7 +582,7 @@ class ContactController {
                 $expected = generateToken($email, $campaignId, $subscriberId);
                 
                 if (hash_equals($expected, $token)) {
-                    if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['confirm'])) {
+                    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $db->prepare("UPDATE subscribers SET status = 'unsubscribed', updated_at = NOW() WHERE id = ?")->execute([$subscriberId]);
                         $db->prepare("UPDATE campaigns SET unsub_count = unsub_count + 1 WHERE id = ?")->execute([$campaignId]);
                         $this->assignDncTagAndClean($db, $subscriberId);

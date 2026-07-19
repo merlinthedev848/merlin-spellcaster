@@ -24,6 +24,11 @@ if ($routePath === '/rss') {
     $id = (int)($_GET['id'] ?? 0);
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!Auth::checkCsrf()) {
+            $_SESSION['flash_error'] = 'CSRF validation failed.';
+            header('Location: ' . getSetting('app_url') . '/rss');
+            exit;
+        }
         if ($action === 'create') {
             $feedUrl = trim($_POST['feed_url'] ?? '');
             $listId = (int)($_POST['list_id'] ?? 0);
@@ -68,6 +73,15 @@ if ($routePath === '/rss') {
 // Route: /rss/run (Trigger RSS pull and campaign auto-generation)
 if ($routePath === '/rss/run') {
     header('Content-Type: application/json');
+    
+    $provided = $_GET['secret'] ?? '';
+    $secret = getSetting('cron_secret');
+    if ($secret !== '' && !hash_equals($secret, $provided)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Unauthorized: Invalid cron secret.']);
+        exit;
+    }
+
     $db = Database::getConnection();
     $summary = [];
 

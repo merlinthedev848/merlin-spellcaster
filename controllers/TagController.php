@@ -11,6 +11,11 @@ class TagController {
         $action = $_GET['action'] ?? '';
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/tags');
+                exit;
+            }
             if ($action === 'delete') {
                 $id = (int)($_POST['id'] ?? 0);
                 if ($id > 0) {
@@ -39,14 +44,21 @@ class TagController {
         $db = Database::getConnection();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/tags');
+                exit;
+            }
             $name = trim($_POST['name'] ?? '');
             
             if ($name === '') {
                 $_SESSION['flash_error'] = 'Tag name is required.';
             } else {
-                $st = $db->prepare("INSERT INTO tags (name, created_at) VALUES (?, NOW())");
+                $colors = ['#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+                $color = $colors[array_rand($colors)];
+                $st = $db->prepare("INSERT INTO tags (name, color, created_at) VALUES (?, ?, NOW())");
                 try {
-                    $st->execute([$name]);
+                    $st->execute([$name, $color]);
                     $_SESSION['flash_success'] = 'Tag created successfully!';
                 } catch (Throwable $e) {
                     $_SESSION['flash_error'] = 'Failed to create tag: ' . $e->getMessage();
@@ -61,6 +73,11 @@ class TagController {
         $db = Database::getConnection();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/tags');
+                exit;
+            }
             $id = (int)($_POST['id'] ?? 0);
             $name = trim($_POST['name'] ?? '');
             

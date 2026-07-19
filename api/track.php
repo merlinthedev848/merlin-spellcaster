@@ -28,21 +28,17 @@ $url = substr(trim((string)$url), 0, 2048);
 $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
 try {
-    // Basic subscriber validation
+    // Basic subscriber validation without leakage
     $stCheck = $db->prepare("SELECT id FROM subscribers WHERE id = ? LIMIT 1");
     $stCheck->execute([$subId]);
-    if (!$stCheck->fetchColumn()) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Subscriber not found']);
-        exit;
+    if ($stCheck->fetchColumn()) {
+        $st = $db->prepare("INSERT INTO contact_visits (subscriber_id, url, ip_address, visited_at) VALUES (?, ?, ?, NOW())");
+        $st->execute([$subId, $url, $ip]);
     }
-
-    $st = $db->prepare("INSERT INTO contact_visits (subscriber_id, url, ip_address, visited_at) VALUES (?, ?, ?, NOW())");
-    $st->execute([$subId, $url, $ip]);
 
     echo json_encode(['success' => true]);
 } catch (Throwable $e) {
     error_log("Tracking pixel error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => 'Internal server error']);
+    // Return success to prevent leak in error cases too
+    echo json_encode(['success' => true]);
 }

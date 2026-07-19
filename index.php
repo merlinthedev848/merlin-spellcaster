@@ -69,6 +69,10 @@ try {
 
     switch ($routePath) {
         case '/setup':
+            if (file_exists($localConfig)) {
+                header('Location: ' . (getSetting('app_url') ?: '/'));
+                exit;
+            }
             $controller = new SetupController();
             $controller->index();
             break;
@@ -266,5 +270,5 @@ try {
 } catch (Throwable $e) {
     http_response_code(500);
     error_log("Router error: " . $e->getMessage());
-    echo "<!DOCTYPE html><html><head><title>System Error</title><link rel='stylesheet' href='".e(getSetting('app_url'))."/assets/css/theme.css'></head><body style='display:flex;align-items:center;justify-content:center;height:100vh;background:#f8f9fc;'><div class='card' style='max-width:500px;text-align:center;'><h1 style='color:#ff5b60;margin-bottom:12px;'>System Exception</h1><p style='color:#4f5b76;'>An unexpected error occurred during execution:</p><pre style='background:#f1f5f9;padding:12px;border-radius:6px;margin:16px 0;text-align:left;font-size:12px;overflow-x:auto;'>".e($e->getMessage())."</pre><a href='/' class='btn btn-primary'>Return to Dashboard</a></div></body></html>";
+    echo "<!DOCTYPE html><html><head><title>System Error</title><link rel='stylesheet' href='".e(getSetting('app_url'))."/assets/css/theme.css'></head><body style='display:flex;align-items:center;justify-content:center;height:100vh;background:#f8f9fc;'><div class='card' style='max-width:500px;text-align:center;'><h1 style='color:#ff5b60;margin-bottom:12px;'>System Error</h1><p style='color:#4f5b76;'>An unexpected error occurred during execution. Please check the system logs or contact your administrator.</p><a href='/' class='btn btn-primary'>Return to Dashboard</a></div></body></html>";
 }

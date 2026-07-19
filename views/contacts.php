@@ -268,7 +268,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                                             <?= e($c['email']) ?>
                                         </div>
                                     </td>
-                                    <td><?= e($c['first_name'] . ' ' . $c['last_name']) ?: '—' ?></td>
+                                    <td><?= e(trim($c['first_name'] . ' ' . $c['last_name'])) !== '' ? e(trim($c['first_name'] . ' ' . $c['last_name'])) : '—' ?></td>
                                     <td>
                                         <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 200px;">
                                             <?php foreach ($c['tags'] as $tg): ?>

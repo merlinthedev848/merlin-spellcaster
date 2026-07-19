@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in to Merlin Spellcaster</title>
-    <link rel="stylesheet" href="<?= e(defined('BASE_PATH') ? BASE_PATH : '') ?>/assets/css/theme.css">
+    <link rel="stylesheet" href="<?= e(getSetting('app_url')) ?>/assets/css/theme.css">
     <style>
         body {
             background-color: var(--theme-bg);
@@ -58,33 +58,33 @@
             <h1>Sign in to your account</h1>
             <p>Access your automated marketing flows and analytics dashboard.</p>
         </div>
-
+ 
         <?php if (isset($_SESSION['flash_success'])): ?>
             <div style="background-color: var(--success-light); color: var(--success); border: 1px solid rgba(0,212,178,0.1); border-radius: 6px; padding: 12px; font-size: 13px; font-weight: 500; margin-bottom: 20px; text-align: left;">
                 <?= e($_SESSION['flash_success']) ?>
                 <?php unset($_SESSION['flash_success']); ?>
             </div>
         <?php endif; ?>
-
+ 
         <?php if ($error): ?>
             <div style="background-color: var(--danger-light); color: var(--danger); border: 1px solid rgba(255,91,96,0.1); border-radius: 6px; padding: 12px; font-size: 13px; font-weight: 500; margin-bottom: 20px; text-align: left;">
                 <?= e($error) ?>
             </div>
         <?php endif; ?>
-
+ 
         <form method="post" action="">
             <div class="form-group">
                 <label class="form-label" for="email">Email Address</label>
-                <input class="form-control" type="email" id="email" name="email" required placeholder="you@example.com">
+                <input class="form-control" type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
             </div>
-
+ 
             <div class="form-group" style="margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <label class="form-label" for="password" style="margin-bottom: 0;">Password</label>
                 </div>
-                <input class="form-control" type="password" id="password" name="password" required placeholder="••••••••">
+                <input class="form-control" type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
             </div>
-
+ 
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 600;">Sign In →</button>
         </form>
     </div>

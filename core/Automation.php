@@ -13,14 +13,30 @@ class Automation {
         $db = Database::getConnection();
 
         try {
-            // Find active automations for this event
-            $st = $db->prepare("SELECT id, exclude_tag_id FROM automations WHERE trigger_event = ? AND status = 'active'");
-            $st->execute([$event]);
+            // Find active automations
+            $st = $db->prepare("SELECT id, trigger_event, exclude_tag_id FROM automations WHERE status = 'active'");
+            $st->execute();
             $automations = $st->fetchAll();
 
             foreach ($automations as $auto) {
                 $autoId = (int)$auto['id'];
+                $triggerEvent = $auto['trigger_event'];
                 $excludeTagId = $auto['exclude_tag_id'] !== null ? (int)$auto['exclude_tag_id'] : null;
+
+                $matched = false;
+                if ($triggerEvent === $event) {
+                    $matched = true;
+                } elseif (str_starts_with($event, 'tag_added:') && str_starts_with($triggerEvent, 'tag_added:')) {
+                    $tagId = substr($event, 10);
+                    $allowedTagIds = explode(',', substr($triggerEvent, 10));
+                    if (in_array($tagId, $allowedTagIds, true)) {
+                        $matched = true;
+                    }
+                }
+
+                if (!$matched) {
+                    continue;
+                }
 
                 if ($excludeTagId !== null) {
                     $stCheckTag = $db->prepare("SELECT COUNT(*) FROM subscriber_tags WHERE subscriber_id = ? AND tag_id = ?");
@@ -53,7 +69,7 @@ class Automation {
         $processedCount = 0;
 
         try {
-            // Fetch pending queue items that are due
+            // Fetch pending queue items that are due using FOR UPDATE SKIP LOCKED
             $st = $db->prepare("
                 SELECT aq.*, ast.step_type, ast.step_value, ast.order_num, a.exclude_tag_id
                 FROM automation_queue aq
@@ -61,11 +77,17 @@ class Automation {
                 JOIN automations a ON a.id = aq.automation_id
                 WHERE aq.status = 'pending' AND aq.execute_at <= NOW()
                 LIMIT 50
+                FOR UPDATE SKIP LOCKED
             ");
             $st->execute();
             $dueItems = $st->fetchAll();
+        } catch (Throwable $e) {
+            error_log("Automation fetch due items error: " . $e->getMessage());
+            return 0;
+        }
 
-            foreach ($dueItems as $item) {
+        foreach ($dueItems as $item) {
+            try {
                 $queueId = (int)$item['id'];
                 $autoId = (int)$item['automation_id'];
                 $subId = (int)$item['subscriber_id'];
@@ -97,6 +119,7 @@ class Automation {
                         INSERT IGNORE INTO email_queue (campaign_id, subscriber_id, status, send_at) 
                         VALUES (?, ?, 'pending', NOW())
                     ")->execute([$campaignId, $subId]);
+                    logActivity($subId, 'email_sent', "Email Campaign #{$campaignId} queued by automation");
                 } 
                 elseif ($stepType === 'send_sms') {
                     $message = $stepValue;
@@ -105,9 +128,9 @@ class Automation {
                         $stPhone->execute([$subId]);
                         $phone = $stPhone->fetchColumn();
                         if (!empty($phone)) {
-                            $stInsert = $db->prepare("INSERT INTO mod_sms_logs (phone, message, status, created_at) VALUES (?, ?, 'pending', NOW())");
-                            $stInsert->execute([$phone, $message]);
-                            logActivity($subId, 'subscribe', "SMS queued by automation: " . substr($message, 0, 30) . "...");
+                            $stInsert = $db->prepare("INSERT INTO mod_sms_logs (subscriber_id, message, status, created_at) VALUES (?, ?, 'pending', NOW())");
+                            $stInsert->execute([$subId, $message]);
+                            logActivity($subId, 'sms_sent', "SMS queued by automation: " . substr($message, 0, 30) . "...");
                         }
                     } catch (Throwable $e) {
                         error_log("SMS step trigger failed: " . $e->getMessage());
@@ -121,7 +144,7 @@ class Automation {
                     $stName = $db->prepare("SELECT name FROM tags WHERE id = ?");
                     $stName->execute([$tagId]);
                     $tagName = $stName->fetchColumn() ?: "Tag #{$tagId}";
-                    logActivity($subId, 'subscribe', "Tag assigned by automation: {$tagName}");
+                    logActivity($subId, 'tag_added', "Tag assigned by automation: {$tagName}");
                 } 
                 elseif ($stepType === 'remove_tag') {
                     $tagId = (int)$stepValue;
@@ -133,7 +156,7 @@ class Automation {
                     $db->prepare("DELETE FROM subscriber_tags WHERE subscriber_id = ? AND tag_id = ?")
                        ->execute([$subId, $tagId]);
                     
-                    logActivity($subId, 'subscribe', "Tag removed by automation: {$tagName}");
+                    logActivity($subId, 'tag_removed', "Tag removed by automation: {$tagName}");
                 } 
                 elseif ($stepType === 'add_to_list') {
                     $listId = (int)$stepValue;
@@ -143,7 +166,7 @@ class Automation {
                     $stName = $db->prepare("SELECT name FROM lists WHERE id = ?");
                     $stName->execute([$listId]);
                     $listName = $stName->fetchColumn() ?: "List #{$listId}";
-                    logActivity($subId, 'subscribe', "List assigned by automation: {$listName}");
+                    logActivity($subId, 'list_added', "List assigned by automation: {$listName}");
                 }
                 elseif ($stepType === 'remove_from_list') {
                     $listId = (int)$stepValue;
@@ -153,13 +176,13 @@ class Automation {
                     $stName = $db->prepare("SELECT name FROM lists WHERE id = ?");
                     $stName->execute([$listId]);
                     $listName = $stName->fetchColumn() ?: "List #{$listId}";
-                    logActivity($subId, 'subscribe', "List removed by automation: {$listName}");
+                    logActivity($subId, 'list_removed', "List removed by automation: {$listName}");
                 }
                 elseif ($stepType === 'adjust_points') {
                     $points = (int)$stepValue;
                     $db->prepare("UPDATE subscribers SET lead_score = lead_score + ? WHERE id = ?")
                        ->execute([$points, $subId]);
-                    logActivity($subId, 'subscribe', "Lead score adjusted by automation: " . ($points >= 0 ? "+{$points}" : $points) . " points");
+                    logActivity($subId, 'score_adjusted', "Lead score adjusted by automation: " . ($points >= 0 ? "+{$points}" : $points) . " points");
                 }
                 elseif ($stepType === 'trigger_webhook') {
                     $webhookUrl = $stepValue;
@@ -172,7 +195,7 @@ class Automation {
                                 'event' => 'automation_triggered',
                                 'timestamp' => date('Y-m-d H:i:s'),
                                 'subscriber' => $sub
-                            ]);
+                             ]);
                             $ch = curl_init($webhookUrl);
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                             curl_setopt($ch, CURLOPT_POST, true);
@@ -183,7 +206,7 @@ class Automation {
                             curl_close($ch);
                         }
                     } catch (Throwable $e) {
-                        error_log("Webhook step trigger failed: " . $e->getMessage());
+                         error_log("Webhook step trigger failed: " . $e->getMessage());
                     }
                 }
                 elseif ($stepType === 'send_if_opened') {
@@ -234,7 +257,7 @@ class Automation {
                         $stName = $db->prepare("SELECT name FROM tags WHERE id = ?");
                         $stName->execute([$tagId]);
                         $tagName = $stName->fetchColumn() ?: "Tag #{$tagId}";
-                        logActivity($subId, 'subscribe', "Tag assigned (No response to Campaign #{$prevCampaignId}): {$tagName}");
+                        logActivity($subId, 'tag_added', "Tag assigned (No response to Campaign #{$prevCampaignId}): {$tagName}");
                     }
                 }
                 elseif ($stepType === 'send_if_clicked') {
@@ -269,7 +292,7 @@ class Automation {
                         $stName = $db->prepare("SELECT name FROM tags WHERE id = ?");
                         $stName->execute([$tagId]);
                         $tagName = $stName->fetchColumn() ?: "Tag #{$tagId}";
-                        logActivity($subId, 'subscribe', "Tag assigned (Clicked link in Campaign #{$prevCampaignId}): {$tagName}");
+                        logActivity($subId, 'tag_added', "Tag assigned (Clicked link in Campaign #{$prevCampaignId}): {$tagName}");
                     }
                 }
                 elseif ($stepType === 'send_if_has_tag') {
@@ -323,12 +346,12 @@ class Automation {
 
                 $db->commit();
                 $processedCount++;
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
+                error_log("Automation item process error (Item ID: " . ($item['id'] ?? 'unknown') . "): " . $e->getMessage());
             }
-        } catch (Throwable $e) {
-            if ($db->inTransaction()) {
-                $db->rollBack();
-            }
-            error_log("Automation process error: " . $e->getMessage());
         }
 
         return $processedCount;

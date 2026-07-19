@@ -82,7 +82,7 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
 
                 <div class="form-group">
                     <label class="form-label" for="setting_smtp_pass">SMTP Password</label>
-                    <input class="form-control" type="password" id="setting_smtp_pass" name="setting_smtp_pass" value="<?= e(getSetting('smtp_pass')) ?>" placeholder="Enter SMTP password...">
+                    <input class="form-control" type="password" id="setting_smtp_pass" name="setting_smtp_pass" placeholder="••••••••">
                 </div>
 
                 <div class="form-row">
@@ -226,8 +226,8 @@ document.getElementById('btn_fetch_imap_folders').addEventListener('click', asyn
     }
     const user = smtpUser;
     const pass = smtpPass;
-    const ssl = (smtpEnc === 'ssl' || smtpEnc === 'tls') ? '1' : '0';
-    const port = (smtpEnc === 'ssl' || smtpEnc === 'tls') ? '993' : '143';
+    const ssl = (smtpEnc === 'ssl') ? '1' : '0';
+    const port = (smtpEnc === 'ssl') ? '993' : '143';
 
     btn.disabled = true;
     btn.innerHTML = 'Connecting...';

@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url = filter_var($_POST['url'] ?? '', FILTER_VALIDATE_URL);
         if (!$url) {
             flash('error', 'Please enter a valid URL including http:// or https://');
-            sc_redirect('/modules/seo_auditor/pages/ui.php');
+            sc_redirect('/seo-auditor');
         }
 
         // Fetch URL Content
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$html || $httpCode >= 400) {
             flash('error', 'Failed to fetch URL. Ensure it is accessible.');
-            sc_redirect('/modules/seo_auditor/pages/ui.php');
+            sc_redirect('/seo-auditor');
         }
 
         // Parse HTML using DOMDocument
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         flash('success', "SEO Audit complete for $url!");
-        sc_redirect('/modules/seo_auditor/pages/ui.php');
+        sc_redirect('/seo-auditor');
     }
 
     // Handle Backlink Update
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $db->prepare("UPDATE backlink_submissions SET status = ?, target_url = ?, updated_at = NOW() WHERE id = ?")->execute([$status, $target, $id]);
         flash('success', "Backlink directory updated!");
-        sc_redirect('/modules/seo_auditor/pages/ui.php?tab=backlinks');
+        sc_redirect('/seo-auditor?tab=backlinks');
     }
 }
 

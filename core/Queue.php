@@ -25,7 +25,7 @@ class Queue {
                 WHERE eq.status = 'pending' AND eq.send_at <= NOW() AND c.status IN ('sending', 'queued') AND s.status = 'active'
                 ORDER BY eq.send_at ASC
                 LIMIT :limit
-                FOR UPDATE
+                FOR UPDATE SKIP LOCKED
             ");
             $st->bindValue(':limit', $limit, PDO::PARAM_INT);
             $st->execute();

@@ -38,13 +38,19 @@ declare(strict_types=1);
 
             <!-- Trigger Tag Selection -->
             <div class="form-group trigger-conditional-group" id="trigger_tag_group" style="display: none; margin-top: 12px;">
-                <label class="form-label" for="trigger_tag_id">Target Trigger CRM Tag</label>
-                <select class="form-control" id="trigger_tag_id" name="trigger_tag_id">
-                    <option value="">-- Select Tag to Trigger On --</option>
+                <label class="form-label">Target Trigger CRM Tag(s) (Select multiple if desired)</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--theme-border); border-radius: 6px; background-color: #fafbfc; max-height: 120px; overflow-y: auto;">
                     <?php foreach ($tags as $t): ?>
-                        <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
+                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
+                            <input type="checkbox" name="trigger_tag_ids[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
+                            <?= e($t['name']) ?>
+                        </label>
                     <?php endforeach; ?>
-                </select>
+                    <?php if (empty($tags)): ?>
+                        <span style="color: var(--theme-dark-slate); font-size: 12px;">No tags created.</span>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- Trigger Form Selection -->
@@ -103,7 +109,7 @@ declare(strict_types=1);
             <div id="steps_container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
                 <!-- Initial Step 1 -->
                 <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--theme-border); border-radius: 8px; background-color: var(--theme-bg); position: relative;">
-                    <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Step 1</div>
+                    <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;" class="step-badge">Step 1</div>
                     
                     <div style="display: flex; gap: 16px; align-items: flex-end;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
@@ -244,17 +250,19 @@ declare(strict_types=1);
         // Hide all trigger groups first
         document.querySelectorAll(".trigger-conditional-group").forEach(el => {
             el.style.display = "none";
-            const selectOrInput = el.querySelector("select, input");
+            const selectOrInput = el.querySelector("select, input[type='text'], input[type='number']");
             if (selectOrInput) {
                 selectOrInput.removeAttribute("required");
                 selectOrInput.value = "";
             }
+            el.querySelectorAll("input[type='checkbox']").forEach(cb => {
+                cb.checked = false;
+            });
         });
 
         if (val === "tag_added") {
             const group = document.getElementById("trigger_tag_group");
             group.style.display = "block";
-            group.querySelector("select").setAttribute("required", "required");
         } else if (val === "form_submit") {
             const group = document.getElementById("trigger_form_group");
             group.style.display = "block";
@@ -276,7 +284,7 @@ declare(strict_types=1);
             <option value="">-- No campaigns found. Create one first --</option>
         <?php else: ?>
             <?php foreach ($campaigns as $camp): ?>
-                <option value="<?= $camp['id'] ?>"><?= e(addslashes($camp['name'])) ?></option>
+                <option value="<?= $camp['id'] ?>"><?= json_encode($camp['name'], JSON_HEX_TAG | JSON_HEX_APOS) ?></option>
             <?php endforeach; ?>
         <?php endif; ?>
     `;
@@ -286,7 +294,7 @@ declare(strict_types=1);
             <option value="">-- No tags found. Create one first --</option>
         <?php else: ?>
             <?php foreach ($tags as $t): ?>
-                <option value="<?= $t['id'] ?>"><?= e(addslashes($t['name'])) ?></option>
+                <option value="<?= $t['id'] ?>"><?= json_encode($t['name'], JSON_HEX_TAG | JSON_HEX_APOS) ?></option>
             <?php endforeach; ?>
         <?php endif; ?>
     `;
@@ -296,7 +304,7 @@ declare(strict_types=1);
             <option value="">-- No lists found. Create one first --</option>
         <?php else: ?>
             <?php foreach ($lists as $l): ?>
-                <option value="<?= $l['id'] ?>"><?= e(addslashes($l['name'])) ?></option>
+                <option value="<?= $l['id'] ?>"><?= json_encode($l['name'], JSON_HEX_TAG | JSON_HEX_APOS) ?></option>
             <?php endforeach; ?>
         <?php endif; ?>
     `;
@@ -307,7 +315,7 @@ declare(strict_types=1);
         
         const stepHtml = `
             <div class="step-card" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--theme-border); border-radius: 8px; background-color: var(--theme-bg); position: relative; margin-top: 4px;">
-                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Step ${container.children.length + 1}</div>
+                <div style="position: absolute; top: -10px; left: 16px; background-color: var(--theme-blurple); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;" class="step-badge">Step ${container.children.length + 1}</div>
                 
                 <div style="display: flex; gap: 16px; align-items: flex-end;">
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
@@ -411,7 +419,7 @@ declare(strict_types=1);
     function reindexSteps() {
         const cards = document.querySelectorAll("#steps_container .step-card");
         cards.forEach((card, index) => {
-            const badge = card.querySelector("div[style*='position: absolute']");
+            const badge = card.querySelector(".step-badge");
             if (badge) {
                 badge.textContent = `Step ${index + 1}`;
             }

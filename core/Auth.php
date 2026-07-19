@@ -36,7 +36,7 @@ class Auth {
                 session_regenerate_id(true);
                 
                 $_SESSION['user_id'] = (int)$user['id'];
-                $_SESSION['user_email'] = $email;
+                $_SESSION['user_email'] = strtolower(trim($email));
                 return true;
             }
         } catch (Throwable $e) {
@@ -95,6 +95,10 @@ class Auth {
         if (empty($_SESSION['csrf_token']) || empty($_POST['csrf_token'])) {
             return false;
         }
-        return hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+        $valid = hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+        if ($valid) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $valid;
     }
 }

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$runUrl = rtrim(getSetting('app_url'), '/') . '/warmup/run';
+$runUrl = rtrim(getSetting('app_url'), '/') . '/warmup/run?secret=' . urlencode(getSetting('cron_secret'));
 ?>
 
 <div class="header-actions">
@@ -19,6 +19,7 @@ $runUrl = rtrim(getSetting('app_url'), '/') . '/warmup/run';
         </div>
         
         <form method="post" action="?action=update">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--theme-dark);">
                     <input type="checkbox" name="warmup_active" value="1" <?= $warmupActive ? 'checked' : '' ?> style="cursor: pointer; accent-color: var(--theme-blurple);">

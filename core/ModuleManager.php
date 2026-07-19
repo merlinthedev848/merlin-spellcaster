@@ -35,7 +35,12 @@ class ModuleManager {
         return $modules;
     }
 
-    public static function getEnabledModuleIds(): array {
+    public static function getEnabledModuleIds(bool $forceRefresh = false): array {
+        static $cache = null;
+        if ($cache !== null && !$forceRefresh) {
+            return $cache;
+        }
+
         $enabledStr = getSetting('enabled_modules_list', 'INITIAL_STATE');
         
         $suites = ['scoring_analytics', 'lead_generation', 'deliverability_suite', 'conversion_suite'];
@@ -43,10 +48,12 @@ class ModuleManager {
         if ($enabledStr === 'INITIAL_STATE' || $enabledStr === '') {
             $list = array_merge(['ai_copywriter', 'ai_settings', 'seo_auditor'], $suites);
             setSetting('enabled_modules_list', implode(',', $list));
+            $cache = $list;
             return $list;
         }
         
         if ($enabledStr === 'NONE') {
+            $cache = [];
             return [];
         }
         
@@ -54,7 +61,8 @@ class ModuleManager {
         $archived = ['lead_scoring', 'predictive_scoring', 'list_scraper', 'maps_scraper', 'data_enrichment', 'deliverability_sentinel', 'domain_warmup', 'email_verifier', 'fomo_timers', 'link_rotator', 'viral_loops', 'survey_builder', 'ab_testing', 'web_personalization', 'hello_world'];
         $list = array_diff($list, $archived);
         
-        return array_values(array_unique(array_filter($list)));
+        $cache = array_values(array_unique(array_filter($list)));
+        return $cache;
     }
 
     /**
@@ -84,7 +92,7 @@ class ModuleManager {
      * Toggle module status
      */
     public static function toggleModule(string $id): bool {
-        $enabled = self::getEnabledModuleIds();
+        $enabled = self::getEnabledModuleIds(true);
         $key = array_search($id, $enabled, true);
 
         if ($key !== false) {
@@ -98,6 +106,7 @@ class ModuleManager {
         $enabled = array_filter($enabled);
         $saveValue = empty($enabled) ? 'NONE' : implode(',', $enabled);
         setSetting('enabled_modules_list', $saveValue);
+        self::getEnabledModuleIds(true); // reload cache
         return $status;
     }
 }

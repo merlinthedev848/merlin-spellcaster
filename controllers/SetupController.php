@@ -6,6 +6,11 @@ declare(strict_types=1);
  */
 class SetupController {
     public function index(): void {
+        if (file_exists(dirname(__DIR__) . '/config.local.php')) {
+            header('Location: ' . (getSetting('app_url') ?: '/'));
+            exit;
+        }
+
         $error = null;
         $success = false;
 
@@ -22,6 +27,8 @@ class SetupController {
 
             if (empty($name) || empty($user) || empty($adminEmail) || empty($adminPass)) {
                 $error = 'All fields, including admin account credentials, are required.';
+            } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+                $error = 'Invalid database name format. Only alphanumeric characters and underscores are allowed.';
             } elseif (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Please enter a valid administrator email address.';
             } else {
@@ -43,10 +50,10 @@ class SetupController {
                         . "/**\n"
                         . " * config.local.php — Generated Local Database Configuration\n"
                         . " */\n\n"
-                        . "\$db_host = '" . addslashes($host) . "';\n"
-                        . "\$db_name = '" . addslashes($name) . "';\n"
-                        . "\$db_user = '" . addslashes($user) . "';\n"
-                        . "\$db_pass = '" . addslashes($pass) . "';\n"
+                        . "\$db_host = " . var_export($host, true) . ";\n"
+                        . "\$db_name = " . var_export($name, true) . ";\n"
+                        . "\$db_user = " . var_export($user, true) . ";\n"
+                        . "\$db_pass = " . var_export($pass, true) . ";\n"
                         . "\$db_port = {$port};\n";
 
                     $written = file_put_contents(dirname(__DIR__) . '/config.local.php', $configContent);

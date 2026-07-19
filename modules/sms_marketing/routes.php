@@ -18,6 +18,11 @@ if ($routePath === '/sms-marketing') {
     $success = null;
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!Auth::checkCsrf()) {
+            $_SESSION['flash_error'] = 'CSRF validation failed.';
+            header('Location: ' . getSetting('app_url') . '/sms-marketing');
+            exit;
+        }
         if ($action === 'settings') {
             $sid = trim($_POST['twilio_sid'] ?? '');
             $token = trim($_POST['twilio_token'] ?? '');

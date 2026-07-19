@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $triggerType = 'subscribe';
 $triggerTagId = '';
+$triggerTagIds = [];
 $triggerFormId = '';
 $triggerCampaignId = '';
 $triggerPoints = '';
@@ -11,7 +12,10 @@ if ($automation['trigger_event']) {
     $parts = explode(':', $automation['trigger_event']);
     $triggerType = $parts[0];
     if (isset($parts[1])) {
-        if ($triggerType === 'tag_added') $triggerTagId = $parts[1];
+        if ($triggerType === 'tag_added') {
+            $triggerTagId = $parts[1];
+            $triggerTagIds = array_map('intval', explode(',', $parts[1]));
+        }
         if ($triggerType === 'form_submit') $triggerFormId = $parts[1];
         if ($triggerType === 'email_open' || $triggerType === 'link_click') $triggerCampaignId = $parts[1];
         if ($triggerType === 'points_threshold') $triggerPoints = $parts[1];
@@ -57,17 +61,19 @@ if ($automation['trigger_event']) {
 
             <!-- Trigger Tag Selection -->
             <div class="form-group trigger-conditional-group" id="trigger_tag_group" style="display: <?= $triggerType === 'tag_added' ? 'block' : 'none' ?>; margin-top: 12px;">
-                <label class="form-label" for="trigger_tag_id">Target Trigger CRM Tag</label>
-                <select class="form-control" id="trigger_tag_id" name="trigger_tag_id" <?= $triggerType === 'tag_added' ? 'required' : '' ?>>
-                    <option value="">-- Select Tag to Trigger On --</option>
+                <label class="form-label">Target Trigger CRM Tag(s) (Select multiple if desired)</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--theme-border); border-radius: 6px; background-color: #fafbfc; max-height: 120px; overflow-y: auto;">
+                    <?php foreach ($tags as $t): ?>
+                        <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
+                            <input type="checkbox" name="trigger_tag_ids[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);" <?= in_array((int)$t['id'], $triggerTagIds, true) ? 'checked' : '' ?>>
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
+                            <?= e($t['name']) ?>
+                        </label>
+                    <?php endforeach; ?>
                     <?php if (empty($tags)): ?>
-                        <option value="">-- No tags found. Create one first --</option>
-                    <?php else: ?>
-                        <?php foreach ($tags as $t): ?>
-                            <option value="<?= $t['id'] ?>" <?= (string)$t['id'] === $triggerTagId ? 'selected' : '' ?>><?= e($t['name']) ?></option>
-                        <?php endforeach; ?>
+                        <span style="color: var(--theme-dark-slate); font-size: 12px;">No tags created.</span>
                     <?php endif; ?>
-                </select>
+                </div>
             </div>
 
             <!-- Trigger Form Selection -->
@@ -154,17 +160,19 @@ if ($automation['trigger_event']) {
     function toggleTriggerType(val) {
         document.querySelectorAll(".trigger-conditional-group").forEach(el => {
             el.style.display = "none";
-            const selectOrInput = el.querySelector("select, input");
+            const selectOrInput = el.querySelector("select, input[type='text'], input[type='number']");
             if (selectOrInput) {
                 selectOrInput.removeAttribute("required");
                 selectOrInput.value = "";
             }
+            el.querySelectorAll("input[type='checkbox']").forEach(cb => {
+                cb.checked = false;
+            });
         });
 
         if (val === "tag_added") {
             const group = document.getElementById("trigger_tag_group");
             group.style.display = "block";
-            group.querySelector("select").setAttribute("required", "required");
         } else if (val === "form_submit") {
             const group = document.getElementById("trigger_form_group");
             group.style.display = "block";
@@ -185,7 +193,7 @@ if ($automation['trigger_event']) {
             <option value="">-- No campaigns found. Create one first --</option>
         <?php else: ?>
             <?php foreach ($campaigns as $camp): ?>
-                <option value="<?= $camp['id'] ?>"><?= e(addslashes($camp['name'])) ?></option>
+                <option value="<?= $camp['id'] ?>"><?= json_encode($camp['name'], JSON_HEX_TAG | JSON_HEX_APOS) ?></option>
             <?php endforeach; ?>
         <?php endif; ?>
     `;
@@ -194,7 +202,7 @@ if ($automation['trigger_event']) {
             <option value="">-- No tags found. Create one first --</option>
         <?php else: ?>
             <?php foreach ($tags as $t): ?>
-                <option value="<?= $t['id'] ?>"><?= e(addslashes($t['name'])) ?></option>
+                <option value="<?= $t['id'] ?>"><?= json_encode($t['name'], JSON_HEX_TAG | JSON_HEX_APOS) ?></option>
             <?php endforeach; ?>
         <?php endif; ?>
     `;
@@ -203,7 +211,7 @@ if ($automation['trigger_event']) {
             <option value="">-- No lists found. Create one first --</option>
         <?php else: ?>
             <?php foreach ($lists as $l): ?>
-                <option value="<?= $l['id'] ?>"><?= e(addslashes($l['name'])) ?></option>
+                <option value="<?= $l['id'] ?>"><?= json_encode($l['name'], JSON_HEX_TAG | JSON_HEX_APOS) ?></option>
             <?php endforeach; ?>
         <?php endif; ?>
     `;
@@ -349,8 +357,8 @@ if ($automation['trigger_event']) {
     }
 
     // Prefill Existing Steps
-    window.onload = function() {
-        const existingSteps = <?= json_encode($automationSteps) ?>;
+    window.addEventListener('load', function() {
+        const existingSteps = <?= json_encode($automationSteps, JSON_HEX_TAG) ?>;
         if (existingSteps && existingSteps.length > 0) {
             existingSteps.forEach(step => {
                 const el = addStep();
@@ -383,5 +391,5 @@ if ($automation['trigger_event']) {
         } else {
             addStep(); // add at least 1 empty step
         }
-    };
+    });
 </script>

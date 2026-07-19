@@ -14,6 +14,7 @@
             <span class="card-title">Create New Tag</span>
         </div>
         <form method="post" action="<?= e($appUrl) ?>/tags/create">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label" for="name">Tag Name</label>
                 <input class="form-control" type="text" id="name" name="name" required placeholder="e.g. VIP Customer">
@@ -50,9 +51,10 @@
                                 <td><?= number_format((float)$t['subscriber_count']) ?></td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="editTag(<?= $t['id'] ?>, '<?= e(addslashes($t['name'])) ?>')">Edit</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="editTag(<?= e($t['id']) ?>, <?= e(json_encode($t['name'])) ?>)">Edit</button>
                                         <form method="post" action="<?= e($appUrl) ?>/tags?action=delete" style="margin: 0;" onsubmit="return confirm('Delete this tag?');">
-                                            <input type="hidden" name="id" value="<?= $t['id'] ?>">
+                                            <?= Auth::csrfField() ?>
+                                            <input type="hidden" name="id" value="<?= e($t['id']) ?>">
                                             <button type="submit" class="btn btn-danger btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
                                         </form>
                                     </div>
@@ -72,6 +74,7 @@
         <button type="button" onclick="closeEditModal()" style="position: absolute; top: 12px; right: 12px; background: none; border: none; cursor: pointer; font-size: 16px;">&times;</button>
         <h3 style="margin-top: 0; font-size: 16px; margin-bottom: 16px;">Edit Tag</h3>
         <form method="post" action="<?= e($appUrl) ?>/tags/edit">
+            <?= Auth::csrfField() ?>
             <input type="hidden" id="edit_id" name="id">
             <div class="form-group">
                 <label class="form-label" for="edit_name">Tag Name</label>

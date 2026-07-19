@@ -23,6 +23,7 @@ declare(strict_types=1);
         </div>
         
         <form method="post" action="?action=send">
+            <?= Auth::csrfField() ?>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="list_id">Target Subscriber List (Optional)</label>
@@ -64,6 +65,7 @@ declare(strict_types=1);
         </div>
         
         <form method="post" action="?action=settings">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label" for="twilio_sid">Twilio Account SID</label>
                 <input class="form-control" type="text" id="twilio_sid" name="twilio_sid" value="<?= e(getSetting('twilio_sid', '')) ?>" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">

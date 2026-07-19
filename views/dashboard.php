@@ -87,7 +87,7 @@ declare(strict_types=1);
     <div class="card">
         <div class="stat-group">
             <span class="stat-label">Average Open Rate</span>
-            <span class="stat-value"><?= $openRate ?>%</span>
+            <span class="stat-value"><?= e($openRate) ?>%</span>
             <span class="stat-meta">
                 <span class="stat-trend-up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><polyline points="18 15 12 9 6 15"></polyline></svg>
@@ -101,7 +101,7 @@ declare(strict_types=1);
     <div class="card">
         <div class="stat-group">
             <span class="stat-label">Average Click Rate</span>
-            <span class="stat-value"><?= $clickRate ?>%</span>
+            <span class="stat-value"><?= e($clickRate) ?>%</span>
             <span class="stat-meta">
                 <span class="stat-trend-up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><polyline points="18 15 12 9 6 15"></polyline></svg>
@@ -144,6 +144,7 @@ declare(strict_types=1);
                 Configure SMTP Mailer
             </a>
             <form action="<?= e(getSetting('app_url')) ?>/cron" method="POST">
+                <?= Auth::csrfField() ?>
                 <button type="submit" class="btn btn-primary" style="width:100%; justify-content: flex-start; padding: 12px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                     Trigger Queue Process
@@ -173,8 +174,8 @@ declare(strict_types=1);
                 <li class="timeline-item <?= $class ?>">
                     <div class="timeline-time"><?= date('M j, Y H:i:s', strtotime($act['created_at'])) ?></div>
                     <div class="timeline-content">
-                        <a href="<?= e(getSetting('app_url')) ?>/contacts/view?id=<?= $act['subscriber_id'] ?>" style="font-weight: 600; color: var(--theme-blurple); text-decoration: none;">
-                            <?= e($act['first_name'] . ' ' . $act['last_name']) ?: e($act['email']) ?>
+                        <a href="<?= e(getSetting('app_url')) ?>/contacts/view?id=<?= e($act['subscriber_id']) ?>" style="font-weight: 600; color: var(--theme-blurple); text-decoration: none;">
+                            <?= e(trim($act['first_name'] . ' ' . $act['last_name'])) !== '' ? e(trim($act['first_name'] . ' ' . $act['last_name'])) : e($act['email']) ?>
                         </a>
                         <span style="color: var(--theme-dark-slate); font-weight: 400;">
                             <?= e($act['description']) ?>
@@ -191,10 +192,10 @@ declare(strict_types=1);
     document.addEventListener("DOMContentLoaded", function() {
         const ctx = document.getElementById('campaignChart').getContext('2d');
         
-        const labels = <?= json_encode(array_column($chartCampaigns, 'name')) ?>;
-        const sentData = <?= json_encode(array_column($chartCampaigns, 'send_count')) ?>;
-        const openData = <?= json_encode(array_column($chartCampaigns, 'open_count')) ?>;
-        const clickData = <?= json_encode(array_column($chartCampaigns, 'click_count')) ?>;
+        const labels = <?= json_encode(array_column($chartCampaigns, 'name'), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+        const sentData = <?= json_encode(array_column($chartCampaigns, 'send_count'), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+        const openData = <?= json_encode(array_column($chartCampaigns, 'open_count'), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+        const clickData = <?= json_encode(array_column($chartCampaigns, 'click_count'), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
         const notOpenedData = sentData.map((sent, i) => Math.max(0, sent - openData[i]));
 
         new Chart(ctx, {

@@ -9,9 +9,17 @@ class SettingController {
         $db = Database::getConnection();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/settings');
+                exit;
+            }
             foreach ($_POST as $key => $value) {
                 if (str_starts_with($key, 'setting_')) {
                     $settingKey = substr($key, 8);
+                    if ($settingKey === 'smtp_pass' && trim((string)$value) === '') {
+                        continue;
+                    }
                     setSetting($settingKey, trim((string)$value));
                 }
             }
@@ -212,7 +220,7 @@ class SettingController {
         $secret = $_GET['secret'] ?? $_SERVER['argv'][1] ?? '';
         $cronSecret = getSetting('cron_secret');
 
-        if ($cronSecret !== '' && $secret !== $cronSecret && php_sapi_name() !== 'cli') {
+        if ($cronSecret !== '' && !hash_equals($cronSecret, $secret) && php_sapi_name() !== 'cli') {
             http_response_code(403);
             die("Unauthorized Cron Request.\n");
         }
@@ -302,6 +310,35 @@ class SettingController {
         
         // Log Webhook Payload
         $postData = json_decode($payload, true) ?: $_POST;
+        
+        // Webhook Authentication
+        $secret = $_GET['secret'] ?? '';
+        $expectedSecret = getSetting('cron_secret');
+        $authorized = false;
+        
+        $signature = $postData['signature'] ?? [];
+        $mailgunApiKey = getSetting('mailgun_api_key');
+        
+        if (!empty($mailgunApiKey) && !empty($signature)) {
+            $timestamp = $signature['timestamp'] ?? '';
+            $token = $signature['token'] ?? '';
+            $sig = $signature['signature'] ?? '';
+            $expected = hash_hmac('sha256', $timestamp . $token, $mailgunApiKey);
+            if (hash_equals($expected, $sig)) {
+                $authorized = true;
+            }
+        }
+        
+        if (!$authorized && !empty($expectedSecret) && hash_equals($expectedSecret, $secret)) {
+            $authorized = true;
+        }
+        
+        if (!$authorized && php_sapi_name() !== 'cli') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized webhook signature or secret.']);
+            exit;
+        }
+        
         $provider = 'mailgun';
         
         // Simple Mailgun event parsing (JSON post from Mailgun v3 API)

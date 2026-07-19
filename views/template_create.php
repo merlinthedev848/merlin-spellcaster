@@ -105,7 +105,9 @@ $textVal = $isEdit ? $template['body_text'] : '';
         
         // Set initial content
         if (textarea.value) {
-            window.quill.root.innerHTML = textarea.value;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = textarea.value;
+            window.quill.root.innerHTML = tempDiv.textContent || tempDiv.innerText || textarea.value;
         }
 
         function updatePreview() {

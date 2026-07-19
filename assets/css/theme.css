@@ -648,3 +648,21 @@ textarea.form-control {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── Added Utilities ────────────────────────────────────────────────── */
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.badge-paused {
+    background-color: var(--warning-light, #fef9c3);
+    color: var(--warning, #ca8a04);
+    border: 1px solid rgba(202, 138, 4, 0.2);
+}

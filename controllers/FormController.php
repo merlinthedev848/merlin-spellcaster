@@ -14,6 +14,11 @@ class FormController {
         $id = (int)($_GET['id'] ?? 0);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/forms');
+                exit;
+            }
             if ($action === 'delete' && $id > 0) {
                 $db->prepare("DELETE FROM forms WHERE id = ?")->execute([$id]);
                 $_SESSION['flash_success'] = 'Subscription form deleted successfully.';
@@ -44,8 +49,11 @@ class FormController {
         $error = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $listId = $_POST['list_id'] !== '' ? (int)$_POST['list_id'] : null;
+            if (!Auth::checkCsrf()) {
+                $error = 'CSRF validation failed.';
+            } else {
+                $name = trim($_POST['name'] ?? '');
+                $listId = ($_POST['list_id'] ?? '') !== '' ? (int)$_POST['list_id'] : null;
             $headline = trim($_POST['headline'] ?? 'Subscribe to our newsletter');
             $description = trim($_POST['description'] ?? '');
             $buttonText = trim($_POST['button_text'] ?? 'Subscribe');
@@ -85,6 +93,7 @@ class FormController {
                 }
             }
         }
+    }
 
         // Fetch lists for targeting dropdown
         $lists = $db->query("SELECT * FROM lists ORDER BY name ASC")->fetchAll();
@@ -127,8 +136,11 @@ class FormController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $listId = $_POST['list_id'] !== '' ? (int)$_POST['list_id'] : null;
+            if (!Auth::checkCsrf()) {
+                $error = 'CSRF validation failed.';
+            } else {
+                $name = trim($_POST['name'] ?? '');
+                $listId = ($_POST['list_id'] ?? '') !== '' ? (int)$_POST['list_id'] : null;
             $headline = trim($_POST['headline'] ?? 'Subscribe to our newsletter');
             $description = trim($_POST['description'] ?? '');
             $buttonText = trim($_POST['button_text'] ?? 'Subscribe');
@@ -169,6 +181,7 @@ class FormController {
                 }
             }
         }
+    }
 
         // Fetch lists for targeting
         $lists = $db->query("SELECT * FROM lists ORDER BY name ASC")->fetchAll();

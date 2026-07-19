@@ -74,9 +74,10 @@ declare(strict_types=1);
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 6px;">
                                 <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    <button type="button" class="btn btn-secondary" onclick="toggleEmbed(<?= $f['id'] ?>)" style="padding: 4px 8px; font-size: 11px;">Embed Info</button>
-                                    <a href="<?= e(getSetting('app_url')) ?>/forms/edit?id=<?= $f['id'] ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
-                                    <form method="post" action="?action=delete&id=<?= $f['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this form? Embeds using it will show an error.');" style="margin:0;">
+                                    <button type="button" class="btn btn-secondary" onclick="toggleEmbed(<?= e($f['id']) ?>)" style="padding: 4px 8px; font-size: 11px;">Embed Info</button>
+                                    <a href="<?= e(getSetting('app_url')) ?>/forms/edit?id=<?= e($f['id']) ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
+                                    <form method="post" action="?action=delete&id=<?= e($f['id']) ?>" onsubmit="return confirm('Are you sure you want to delete this form? Embeds using it will show an error.');" style="margin:0;">
+                                        <?= Auth::csrfField() ?>
                                         <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
                                     </form>
                                 </div>
@@ -85,7 +86,7 @@ declare(strict_types=1);
                     </tr>
                     
                     <!-- Embed toggle row -->
-                    <tr id="embed-row-<?= $f['id'] ?>" style="display: none; background-color: #fafbfc;">
+                    <tr id="embed-row-<?= e($f['id']) ?>" style="display: none; background-color: #fafbfc;">
                         <td colspan="6" style="padding: 16px 20px;">
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 <div>

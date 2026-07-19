@@ -12,11 +12,12 @@ declare(strict_types=1);
         <p>HubSpot-style unified CRM contact profile and timeline history.</p>
     </div>
     <div style="display: flex; gap: 8px; align-items: center;">
-        <a href="<?= e(getSetting('app_url')) ?>/contacts/view?action=export_contact&id=<?= $contact['id'] ?>" class="btn btn-secondary" style="font-weight: 600;">
+        <a href="<?= e(getSetting('app_url')) ?>/contacts/view?action=export_contact&id=<?= e($contact['id']) ?>" class="btn btn-secondary" style="font-weight: 600;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Export Profile Data (GDPR)
         </a>
-        <form method="post" action="<?= e(getSetting('app_url')) ?>/contacts?action=delete_contact&id=<?= $contact['id'] ?>" onsubmit="return confirm('Are you sure you want to permanently delete this contact? This will remove all their tag mappings, list memberships, and activity timelines.');" style="display: inline; margin: 0;">
+        <form method="post" action="<?= e(getSetting('app_url')) ?>/contacts?action=delete_contact&id=<?= e($contact['id']) ?>" onsubmit="return confirm('Are you sure you want to permanently delete this contact? This will remove all their tag mappings, list memberships, and activity timelines.');" style="display: inline; margin: 0;">
+            <?= Auth::csrfField() ?>
             <button type="submit" class="btn btn-danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete Contact</button>
         </form>
     </div>
@@ -57,17 +58,16 @@ declare(strict_types=1);
                 <div style="margin-top: 16px;">
                     <canvas id="heatChart" height="150"></canvas>
                 </div>
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script>
                     const ctx = document.getElementById('heatChart').getContext('2d');
                     new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: <?= json_encode($dates ?? []) ?>,
+                            labels: <?= json_encode($dates ?? [], JSON_HEX_TAG | JSON_HEX_AMP) ?>,
                             datasets: [
-                                { label: 'Opens', data: <?= json_encode($openSeries ?? []) ?>, borderColor: '#3b82f6', tension: 0.3, fill: false },
-                                { label: 'Clicks', data: <?= json_encode($clickSeries ?? []) ?>, borderColor: '#10b981', tension: 0.3, fill: false },
-                                { label: 'Visits', data: <?= json_encode($visitSeries ?? []) ?>, borderColor: '#ff6384', tension: 0.3, fill: false }
+                                { label: 'Opens', data: <?= json_encode($openSeries ?? [], JSON_HEX_TAG | JSON_HEX_AMP) ?>, borderColor: '#3b82f6', tension: 0.3, fill: false },
+                                { label: 'Clicks', data: <?= json_encode($clickSeries ?? [], JSON_HEX_TAG | JSON_HEX_AMP) ?>, borderColor: '#10b981', tension: 0.3, fill: false },
+                                { label: 'Visits', data: <?= json_encode($visitSeries ?? [], JSON_HEX_TAG | JSON_HEX_AMP) ?>, borderColor: '#ff6384', tension: 0.3, fill: false }
                             ]
                         },
                         options: {

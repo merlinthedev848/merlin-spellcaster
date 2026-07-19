@@ -19,6 +19,7 @@ $baseUrl = rtrim(getSetting('app_url'), '/');
         </div>
         
         <form method="post" action="?action=create">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label" for="name">Friendly Name</label>
                 <input class="form-control" type="text" id="name" name="name" required placeholder="e.g. Summer Promo Rotation">
@@ -84,7 +85,8 @@ $baseUrl = rtrim(getSetting('app_url'), '/');
                                     </span>
                                 </td>
                                 <td>
-                                    <form method="post" action="?action=delete&id=<?= $r['id'] ?>" onsubmit="return confirm('Remove this rotator link?');" style="margin: 0;">
+                                    <form method="post" action="?action=delete&id=<?= e($r['id']) ?>" onsubmit="return confirm('Remove this rotator link?');" style="margin: 0;">
+                                        <?= Auth::csrfField() ?>
                                         <button type="submit" class="btn btn-danger" style="padding: 2px 6px; font-size: 10px;">Remove</button>
                                     </form>
                                 </td>

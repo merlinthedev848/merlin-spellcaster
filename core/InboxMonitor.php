@@ -28,8 +28,15 @@ class InboxMonitor {
         }
         $user = $smtpUser;
         $pass = $smtpPass;
-        $ssl = ($smtpEnc === 'ssl' || $smtpEnc === 'tls');
-        $port = $ssl ? 993 : 143;
+        $port = 143;
+        $sslStr = '/novalidate-cert';
+        if ($smtpEnc === 'ssl') {
+            $port = 993;
+            $sslStr = '/ssl/novalidate-cert';
+        } elseif ($smtpEnc === 'tls') {
+            $port = 143;
+            $sslStr = '/tls/novalidate-cert';
+        }
 
         if (!function_exists('imap_open')) {
             return ['success' => false, 'message' => 'PHP IMAP extension is not loaded on this system.'];
@@ -43,8 +50,6 @@ class InboxMonitor {
 
         $folders = array_unique([$bouncesFolder, $repliesFolder]);
 
-        $sslStr = $ssl ? '/ssl/novalidate-cert' : '/novalidate-cert';
-        
         $processedBounces = 0;
         $processedReplies = 0;
         $bouncedList = [];
@@ -236,6 +241,7 @@ class InboxMonitor {
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
+            error_log('InboxMonitor markAsBounced error: ' . $e->getMessage());
         }
     }
 
@@ -268,6 +274,7 @@ class InboxMonitor {
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
+            error_log('InboxMonitor markAsReplied error: ' . $e->getMessage());
         }
     }
 }

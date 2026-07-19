@@ -102,7 +102,11 @@ function logActivity(int $subscriberId, string $activityType, string $descriptio
  * Generate HMAC token for tracking links and unsubscribes
  */
 function generateToken(string $email, int $campaignId, int $subscriberId): string {
-    $secret = getSetting('app_secret', 'merlin_fallback_secret_key');
+    $secret = getSetting('app_secret');
+    if (empty($secret)) {
+        $secret = bin2hex(random_bytes(32));
+        setSetting('app_secret', $secret);
+    }
     return hash_hmac('sha256', "{$email}:{$campaignId}:{$subscriberId}", $secret);
 }
 
@@ -113,7 +117,7 @@ function sc_geoip_lookup(string $ip): array {
     if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1') {
         return ['country_code' => '', 'country_name' => '', 'city' => 'Localhost'];
     }
-    $url = "http://ip-api.com/json/" . urlencode($ip);
+    $url = "https://ip-api.com/json/" . urlencode($ip);
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -138,13 +142,15 @@ function sc_geoip_lookup(string $ip): array {
  * Capture IP and update subscriber details
  */
 function sc_update_subscriber_geoip(int $subscriberId, string $ip): void {
-    global $db;
-    if (!$db || empty($ip)) return;
-    
-    $geo = sc_geoip_lookup($ip);
-    
-    $st = $db->prepare("UPDATE subscribers SET ip_address = ?, country_code = ?, country_name = ?, city = ? WHERE id = ?");
-    $st->execute([$ip, $geo['country_code'], $geo['country_name'], $geo['city'], $subscriberId]);
+    if (empty($ip)) return;
+    try {
+        $db = Database::getConnection();
+        $geo = sc_geoip_lookup($ip);
+        $st = $db->prepare("UPDATE subscribers SET ip_address = ?, country_code = ?, country_name = ?, city = ? WHERE id = ?");
+        $st->execute([$ip, $geo['country_code'], $geo['country_name'], $geo['city'], $subscriberId]);
+    } catch (Throwable $e) {
+        error_log('sc_update_subscriber_geoip error: ' . $e->getMessage());
+    }
 }
 
 /**
@@ -379,6 +385,9 @@ function _bootstrapSchema(PDO $db): void {
  * Dynamic DB alterations for running code updates safely on live hosting
  */
 function _runMigrations(PDO $db): void {
+    // Version guard — only run migrations when schema is outdated
+    $currentVersion = (int)getSetting('schema_version', '0');
+    if ($currentVersion >= 11) return;
     // 1. Add scheduled_at and list_id columns to campaigns if missing
     try {
         $db->query("SELECT scheduled_at FROM campaigns LIMIT 1");
@@ -402,7 +411,7 @@ function _runMigrations(PDO $db): void {
     
     // Convert automation_steps.step_type from ENUM to VARCHAR(64) to support modular expansion
     try {
-        $db->exec("ALTER TABLE automation_steps MODIFY step_type VARCHAR(64) NOT NULL");
+        $db->exec("ALTER TABLE automation_steps MODIFY COLUMN step_type VARCHAR(64) NOT NULL DEFAULT 'wait'");
     } catch (Throwable $e) {
         error_log("Migration Error (step_type varchar): " . $e->getMessage());
     }
@@ -493,12 +502,8 @@ function _runMigrations(PDO $db): void {
         }
     }
 
-    // 3. Update automation_steps ENUM parameters
-    try {
-        $db->exec("ALTER TABLE automation_steps MODIFY COLUMN step_type ENUM('wait', 'send_email', 'add_tag', 'remove_tag', 'send_if_opened', 'send_if_not_opened', 'tag_if_not_opened') NOT NULL");
-    } catch (Throwable $e) {
-        error_log("Migration Error (automation_steps step_type enum): " . $e->getMessage());
-    }
+    // 3. Ensure automation_steps.step_type is VARCHAR(64) — never ENUM
+    // (ENUM was removed; this is a no-op guard for databases that already have VARCHAR)
 
     // 4. Create forms table if missing in migrations
     try {
@@ -633,6 +638,44 @@ function _runMigrations(PDO $db): void {
             error_log("Migration Error (automations exclude_tag_id): " . $e->getMessage());
         }
     }
+
+    // 11. Add phone and lead_score columns to subscribers
+    try { $db->query("SELECT phone FROM subscribers LIMIT 1"); } catch (PDOException) {
+        try { $db->exec("ALTER TABLE subscribers ADD COLUMN phone VARCHAR(30) DEFAULT NULL"); } catch (Throwable $e) { error_log('Migration Error (phone): ' . $e->getMessage()); }
+    }
+    try { $db->query("SELECT lead_score FROM subscribers LIMIT 1"); } catch (PDOException) {
+        try { $db->exec("ALTER TABLE subscribers ADD COLUMN lead_score INT DEFAULT 0"); } catch (Throwable $e) { error_log('Migration Error (lead_score): ' . $e->getMessage()); }
+    }
+
+    // 12. Add status column to subscriber_lists
+    try { $db->query("SELECT status FROM subscriber_lists LIMIT 1"); } catch (PDOException) {
+        try { $db->exec("ALTER TABLE subscriber_lists ADD COLUMN status VARCHAR(20) DEFAULT 'active'"); } catch (Throwable $e) { error_log('Migration Error (subscriber_lists.status): ' . $e->getMessage()); }
+    }
+
+    // 13. Add ab_subject column to email_queue
+    try { $db->query("SELECT ab_subject FROM email_queue LIMIT 1"); } catch (PDOException) {
+        try { $db->exec("ALTER TABLE email_queue ADD COLUMN ab_subject VARCHAR(500) DEFAULT NULL"); } catch (Throwable $e) { error_log('Migration Error (ab_subject): ' . $e->getMessage()); }
+    }
+
+    // 14. Create mod_sms_logs table
+    try {
+        $db->query("SELECT 1 FROM mod_sms_logs LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS mod_sms_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                subscriber_id INT DEFAULT NULL,
+                message TEXT,
+                status VARCHAR(20) DEFAULT 'sent',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {
+            error_log('Migration Error (mod_sms_logs): ' . $e->getMessage());
+        }
+    }
+
+    // Mark schema as up-to-date
+    setSetting('schema_version', '11');
 }
 
 /**

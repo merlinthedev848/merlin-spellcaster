@@ -25,6 +25,11 @@ if ($routePath === '/rotators') {
     $id = (int)($_GET['id'] ?? 0);
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!Auth::checkCsrf()) {
+            $_SESSION['flash_error'] = 'CSRF validation failed.';
+            header('Location: ' . getSetting('app_url') . '/rotators');
+            exit;
+        }
         if ($action === 'create') {
             $name = trim($_POST['name'] ?? '');
             $slug = trim($_POST['slug'] ?? '');

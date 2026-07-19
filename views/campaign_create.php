@@ -37,6 +37,7 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
         </div>
         
         <form method="post" action="">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label" for="name">Internal Campaign Name</label>
                 <input class="form-control" type="text" id="name" name="name" value="<?= e($nameVal) ?>" required placeholder="e.g. Cold Lead Outreach #1">
@@ -161,10 +162,10 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
 <script>
     const templatesMap = {
         <?php foreach ($templates as $temp): ?>
-            "<?= $temp['id'] ?>": {
-                subject: <?= json_encode($temp['subject']) ?>,
-                html: <?= json_encode($temp['body_html']) ?>,
-                text: <?= json_encode($temp['body_text']) ?>
+            "<?= e($temp['id']) ?>": {
+                subject: <?= json_encode($temp['subject'], JSON_HEX_TAG | JSON_HEX_AMP) ?>,
+                html: <?= json_encode($temp['body_html'], JSON_HEX_TAG | JSON_HEX_AMP) ?>,
+                text: <?= json_encode($temp['body_text'], JSON_HEX_TAG | JSON_HEX_AMP) ?>
             },
         <?php endforeach; ?>
     };

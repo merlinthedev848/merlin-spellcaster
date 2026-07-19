@@ -69,6 +69,7 @@ class AutomationController {
             $name = trim($_POST['name'] ?? '');
             $triggerType = trim($_POST['trigger_type'] ?? 'subscribe');
             $triggerTagId = (int)($_POST['trigger_tag_id'] ?? 0);
+            $triggerTagIds = $_POST['trigger_tag_ids'] ?? [];
             $triggerFormId = (int)($_POST['trigger_form_id'] ?? 0);
             $triggerCampaignId = (int)($_POST['trigger_campaign_id'] ?? 0);
             $triggerPoints = (int)($_POST['trigger_points'] ?? 0);
@@ -76,7 +77,11 @@ class AutomationController {
 
             // Set final trigger event string
             if ($triggerType === 'tag_added') {
-                $triggerEvent = "tag_added:{$triggerTagId}";
+                if (!empty($triggerTagIds)) {
+                    $triggerEvent = "tag_added:" . implode(',', array_map('intval', $triggerTagIds));
+                } else {
+                    $triggerEvent = "tag_added:{$triggerTagId}";
+                }
             } elseif ($triggerType === 'form_submit') {
                 $triggerEvent = "form_submit:{$triggerFormId}";
             } elseif ($triggerType === 'email_open') {
@@ -238,6 +243,7 @@ class AutomationController {
             $name = trim($_POST['name'] ?? '');
             $triggerType = trim($_POST['trigger_type'] ?? 'subscribe');
             $triggerTagId = (int)($_POST['trigger_tag_id'] ?? 0);
+            $triggerTagIds = $_POST['trigger_tag_ids'] ?? [];
             $triggerFormId = (int)($_POST['trigger_form_id'] ?? 0);
             $triggerCampaignId = (int)($_POST['trigger_campaign_id'] ?? 0);
             $triggerPoints = (int)($_POST['trigger_points'] ?? 0);
@@ -245,7 +251,11 @@ class AutomationController {
 
             // Set final trigger event string
             if ($triggerType === 'tag_added') {
-                $triggerEvent = "tag_added:{$triggerTagId}";
+                if (!empty($triggerTagIds)) {
+                    $triggerEvent = "tag_added:" . implode(',', array_map('intval', $triggerTagIds));
+                } else {
+                    $triggerEvent = "tag_added:{$triggerTagId}";
+                }
             } elseif ($triggerType === 'form_submit') {
                 $triggerEvent = "form_submit:{$triggerFormId}";
             } elseif ($triggerType === 'email_open') {
@@ -262,13 +272,6 @@ class AutomationController {
                 $_SESSION['flash_error'] = 'Automation name and at least one step are required.';
             } else {
                 try {
-                    // Force schema upgrade to ensure step_type accepts all values
-                    try {
-                        $db->exec("ALTER TABLE automation_steps MODIFY step_type VARCHAR(64) NOT NULL");
-                    } catch (Throwable $e) {
-                        throw new RuntimeException("Schema Migration Failed: " . $e->getMessage());
-                    }
-
                     $db->beginTransaction();
                     
                     // Update Automation Header

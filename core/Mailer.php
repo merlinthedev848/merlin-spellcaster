@@ -105,7 +105,6 @@ class Mailer {
             };
 
             $write = static function (string $d) use ($socket): void {
-                $r = '';
                 fwrite($socket, $d . "\r\n");
             };
 
@@ -164,13 +163,13 @@ class Mailer {
             $expect('354', 'DATA command failed');
 
             // Email Headers & Body Construction
-            $boundary = '----=' . md5(uniqid((string)time(), true));
+            $boundary = '----=' . bin2hex(random_bytes(16));
             $headers = [];
             $headers[] = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>";
             $headers[] = "To: <{$to}>";
             $headers[] = "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=";
             $headers[] = "Date: " . date('r');
-            $headers[] = "Message-ID: <" . md5(uniqid((string)time(), true)) . "@" . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ">";
+            $headers[] = "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ">";
             $headers[] = "MIME-Version: 1.0";
             $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
             if ($replyTo) {

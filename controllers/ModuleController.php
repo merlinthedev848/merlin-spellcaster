@@ -15,6 +15,11 @@ class ModuleController {
 
     public function toggle(): void {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/extensions');
+                exit;
+            }
             $id = trim($_GET['id'] ?? '');
             if ($id !== '') {
                 $status = ModuleManager::toggleModule($id);
@@ -31,6 +36,11 @@ class ModuleController {
      */
     public function upload(): void {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/extensions');
+                exit;
+            }
             if (isset($_FILES['module_zip']) && $_FILES['module_zip']['error'] === UPLOAD_ERR_OK) {
                 $tmpFile = $_FILES['module_zip']['tmp_name'];
                 
@@ -107,6 +117,13 @@ class ModuleController {
                             }
 
                             $destPath = $targetDir . '/' . $cleanName;
+                            
+                            $realBase = realpath($targetDir);
+                            $realDest = realpath(dirname($destPath)) ?: dirname($destPath);
+                            if ($realBase === false || strpos($realDest, $realBase) !== 0) {
+                                throw new RuntimeException('ZIP Slip attack detected: ' . $cleanName);
+                            }
+                            
                             $destFolder = dirname($destPath);
                             
                             if (!file_exists($destFolder)) {
@@ -137,6 +154,11 @@ class ModuleController {
      */
     public function uninstall(): void {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Auth::checkCsrf()) {
+                $_SESSION['flash_error'] = 'CSRF validation failed.';
+                header('Location: ' . getSetting('app_url') . '/extensions');
+                exit;
+            }
             $id = trim($_GET['id'] ?? '');
             if ($id !== '') {
                 // Ensure it's not trying to traverse paths

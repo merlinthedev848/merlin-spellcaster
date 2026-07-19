@@ -7,6 +7,11 @@ if (str_starts_with($routePath, '/multi-smtp')) {
     $action = $_GET['action'] ?? '';
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!Auth::checkCsrf()) {
+            $_SESSION['flash_error'] = 'CSRF validation failed.';
+            header('Location: ' . getSetting('app_url') . '/multi-smtp');
+            exit;
+        }
         if ($action === 'add') {
             $name = trim($_POST['name'] ?? 'New Server');
             $host = trim($_POST['host'] ?? '');
