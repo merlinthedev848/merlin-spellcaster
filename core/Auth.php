@@ -13,7 +13,13 @@ class Auth {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        return isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] > 0;
+        if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] > 0) {
+            if (empty($_SESSION['csrf_token'])) {
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            }
+            return true;
+        }
+        return false;
     }
 
     /**

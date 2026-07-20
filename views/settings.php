@@ -96,6 +96,18 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
                         <input class="form-control" type="email" id="setting_smtp_from_email" name="setting_smtp_from_email" value="<?= e(getSetting('smtp_from_email', 'noreply@localhost')) ?>" required>
                     </div>
                 </div>
+
+                <!-- Test SMTP Connection Action -->
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--theme-border);">
+                    <label class="form-label" style="margin-bottom: 6px; font-weight: 600;">Test SMTP Mailer Connection</label>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <input class="form-control" type="email" id="test_smtp_recipient" placeholder="Recipient Email (e.g. admin@domain.com)" style="max-width: 280px; margin-bottom: 0; font-size: 13px;" value="<?= e($_SESSION['user_email'] ?? '') ?>">
+                        <button type="button" id="btn_test_smtp" class="btn btn-secondary" style="font-size: 13px; font-weight: 600; padding: 7px 14px; white-space: nowrap;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>Send Test Email
+                        </button>
+                    </div>
+                    <div id="smtp_test_status" style="margin-top: 8px; font-size: 12px; font-weight: 600;"></div>
+                </div>
             </div>
 
             <!-- IMAP Bounce Inbox Connection -->
@@ -354,6 +366,62 @@ document.getElementById('btn_fetch_imap_folders').addEventListener('click', asyn
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'Test Connection & Fetch Folders';
+    }
+});
+
+document.getElementById('btn_test_smtp').addEventListener('click', async function() {
+    const btn = this;
+    const status = document.getElementById('smtp_test_status');
+    const recipient = document.getElementById('test_smtp_recipient').value.trim();
+
+    const host = document.getElementById('setting_smtp_host').value.trim();
+    const port = document.getElementById('setting_smtp_port').value.trim();
+    const encryption = document.getElementById('setting_smtp_encryption').value;
+    const user = document.getElementById('setting_smtp_user').value.trim();
+    const pass = document.getElementById('setting_smtp_pass').value;
+    const fromName = document.getElementById('setting_smtp_from_name').value.trim();
+    const fromEmail = document.getElementById('setting_smtp_from_email').value.trim();
+
+    if (!recipient) {
+        status.innerHTML = '<span style="color:var(--danger)">Please enter a recipient email address to send the test to.</span>';
+        return;
+    }
+    if (!host || !fromEmail) {
+        status.innerHTML = '<span style="color:var(--danger)">Please enter SMTP Host and Sender Email address.</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = 'Connecting & Sending...';
+    status.innerHTML = '<span style="color:var(--theme-dark-slate)">Connecting to ' + host + ':' + port + '...</span>';
+
+    const formData = new FormData();
+    formData.append('host', host);
+    formData.append('port', port);
+    formData.append('encryption', encryption);
+    formData.append('user', user);
+    formData.append('pass', pass);
+    formData.append('from_name', fromName);
+    formData.append('from_email', fromEmail);
+    formData.append('recipient_email', recipient);
+
+    try {
+        const response = await fetch('<?= e(BASE_PATH) ?>/api/test-smtp', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            status.innerHTML = `<span style="color:var(--success)">✅ ${data.message}</span>`;
+        } else {
+            status.innerHTML = `<span style="color:var(--danger)">❌ Connection/Delivery Failed: ${data.error}</span>`;
+        }
+    } catch (e) {
+        status.innerHTML = '<span style="color:var(--danger)">❌ Network error: ' + e.message + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>Send Test Email';
     }
 });
 </script>

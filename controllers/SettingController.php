@@ -387,4 +387,68 @@ class SettingController {
         }
         exit;
     }
+
+    /**
+     * API endpoint to test SMTP mailer connection
+     */
+    public function testSmtp(): void {
+        header('Content-Type: application/json');
+        if (!Auth::check()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
+            exit;
+        }
+
+        $host = trim($_POST['host'] ?? '');
+        $port = (int)($_POST['port'] ?? 587);
+        $encryption = strtolower(trim($_POST['encryption'] ?? 'tls'));
+        $user = trim($_POST['user'] ?? '');
+        $pass = $_POST['pass'] ?? '';
+        $fromEmail = trim($_POST['from_email'] ?? '');
+        $fromName = trim($_POST['from_name'] ?? 'Merlin Test');
+        $recipientEmail = trim($_POST['recipient_email'] ?? '');
+
+        if ($pass === '') {
+            $pass = getSetting('smtp_pass', '');
+        }
+
+        if (empty($host) || empty($fromEmail) || empty($recipientEmail)) {
+            echo json_encode(['success' => false, 'error' => 'SMTP Host, From Email, and Recipient Email are required for testing.']);
+            exit;
+        }
+
+        $mailer = new Mailer();
+        $appName = getSetting('app_name', 'Merlin Spellcaster');
+        $subject = "Merlin SMTP Connection Test — " . date('H:i:s');
+        $bodyHtml = '
+            <div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; padding: 24px; color: #1e293b; background-color: #f8fafc; border-radius: 8px;">
+                <h2 style="color: #635bff; margin-top: 0;">SMTP Connection Successful! 🎉</h2>
+                <p>This test email confirms that your <strong>' . htmlspecialchars($appName) . '</strong> SMTP mailer configuration is connected and actively delivering messages.</p>
+                <div style="background-color: #ffffff; padding: 16px; border-radius: 6px; border: 1px solid #e2e8f0; margin: 16px 0; font-size: 13px; color: #475569;">
+                    <strong style="display:block; margin-bottom: 8px; color: #0f172a;">Connection Diagnostics:</strong>
+                    <strong>Host:</strong> ' . htmlspecialchars($host) . ':' . $port . '<br>
+                    <strong>Encryption:</strong> ' . strtoupper($encryption) . '<br>
+                    <strong>Username:</strong> ' . htmlspecialchars($user ?: '(None)') . '<br>
+                    <strong>From:</strong> ' . htmlspecialchars($fromName) . ' &lt;' . htmlspecialchars($fromEmail) . '&gt;<br>
+                    <strong>Timestamp:</strong> ' . date('Y-m-d H:i:s T') . '
+                </p>
+                </div>
+            </div>
+        ';
+
+        $success = $mailer->sendCustom($host, $port, $encryption, $user, $pass, $fromEmail, $fromName, $recipientEmail, $subject, $bodyHtml);
+
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => "Test email successfully delivered to {$recipientEmail}!"]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $mailer->getLastError()]);
+        }
+        exit;
+    }
 }

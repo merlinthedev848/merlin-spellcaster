@@ -255,6 +255,11 @@ try {
             $controller->fetchImapFolders();
             break;
 
+        case '/api/test-smtp':
+            $controller = new SettingController();
+            $controller->testSmtp();
+            break;
+
         case '/tags':
             require_once __DIR__ . '/controllers/TagController.php';
             $controller = new TagController();

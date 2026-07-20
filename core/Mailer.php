@@ -219,4 +219,150 @@ class Mailer {
             return false;
         }
     }
+
+    /**
+     * Send email using explicitly specified SMTP credentials (for connection testing)
+     */
+    public function sendCustom(
+        string $host,
+        int $port,
+        string $encryption,
+        string $user,
+        string $pass,
+        string $fromEmail,
+        string $fromName,
+        string $to,
+        string $subject,
+        string $bodyHtml
+    ): bool {
+        try {
+            $prefix = ($encryption === 'ssl') ? 'ssl://' : 'tcp://';
+            $context = stream_context_create([
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ]
+            ]);
+
+            $socket = @stream_socket_client(
+                $prefix . $host . ':' . $port,
+                $errno,
+                $errstr,
+                10,
+                STREAM_CLIENT_CONNECT,
+                $context
+            );
+
+            if (!$socket) {
+                throw new RuntimeException("Cannot connect to SMTP server {$host}:{$port} — {$errstr} (#{$errno})");
+            }
+
+            stream_set_timeout($socket, 10);
+
+            $read = static function () use ($socket): string {
+                $r = '';
+                while (!feof($socket)) {
+                    $line = fgets($socket, 515);
+                    if ($line === false) break;
+                    $r .= $line;
+                    if (strlen($line) >= 3) {
+                        $code = substr($line, 0, 3);
+                        if (is_numeric($code)) {
+                            if (strlen($line) < 4 || $line[3] !== '-') {
+                                break;
+                            }
+                        }
+                    }
+                }
+                return $r;
+            };
+
+            $write = static function (string $d) use ($socket): void {
+                fwrite($socket, $d . "\r\n");
+            };
+
+            $expect = function (string $code, string $msg) use ($read, $write, $socket): void {
+                $resp = $read();
+                if (!str_starts_with(trim($resp), $code)) {
+                    $write('QUIT');
+                    fclose($socket);
+                    throw new RuntimeException("{$msg}: {$resp}");
+                }
+            };
+
+            $expect('220', 'SMTP Hello banner error');
+
+            $write('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+            $expect('250', 'EHLO greeting failed');
+
+            if ($encryption === 'tls') {
+                $write('STARTTLS');
+                $expect('220', 'STARTTLS negotiation failed');
+
+                if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                    fclose($socket);
+                    throw new RuntimeException('STARTTLS encryption upgrade failed');
+                }
+
+                $write('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+                $expect('250', 'EHLO greeting after TLS failed');
+            }
+
+            if ($user !== '') {
+                $write('AUTH LOGIN');
+                $expect('334', 'AUTH LOGIN failed');
+                
+                $write(base64_encode($user));
+                $expect('334', 'SMTP Username rejected');
+                
+                $write(base64_encode($pass));
+                $expect('235', 'SMTP Authentication failed');
+            }
+
+            $write("MAIL FROM:<{$fromEmail}>");
+            $expect('250', 'MAIL FROM command failed');
+
+            $write("RCPT TO:<{$to}>");
+            $expect('250', 'RCPT TO command failed');
+
+            $write('DATA');
+            $expect('354', 'DATA command failed');
+
+            $boundary = '----=' . bin2hex(random_bytes(16));
+            $headers = [];
+            $headers[] = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>";
+            $headers[] = "To: <{$to}>";
+            $headers[] = "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=";
+            $headers[] = "Date: " . date('r');
+            $headers[] = "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ">";
+            $headers[] = "MIME-Version: 1.0";
+            $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
+
+            $message = implode("\r\n", $headers) . "\r\n\r\n";
+            $message .= "--{$boundary}\r\n";
+            $message .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $message .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $message .= chunk_split(base64_encode(strip_tags($bodyHtml))) . "\r\n";
+
+            $message .= "--{$boundary}\r\n";
+            $message .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $message .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $message .= chunk_split(base64_encode($bodyHtml)) . "\r\n";
+            $message .= "--{$boundary}--\r\n";
+
+            $message = preg_replace('/^\./m', '..', $message);
+            $message .= '.';
+
+            $write($message);
+            $expect('250', 'Message body sending failed');
+
+            $write('QUIT');
+            fclose($socket);
+            return true;
+        } catch (Throwable $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
 }
