@@ -18,6 +18,27 @@ class Database {
         }
 
         $host = explode(':', $host)[0];
+        
+        // Load config.local.php to check for primary host override
+        $localConfig = dirname(__DIR__) . '/config.local.php';
+        $primaryHost = null;
+        if (file_exists($localConfig)) {
+            // Use output buffering/clean scope to load variables safely
+            $configVars = (static function($file) {
+                include $file;
+                return get_defined_vars();
+            })($localConfig);
+            
+            if (isset($configVars['primary_host'])) {
+                $primaryHost = (string)$configVars['primary_host'];
+            }
+        }
+
+        // If current request host matches primary host exactly, it is NOT a tenant
+        if ($primaryHost !== null && strcasecmp($host, $primaryHost) === 0) {
+            return null;
+        }
+
         $parts = explode('.', $host);
         
         // Skip IP addresses
@@ -31,7 +52,8 @@ class Database {
         
         if (count($parts) >= 3) {
             $sub = $parts[0];
-            if ($sub === 'www' || $sub === 'mail' || $sub === 'api') {
+            // Ignore common administrative subdomains (www, mail, api, mailer)
+            if ($sub === 'www' || $sub === 'mail' || $sub === 'api' || $sub === 'mailer') {
                 return null;
             }
             return $sub;
