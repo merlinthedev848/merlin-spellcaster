@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 <div style="max-width: 800px; margin: auto;">
     <form method="post" action="">
+        <?= Auth::csrfField() ?>
         <!-- Automation Info -->
         <div class="card" style="margin-bottom: 24px;">
             <div class="card-header"><span class="card-title">Automation Trigger Details</span></div>

@@ -40,6 +40,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     <div class="card" style="margin-bottom: 24px; max-width: 600px;">
         <div class="card-header"><span class="card-title">Create New List</span></div>
         <form method="post" action="?action=create_list">
+            <?= Auth::csrfField() ?>
             <div class="form-group">
                 <label class="form-label" for="name">List Name</label>
                 <input class="form-control" type="text" id="name" name="name" required placeholder="e.g. Weekly Newsletter">
@@ -58,6 +59,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     <div class="card" style="margin-bottom: 24px; max-width: 600px;">
         <div class="card-header"><span class="card-title">Create CRM Tag</span></div>
         <form method="post" action="?action=create_tag">
+            <?= Auth::csrfField() ?>
             <div class="form-group" style="margin-bottom: 24px;">
                 <label class="form-label" for="tag_name">Tag Name</label>
                 <input class="form-control" type="text" id="tag_name" name="name" required placeholder="e.g. Lead, Customer, VIP">
@@ -72,6 +74,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     <div class="card" style="margin-bottom: 24px; max-width: 680px;">
         <div class="card-header"><span class="card-title">Quick Add Contact</span></div>
         <form method="post" action="?action=add_contact">
+            <?= Auth::csrfField() ?>
             <div class="form-group" style="position: relative;">
                 <label class="form-label" for="email">Email Address</label>
                 <input class="form-control" type="email" id="email" name="email" required placeholder="name@domain.com" oninput="checkDuplicateEmail(this)" autocomplete="off">
@@ -119,6 +122,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     <div class="card" style="margin-bottom: 24px; max-width: 680px;">
         <div class="card-header"><span class="card-title">Import Contacts from CSV</span></div>
         <form method="post" action="?action=import_csv" enctype="multipart/form-data">
+            <?= Auth::csrfField() ?>
             <div style="background-color: var(--theme-blurple-light); color: var(--theme-dark-slate); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 16px; border: 1px solid rgba(99,91,255,0.1);">
                 <strong>Required CSV Headers:</strong> <code>email</code>. <br>
                 <strong>Optional Headers:</strong> <code>first_name</code>, <code>last_name</code>.
@@ -185,6 +189,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                             <?= e($t['name']) ?>
                         </a>
                         <form method="post" action="?action=delete_tag&tag_id=<?= $t['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this tag?');" style="display: flex; align-items: center;">
+                            <?= Auth::csrfField() ?>
                             <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--danger); padding: 0 4px; line-height: 1;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                         </form>
                     </div>
@@ -226,6 +231,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
 
         <!-- Unified Mass Action Wrapper Form -->
         <form id="mass_delete_form" method="post" action="?action=mass_delete">
+            <?= Auth::csrfField() ?>
             <!-- Hidden tag field for tags routing -->
             <input type="hidden" name="bulk_tag_id" id="hidden_bulk_tag_id" value="">
             <div class="table-wrapper">

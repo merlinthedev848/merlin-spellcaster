@@ -36,6 +36,7 @@ if ($automation['trigger_event']) {
 
 <div style="max-width: 800px; margin: auto;">
     <form method="post" action="">
+        <?= Auth::csrfField() ?>
         <input type="hidden" name="id" value="<?= $automation['id'] ?>">
         
         <!-- Automation Info -->
