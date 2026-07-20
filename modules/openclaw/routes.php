@@ -35,6 +35,20 @@ if (str_starts_with($routePath, '/api/openclaw/')) {
     $token = $matches[1];
 
     $db = Database::getConnection();
+
+    // Ensure table exists
+    try {
+        $db->exec("
+        CREATE TABLE IF NOT EXISTS mod_openclaw_keys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            agent_name VARCHAR(100) NOT NULL,
+            api_key VARCHAR(64) UNIQUE NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_used_at DATETIME DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+    } catch (Exception $e) {}
+
     $stmt = $db->prepare("SELECT id, agent_name FROM mod_openclaw_keys WHERE api_key = ?");
     $stmt->execute([$token]);
     $key = $stmt->fetch();

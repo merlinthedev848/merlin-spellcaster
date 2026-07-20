@@ -73,7 +73,12 @@ declare(strict_types=1);
                                 </span>
                             </td>
                             <td style="text-align: right; white-space: nowrap;">
-                                <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/toggle?id=<?= urlencode($id) ?>" style="margin: 0; display: inline-block;">
+                                <?php if ($mod['enabled'] && !empty($mod['menu_path'])): ?>
+                                    <a href="<?= e(getSetting('app_url') . $mod['menu_path']) ?>" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; min-width: 80px; text-decoration: none; font-weight: 600;">
+                                        Open
+                                    </a>
+                                <?php endif; ?>
+                                <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/toggle?id=<?= urlencode($id) ?>" style="margin: 0; display: inline-block; margin-left: 4px;">
                                     <button type="submit" class="btn <?= $mod['enabled'] ? 'btn-secondary' : 'btn-primary' ?>" style="padding: 6px 12px; font-size: 12px; min-width: 90px; justify-content: center;">
                                         <?= $mod['enabled'] ? 'Disable' : 'Enable' ?>
                                     </button>

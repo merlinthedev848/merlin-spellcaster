@@ -314,8 +314,16 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                     </a>
                     <?php if (!empty($activeMods)): ?>
                         <ul class="sidebar-submenu" style="list-style: none; padding-left: 28px; margin: 4px 0 8px 0; display: flex; flex-direction: column; gap: 4px;">
-                            <?php foreach ($activeMods as $modId => $modInfo): 
+                            <?php 
+                            $menuCount = 0;
+                            $hasMore = false;
+                            foreach ($activeMods as $modId => $modInfo): 
                                 if (empty($modInfo['menu_label']) || empty($modInfo['menu_path'])) continue;
+                                $menuCount++;
+                                if ($menuCount > 6) {
+                                    $hasMore = true;
+                                    continue;
+                                }
                                 $label = $modInfo['menu_label'];
                                 $path = $modInfo['menu_path'];
                                 $isActive = (str_starts_with($currentRoute, $path)) ? 'active' : '';
@@ -323,12 +331,21 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                                 <li>
                                     <a href="<?= e($appUrl . $path) ?>" class="sidebar-link <?= $isActive ?>" style="padding: 6px 12px; font-size: 13px; color: <?= $isActive ? 'var(--theme-white)' : '#adbdcc' ?>; background-color: <?= $isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent' ?>; justify-content: flex-start; gap: 8px;">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; flex-shrink: 0; color: <?= $isActive ? 'var(--theme-blurple)' : 'inherit' ?>;">
-                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                            <polyline points="2 17 12 22 22 17"></polyline>
+                                            <polyline points="2 12 12 17 22 12"></polyline>
                                         </svg>
                                         <span><?= e($label) ?></span>
                                     </a>
                                 </li>
                             <?php endforeach; ?>
+                            <?php if ($hasMore): ?>
+                                <li>
+                                    <a href="<?= e($appUrl) ?>/extensions" class="sidebar-link" style="padding: 6px 12px; font-size: 12px; color: var(--theme-blurple); justify-content: flex-start; gap: 8px; font-weight: 600;">
+                                        ⚡ View All Modules...
+                                    </a>
+                                </li>
+                            <?php endif; ?>
                         </ul>
                     <?php endif; ?>
                 </li>

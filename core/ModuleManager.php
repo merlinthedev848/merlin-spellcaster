@@ -43,10 +43,8 @@ class ModuleManager {
 
         $enabledStr = getSetting('enabled_modules_list', 'INITIAL_STATE');
         
-        $suites = ['scoring_analytics', 'lead_generation', 'deliverability_suite', 'conversion_suite'];
-        
         if ($enabledStr === 'INITIAL_STATE' || $enabledStr === '') {
-            $list = array_merge(['ai_copywriter', 'ai_settings', 'seo_auditor'], $suites);
+            $list = ['ai_copywriter', 'ai_settings', 'seo_auditor', 'openclaw', 'utm_builder'];
             setSetting('enabled_modules_list', implode(',', $list));
             $cache = $list;
             return $list;
@@ -58,9 +56,6 @@ class ModuleManager {
         }
         
         $list = explode(',', $enabledStr);
-        $archived = ['lead_scoring', 'predictive_scoring', 'list_scraper', 'maps_scraper', 'data_enrichment', 'deliverability_sentinel', 'domain_warmup', 'email_verifier', 'fomo_timers', 'link_rotator', 'viral_loops', 'survey_builder', 'ab_testing', 'web_personalization', 'hello_world'];
-        $list = array_diff($list, $archived);
-        
         $cache = array_values(array_unique(array_filter($list)));
         return $cache;
     }
