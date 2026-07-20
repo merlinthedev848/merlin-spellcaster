@@ -74,7 +74,8 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
         <form method="post" action="?action=add_contact">
             <div class="form-group">
                 <label class="form-label" for="email">Email Address</label>
-                <input class="form-control" type="email" id="email" name="email" required placeholder="name@domain.com">
+                <input class="form-control" type="email" id="email" name="email" required placeholder="name@domain.com" oninput="checkDuplicateEmail(this)">
+                <div id="email-error-msg" style="display:none; font-size:12px; margin-top:4px; font-weight:600;"></div>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -445,5 +446,39 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             form.action = "?action=mass_tag_remove";
         }
         form.submit();
+    }
+
+    let debounceTimer;
+    function checkDuplicateEmail(input) {
+        clearTimeout(debounceTimer);
+        const email = input.value.trim();
+        const errorDiv = document.getElementById("email-error-msg");
+        const submitBtn = input.form.querySelector('button[type="submit"]');
+
+        if (!email || !email.includes('@')) {
+            errorDiv.style.display = "none";
+            if (submitBtn) submitBtn.disabled = false;
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch('<?= getSetting("app_url") ?>/contacts/check-email?email=' + encodeURIComponent(email))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.exists) {
+                        errorDiv.style.display = "block";
+                        errorDiv.style.color = "var(--danger)";
+                        errorDiv.innerText = "⚠️ Contact already exists in your system.";
+                        if (submitBtn) submitBtn.disabled = true;
+                    } else {
+                        errorDiv.style.display = "none";
+                        if (submitBtn) submitBtn.disabled = false;
+                    }
+                })
+                .catch(() => {
+                    errorDiv.style.display = "none";
+                    if (submitBtn) submitBtn.disabled = false;
+                });
+        }, 300);
     }
 </script>

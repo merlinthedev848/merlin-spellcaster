@@ -647,4 +647,27 @@ class ContactController {
         // Flush queue
         $db->prepare("DELETE FROM email_queue WHERE subscriber_id = ? AND status = 'pending'")->execute([$subId]);
     }
+
+    /**
+     * Check if email address is a duplicate in real-time
+     */
+    public function checkEmail(): void {
+        header('Content-Type: application/json');
+        $email = strtolower(trim($_GET['email'] ?? ''));
+        if ($email === '') {
+            echo json_encode(['exists' => false]);
+            exit;
+        }
+
+        try {
+            $db = Database::getConnection();
+            $stmt = $db->prepare("SELECT id FROM subscribers WHERE email = ? LIMIT 1");
+            $stmt->execute([$email]);
+            $exists = $stmt->fetchColumn() !== false;
+            echo json_encode(['exists' => $exists]);
+        } catch (Throwable $e) {
+            echo json_encode(['exists' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
 }

@@ -98,6 +98,11 @@ try {
             $controller->index();
             break;
 
+        case '/contacts/check-email':
+            $controller = new ContactController();
+            $controller->checkEmail();
+            break;
+
         case '/contacts/view':
             $controller = new ContactController();
             $controller->view();
