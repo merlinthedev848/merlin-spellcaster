@@ -197,8 +197,9 @@ class ContactController {
                         
                         $db->commit();
                         
-                        // Trigger automations
+                        // Trigger automations and Autopilot campaign sync
                         Automation::trigger('subscribe', $subId);
+                        CampaignController::syncActiveCampaigns($db);
                         $hookDataAfter = ['subscriber_id' => $subId];
                         Hook::fire('contact_added', $hookDataAfter);
                         
@@ -298,6 +299,7 @@ class ContactController {
                                 }
                             }
                             $db->commit();
+                            CampaignController::syncActiveCampaigns($db);
                             $_SESSION['flash_success'] = "Imported {$imported} contacts successfully. Skipped {$skipped} invalid rows.";
                         } catch (Throwable $e) {
                             if ($db->inTransaction()) {

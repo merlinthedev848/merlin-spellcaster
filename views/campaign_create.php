@@ -136,11 +136,8 @@ $textVal = $isEdit ? $campaign['body_text'] : '';
 
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <a href="<?= e(getSetting('app_url')) ?>/campaigns" class="btn btn-secondary">Cancel</a>
-                <?php if ($isEdit): ?>
-                    <button type="submit" name="save_campaign" class="btn btn-secondary" style="font-weight: 600;">Save Campaign</button>
-                <?php endif; ?>
                 <button type="submit" name="save_draft" class="btn btn-secondary" style="font-weight: 600;">Save Draft</button>
-                <button type="submit" name="send_now" class="btn btn-primary" onclick="return confirm('Queue and activate sending?');">Schedule & Active Queue →</button>
+                <button type="submit" name="send_now" class="btn btn-primary" onclick="return confirm('Save and activate Autopilot sending for this campaign?');">Save & Activate Autopilot Campaign →</button>
             </div>
         </form>
     </div>

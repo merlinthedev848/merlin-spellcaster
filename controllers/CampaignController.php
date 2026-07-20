@@ -23,15 +23,31 @@ class CampaignController {
                 header('Location: ' . getSetting('app_url') . '/campaigns');
                 exit;
             }
+            if ($action === 'toggle_status' && $id > 0) {
+                $newStatus = trim($_POST['status'] ?? 'active');
+                if (!in_array($newStatus, ['active', 'inactive', 'draft'], true)) {
+                    $newStatus = 'active';
+                }
+                $db->prepare("UPDATE campaigns SET status = ? WHERE id = ?")->execute([$newStatus, $id]);
+                if ($newStatus === 'active') {
+                    self::syncActiveCampaigns($db, $id);
+                    $_SESSION['flash_success'] = 'Campaign activated! Autopilot is now constantly monitoring for new contacts.';
+                } else {
+                    $_SESSION['flash_success'] = 'Campaign deactivated.';
+                }
+                header('Location: ' . getSetting('app_url') . '/campaigns');
+                exit;
+            }
             if ($action === 'pause' && $id > 0) {
-                $db->prepare("UPDATE campaigns SET status = 'paused' WHERE id = ? AND status IN ('sending', 'queued')")->execute([$id]);
-                $_SESSION['flash_success'] = 'Campaign paused.';
+                $db->prepare("UPDATE campaigns SET status = 'inactive' WHERE id = ?")->execute([$id]);
+                $_SESSION['flash_success'] = 'Campaign deactivated.';
                 header('Location: ' . getSetting('app_url') . '/campaigns');
                 exit;
             }
             if ($action === 'resume' && $id > 0) {
-                $db->prepare("UPDATE campaigns SET status = 'sending' WHERE id = ? AND status = 'paused'")->execute([$id]);
-                $_SESSION['flash_success'] = 'Campaign sending resumed.';
+                $db->prepare("UPDATE campaigns SET status = 'active' WHERE id = ?")->execute([$id]);
+                self::syncActiveCampaigns($db, $id);
+                $_SESSION['flash_success'] = 'Campaign activated and Autopilot sync triggered!';
                 header('Location: ' . getSetting('app_url') . '/campaigns');
                 exit;
             }
@@ -83,7 +99,7 @@ class CampaignController {
                     $finalSubject = $subject !== '' ? $subject : 'Campaign Announcement';
                     $finalText = $bodyText ?: strip_tags($bodyHtml);
                     $sqlSched = !empty($scheduledAt) ? date('Y-m-d H:i:s', strtotime($scheduledAt)) : null;
-                    $initialStatus = $saveDraft ? 'draft' : 'queued';
+                    $initialStatus = $saveDraft ? 'draft' : 'active';
 
                     // 1. Create campaign
                     $st = $db->prepare("
@@ -101,15 +117,15 @@ class CampaignController {
                         }
                     }
 
-                    // 2. Queue emails if schedule/send clicked
-                    if ($scheduleSend) {
-                        $this->queueCampaignEmails($db, $campaignId, $listId, $selectedTags, $sqlSched);
-                    }
-
                     $hookData = ['campaign_id' => $campaignId, 'post_data' => $_POST];
                     Hook::fire('campaign_saved', $hookData);
                     $db->commit();
-                    $_SESSION['flash_success'] = $scheduleSend ? 'Campaign saved and queued successfully!' : 'Campaign saved as draft.';
+
+                    if ($scheduleSend) {
+                        self::syncActiveCampaigns($db, $campaignId);
+                    }
+
+                    $_SESSION['flash_success'] = $scheduleSend ? 'Campaign saved and Autopilot sending activated!' : 'Campaign saved as draft.';
                     header('Location: ' . getSetting('app_url') . '/campaigns');
                     exit;
 
@@ -164,7 +180,6 @@ class CampaignController {
             
             $saveDraft = isset($_POST['save_draft']);
             $scheduleSend = isset($_POST['send_now']);
-            $saveCampaign = isset($_POST['save_campaign']);
 
             if ($name === '' || empty($bodyHtml)) {
                 $error = 'Campaign name and HTML content are required.';
@@ -176,7 +191,7 @@ class CampaignController {
                     $finalText = $bodyText ?: strip_tags($bodyHtml);
                     $sqlSched = !empty($scheduledAt) ? date('Y-m-d H:i:s', strtotime($scheduledAt)) : null;
 
-                    $newStatus = $saveDraft ? 'draft' : ($scheduleSend ? 'queued' : $campaign['status']);
+                    $newStatus = $saveDraft ? 'draft' : ($scheduleSend ? 'active' : $campaign['status']);
 
                     // Update campaign
                     $stUpdate = $db->prepare("
@@ -195,18 +210,14 @@ class CampaignController {
                         }
                     }
 
-                    // Flush old pending queue if explicitly rescheduled/re-queued (Save Draft / Send Now)
-                    if ($saveDraft || $scheduleSend) {
-                        $db->prepare("DELETE FROM email_queue WHERE campaign_id = ? AND status = 'pending'")->execute([$id]);
-                    }
-
-                    if ($scheduleSend) {
-                        $this->queueCampaignEmails($db, $id, $listId, $selectedTags, $sqlSched);
-                    }
-
                     $hookData = ['campaign_id' => $id, 'post_data' => $_POST];
                     Hook::fire('campaign_saved', $hookData);
                     $db->commit();
+
+                    if ($scheduleSend || $newStatus === 'active') {
+                        self::syncActiveCampaigns($db, $id);
+                    }
+
                     $_SESSION['flash_success'] = 'Campaign updated successfully.';
                     header('Location: ' . getSetting('app_url') . '/campaigns');
                     exit;
@@ -216,7 +227,7 @@ class CampaignController {
                     $error = 'Failed to update campaign: ' . $e->getMessage();
                 }
             }
-        }
+            }
         }
 
         // Fetch prefilled tags
@@ -245,62 +256,119 @@ class CampaignController {
     }
 
     /**
-     * Build target recipient queue
+     * Autopilot Sync Engine: Scans active campaigns, identifies subscribers matching 
+     * list/tag segment targeting who have not yet been targeted for this campaign, 
+     * and queues them into the backend automation workflow engine.
      */
-    private function queueCampaignEmails(PDO $db, int $campaignId, int $listId, array $targetTagIds, ?string $sendAt): void {
-        $query = "SELECT DISTINCT s.id FROM subscribers s";
-        $joins = [];
-        $wheres = ["s.status = 'active'"];
-        $params = [];
-
-        if ($listId > 0) {
-            $joins[] = "JOIN subscriber_lists sl ON sl.subscriber_id = s.id";
-            $wheres[] = "sl.list_id = ?";
-            $params[] = $listId;
-        }
-
-        if (!empty($targetTagIds)) {
-            $joins[] = "JOIN subscriber_tags stg ON stg.subscriber_id = s.id";
-            $placeholders = implode(',', array_fill(0, count($targetTagIds), '?'));
-            $wheres[] = "stg.tag_id IN ($placeholders)";
-            $params = array_merge($params, array_map('intval', $targetTagIds));
-        }
-
-        if (!empty($joins)) {
-            $query .= " " . implode(" ", $joins);
-        }
+    public static function syncActiveCampaigns(PDO $db, int $targetCampaignId = 0): int {
+        $queuedTotal = 0;
         
-        $query .= " WHERE " . implode(" AND ", $wheres);
-        
-        $stSubs = $db->prepare($query);
-        $stSubs->execute($params);
-        $subs = $stSubs->fetchAll(PDO::FETCH_COLUMN);
-
-        if (!empty($subs)) {
-            $sendAtVal = $sendAt ?: date('Y-m-d H:i:s');
-            
-            // Generate a backend automation to act as the "brain" of the campaign broadcast
-            $autoName = "System: Campaign Broadcast #" . $campaignId . " (" . date('M j') . ")";
-            $db->prepare("INSERT INTO automations (name, trigger_event, status) VALUES (?, 'system_broadcast', 'active')")
-               ->execute([$autoName]);
-            $autoId = (int)$db->lastInsertId();
-
-            $db->prepare("INSERT INTO automation_steps (automation_id, step_type, step_value, order_num) VALUES (?, 'send_email', ?, 1)")
-               ->execute([$autoId, $campaignId]);
-            $stepId = (int)$db->lastInsertId();
-
-            $stQueue = $db->prepare("
-                INSERT INTO automation_queue (automation_id, subscriber_id, step_id, status, execute_at) 
-                VALUES (?, ?, ?, 'pending', ?)
-            ");
-            foreach ($subs as $subId) {
-                $stQueue->execute([$autoId, (int)$subId, $stepId, $sendAtVal]);
+        try {
+            $sql = "SELECT * FROM campaigns WHERE status IN ('active', 'queued', 'sending') AND (scheduled_at IS NULL OR scheduled_at <= NOW())";
+            $params = [];
+            if ($targetCampaignId > 0) {
+                $sql .= " AND id = ?";
+                $params[] = $targetCampaignId;
             }
-        } else {
-            // Keep draft if empty targets
-            $db->prepare("UPDATE campaigns SET status = 'draft' WHERE id = ?")->execute([$campaignId]);
-            throw new RuntimeException("Target segment (List and Tags) has no active subscribers. Saved as draft.");
+            
+            $st = $db->prepare($sql);
+            $st->execute($params);
+            $activeCampaigns = $st->fetchAll();
+            
+            foreach ($activeCampaigns as $camp) {
+                $campId = (int)$camp['id'];
+                $listId = (int)$camp['list_id'];
+                $sendAtVal = !empty($camp['scheduled_at']) ? $camp['scheduled_at'] : date('Y-m-d H:i:s');
+                
+                // Fetch target tag IDs
+                $stTags = $db->prepare("SELECT tag_id FROM campaign_tags WHERE campaign_id = ?");
+                $stTags->execute([$campId]);
+                $targetTagIds = $stTags->fetchAll(PDO::FETCH_COLUMN);
+                
+                // Build query for active subscribers
+                $query = "SELECT DISTINCT s.id FROM subscribers s";
+                $joins = [];
+                $wheres = ["s.status = 'active'"];
+                $queryParams = [];
+                
+                if ($listId > 0) {
+                    $joins[] = "JOIN subscriber_lists sl ON sl.subscriber_id = s.id";
+                    $wheres[] = "sl.list_id = ?";
+                    $queryParams[] = $listId;
+                }
+                
+                if (!empty($targetTagIds)) {
+                    $joins[] = "JOIN subscriber_tags stg ON stg.subscriber_id = s.id";
+                    $placeholders = implode(',', array_fill(0, count($targetTagIds), '?'));
+                    $wheres[] = "stg.tag_id IN ($placeholders)";
+                    $queryParams = array_merge($queryParams, array_map('intval', $targetTagIds));
+                }
+                
+                // EXCLUDE subscribers already queued/sent for this campaign
+                $wheres[] = "s.id NOT IN (
+                    SELECT aq.subscriber_id FROM automation_queue aq 
+                    JOIN automation_steps ast ON ast.id = aq.step_id 
+                    WHERE ast.step_type = 'send_email' AND ast.step_value = ?
+                )";
+                $queryParams[] = (string)$campId;
+                
+                $wheres[] = "s.id NOT IN (
+                    SELECT eq.subscriber_id FROM email_queue eq WHERE eq.campaign_id = ?
+                )";
+                $queryParams[] = $campId;
+
+                if (!empty($joins)) {
+                    $query .= " " . implode(" ", $joins);
+                }
+                $query .= " WHERE " . implode(" AND ", $wheres);
+                
+                $stSubs = $db->prepare($query);
+                $stSubs->execute($queryParams);
+                $unprocessedSubs = $stSubs->fetchAll(PDO::FETCH_COLUMN);
+                
+                if (empty($unprocessedSubs)) {
+                    continue;
+                }
+                
+                // Find or create backend automation brain
+                $stAuto = $db->prepare("SELECT id FROM automations WHERE trigger_event = 'system_broadcast' AND name LIKE ? LIMIT 1");
+                $stAuto->execute(["System: Campaign Broadcast #{$campId}%"]);
+                $autoId = (int)$stAuto->fetchColumn();
+                
+                if (!$autoId) {
+                    $autoName = "System: Campaign Broadcast #" . $campId;
+                    $db->prepare("INSERT INTO automations (name, trigger_event, status) VALUES (?, 'system_broadcast', 'active')")
+                       ->execute([$autoName]);
+                    $autoId = (int)$db->lastInsertId();
+                    
+                    $db->prepare("INSERT INTO automation_steps (automation_id, step_type, step_value, order_num) VALUES (?, 'send_email', ?, 1)")
+                       ->execute([$autoId, (string)$campId]);
+                    $stepId = (int)$db->lastInsertId();
+                } else {
+                    $stStep = $db->prepare("SELECT id FROM automation_steps WHERE automation_id = ? AND step_type = 'send_email' LIMIT 1");
+                    $stStep->execute([$autoId]);
+                    $stepId = (int)$stStep->fetchColumn();
+                }
+                
+                // Queue the new subscribers
+                $stQueue = $db->prepare("
+                    INSERT IGNORE INTO automation_queue (automation_id, subscriber_id, step_id, status, execute_at) 
+                    VALUES (?, ?, ?, 'pending', ?)
+                ");
+                
+                foreach ($unprocessedSubs as $subId) {
+                    $stQueue->execute([$autoId, (int)$subId, $stepId, $sendAtVal]);
+                    $queuedTotal++;
+                }
+                
+                // Ensure campaign status stays 'active'
+                $db->prepare("UPDATE campaigns SET status = 'active' WHERE id = ?")->execute([$campId]);
+            }
+        } catch (Throwable $e) {
+            error_log("syncActiveCampaigns Error: " . $e->getMessage());
         }
+        
+        return $queuedTotal;
     }
 
     /**

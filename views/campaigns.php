@@ -49,8 +49,19 @@ declare(strict_types=1);
                             <?php endif; ?>
                         </td>
                         <td>
-                            <span class="badge badge-<?= e($c['status']) ?>">
-                                <?= e($c['status']) ?>
+                            <?php
+                            $stClass = 'paused';
+                            $stLabel = 'Inactive';
+                            if (in_array($c['status'], ['active', 'sending', 'queued'], true)) {
+                                $stClass = 'active';
+                                $stLabel = 'Active';
+                            } elseif ($c['status'] === 'draft') {
+                                $stClass = 'unsubscribed';
+                                $stLabel = 'Draft';
+                            }
+                            ?>
+                            <span class="badge badge-<?= $stClass ?>">
+                                <?= $stLabel ?>
                             </span>
                         </td>
                         <td style="text-align: right; font-weight: 500; color: var(--warning);"><?= number_format((int)$c['pending_count']) ?></td>
@@ -68,16 +79,18 @@ declare(strict_types=1);
                         <td>
                             <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
                                 <a href="<?= e(getSetting('app_url')) ?>/campaigns/edit?id=<?= e($c['id']) ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
- 
-                                <?php if ($c['status'] === 'sending' || $c['status'] === 'queued'): ?>
-                                    <form method="post" action="?action=pause&id=<?= e($c['id']) ?>" style="margin: 0;">
+
+                                <?php if (in_array($c['status'], ['active', 'sending', 'queued'], true)): ?>
+                                    <form method="post" action="?action=toggle_status&id=<?= e($c['id']) ?>" style="margin: 0;">
                                         <?= Auth::csrfField() ?>
-                                        <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Pause</button>
+                                        <input type="hidden" name="status" value="inactive">
+                                        <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Deactivate</button>
                                     </form>
-                                <?php elseif ($c['status'] === 'paused'): ?>
-                                    <form method="post" action="?action=resume&id=<?= e($c['id']) ?>" style="margin: 0;">
+                                <?php else: ?>
+                                    <form method="post" action="?action=toggle_status&id=<?= e($c['id']) ?>" style="margin: 0;">
                                         <?= Auth::csrfField() ?>
-                                        <button type="submit" class="btn btn-primary" style="padding: 4px 8px; font-size: 11px;">Resume</button>
+                                        <input type="hidden" name="status" value="active">
+                                        <button type="submit" class="btn btn-primary" style="padding: 4px 8px; font-size: 11px;">Activate</button>
                                     </form>
                                 <?php endif; ?>
                                 

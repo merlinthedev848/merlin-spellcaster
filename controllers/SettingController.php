@@ -228,6 +228,13 @@ class SettingController {
         echo "--- Merlin Spellcaster Cron Job Run Started ---\n";
         echo "Time: " . date('Y-m-d H:i:s') . "\n\n";
 
+        $db = Database::getConnection();
+
+        // 0. Sync Autopilot Campaigns for new contacts
+        echo "Syncing Autopilot Campaigns for new contacts...\n";
+        $syncedCount = CampaignController::syncActiveCampaigns($db);
+        echo "Autopilot Sync: Queued {$syncedCount} new contact(s).\n\n";
+
         // 1. Process automations
         echo "Processing Automations due...\n";
         $autoCount = Automation::process();
