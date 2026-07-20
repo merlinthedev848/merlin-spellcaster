@@ -83,6 +83,19 @@ class ImapClient {
             throw new RuntimeException("IMAP server rejected connection.");
         }
 
+        // If not connected via implicit SSL, negotiate STARTTLS
+        if (!$this->ssl) {
+            $tag = $this->sendCommand("STARTTLS");
+            $resp = $this->readUntilTag($tag);
+            $lastLine = end($resp);
+            if (str_contains($lastLine, ' OK ')) {
+                if (!stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                    fclose($this->socket);
+                    throw new RuntimeException("IMAP STARTTLS encryption upgrade failed.");
+                }
+            }
+        }
+
         // Login
         $userEsc = '"' . str_replace('"', '\\"', $this->user) . '"';
         $passEsc = '"' . str_replace('"', '\\"', $this->pass) . '"';

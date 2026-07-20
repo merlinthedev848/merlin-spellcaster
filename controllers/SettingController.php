@@ -297,8 +297,21 @@ class SettingController {
         require_once dirname(__DIR__) . '/core/ImapClient.php';
         
         try {
-            $client = new ImapClient($host, $port, $user, $pass, $ssl);
-            $folders = $client->getFolders();
+            try {
+                $client = new ImapClient($host, $port, $user, $pass, $ssl);
+                $folders = $client->getFolders();
+            } catch (Throwable $e1) {
+                // Auto fallback: if 143/TLS failed, try 993/SSL (or vice versa)
+                $altPort = ($port === 993) ? 143 : 993;
+                $altSsl = ($altPort === 993);
+                try {
+                    $client = new ImapClient($host, $altPort, $user, $pass, $altSsl);
+                    $folders = $client->getFolders();
+                } catch (Throwable) {
+                    throw $e1;
+                }
+            }
+
             ob_clean();
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'folders' => $folders]);
