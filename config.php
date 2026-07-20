@@ -674,8 +674,37 @@ function _runMigrations(PDO $db): void {
         }
     }
 
+    // 15. Add tracking metadata columns to campaign_clicks
+    try {
+        $db->query("SELECT user_agent FROM campaign_clicks LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("ALTER TABLE campaign_clicks ADD COLUMN user_agent VARCHAR(512) DEFAULT '' AFTER ip_address");
+        } catch (Throwable $e) {
+            error_log('Migration Error (campaign_clicks.user_agent): ' . $e->getMessage());
+        }
+    }
+    try {
+        $db->query("SELECT referrer FROM campaign_clicks LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("ALTER TABLE campaign_clicks ADD COLUMN referrer VARCHAR(1024) DEFAULT '' AFTER user_agent");
+        } catch (Throwable $e) {
+            error_log('Migration Error (campaign_clicks.referrer): ' . $e->getMessage());
+        }
+    }
+    try {
+        $db->query("SELECT click_type FROM campaign_clicks LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("ALTER TABLE campaign_clicks ADD COLUMN click_type VARCHAR(32) DEFAULT 'js' AFTER referrer");
+        } catch (Throwable $e) {
+            error_log('Migration Error (campaign_clicks.click_type): ' . $e->getMessage());
+        }
+    }
+
     // Mark schema as up-to-date
-    setSetting('schema_version', '11');
+    setSetting('schema_version', '15');
 }
 
 /**

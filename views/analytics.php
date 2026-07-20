@@ -283,10 +283,10 @@ $avgClickRate = $sumSent > 0 ? round(($sumUniqueClicks / $sumSent) * 100, 1) : 0
                 <thead>
                     <tr>
                         <th>Subscriber Profile</th>
-                        <th>Campaign</th>
-                        <th>URL Destination</th>
-                        <th>IP Address</th>
-                        <th>Date & Time</th>
+                        <th>Campaign & URL Destination</th>
+                        <th>Connection & Device Meta</th>
+                        <th style="width: 140px; text-align: center;">Verification</th>
+                        <th style="width: 160px; text-align: right;">Date & Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -305,14 +305,45 @@ $avgClickRate = $sumSent > 0 ? round(($sumUniqueClicks / $sumSent) * 100, 1) : 0
                                         <span style="font-size: 11px; color: var(--theme-dark-slate);"><?= e($log['email']) ?></span>
                                     </div>
                                 </td>
-                                <td style="font-weight: 500; color: var(--theme-dark);"><?= e($log['campaign_name']) ?></td>
-                                <td style="max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <a href="<?= e($log['url']) ?>" target="_blank" style="color: var(--theme-blurple); text-decoration: none;" title="<?= e($log['url']) ?>">
-                                        <?= e($log['url']) ?>
-                                    </a>
+                                <td>
+                                    <div style="font-weight: 600; color: var(--theme-dark); font-size: 13px; margin-bottom: 2px;"><?= e($log['campaign_name']) ?></div>
+                                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <a href="<?= e($log['url']) ?>" target="_blank" style="color: var(--theme-blurple); text-decoration: none; font-size: 12px;" title="<?= e($log['url']) ?>">
+                                            <?= e($log['url']) ?>
+                                        </a>
+                                    </div>
                                 </td>
-                                <td style="color: var(--theme-dark-slate); font-family: monospace; font-size: 12px;"><?= e($log['ip_address']) ?: '—' ?></td>
-                                <td style="color: var(--theme-dark-slate); font-size: 13px;"><?= date('M j, Y H:i:s', strtotime($log['clicked_at'])) ?></td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--theme-dark-slate);">
+                                        <span>IP: <code style="font-family: monospace; font-size: 11px; color: var(--theme-dark);"><?= e($log['ip_address']) ?: '—' ?></code></span>
+                                        <?php if (!empty($log['user_agent'])): ?>
+                                            <span title="<?= e($log['user_agent']) ?>" style="cursor: help; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;">
+                                                UA: <strong><?= e(substr($log['user_agent'], 0, 60)) ?>...</strong>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($log['referrer'])): ?>
+                                            <span title="<?= e($log['referrer']) ?>" style="cursor: help; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;">
+                                                Ref: <strong><?= e(substr($log['referrer'], 0, 60)) ?>...</strong>
+                                            </span>
+                                        <?php else: ?>
+                                            <span>Ref: <strong>Direct / Email Client</strong></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <?php if (($log['click_type'] ?? 'js') === 'js'): ?>
+                                        <span class="badge" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                            ✓ JS Verified
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge" style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); font-weight: 700; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                            Noscript Fallback
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="color: var(--theme-dark-slate); font-size: 12px; text-align: right; font-weight: 500;">
+                                    <?= date('M j, Y H:i:s', strtotime($log['clicked_at'])) ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

@@ -383,6 +383,7 @@ class CampaignController {
         $s = (int)($_GET['s'] ?? 0);
         $t = trim($_GET['t'] ?? '');
         $url = trim($_GET['url'] ?? '');
+        $action = trim($_GET['action'] ?? '');
 
         $target = $url ?: '/';
         if (!filter_var($target, FILTER_VALIDATE_URL)) {
@@ -394,38 +395,168 @@ class CampaignController {
             }
         }
 
-        header('Location: ' . $target);
-        header('Cache-Control: no-cache');
-
-        if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
-        } else {
-            if (ob_get_level() > 0) ob_end_flush();
-            flush();
+        // 1. Process JS-initiated logging (POST action=log)
+        if ($action === 'log') {
+            header('Content-Type: application/json');
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['error' => 'Method not allowed']);
+                exit;
+            }
+            $this->logClickInDatabase($db, $c, $s, $t, $url, 'js');
+            echo json_encode(['success' => true]);
+            exit;
         }
 
-        if (!$c || !$s || !$t || !$url) exit;
+        // 2. Process non-JS fallback logging (noscript)
+        if ($action === 'noscript_log') {
+            $this->logClickInDatabase($db, $c, $s, $t, $url, 'noscript');
+            header('Location: ' . $target);
+            exit;
+        }
 
-        if (getSetting('tracking_enabled', '1') !== '1') exit;
+        // 3. User-Agent filtering for known link scanner bots
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $isBot = false;
+        $botKeywords = [
+            'bot', 'crawl', 'spider', 'slurp', 'yahoo', 'google', 'facebook', 'baidu', 'bing', 
+            'outlook', 'safelinks', 'barracuda', 'proofpoint', 'zscaler', 'trendmicro', 
+            'mcafee', 'fortinet', 'fireeye', 'cisco', 'sophos', 'kaspersky', 'avast', 
+            'symantec', 'defender', 'microsoft', 'crawler', 'scan', 'wget', 'curl', 
+            'python', 'http', 'go-http', 'java', 'okhttp', 'node', 'php'
+        ];
+        foreach ($botKeywords as $keyword) {
+            if (stripos($userAgent, $keyword) !== false) {
+                $isBot = true;
+                break;
+            }
+        }
+
+        if ($isBot) {
+            // Known bot/scanner: redirect immediately without logging
+            header('Location: ' . $target);
+            exit;
+        }
+
+        // 4. Render transition page for real humans
+        $appUrl = getSetting('app_url', (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]");
+        $appUrl = rtrim($appUrl, '/');
+        
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Redirecting...</title>
+            <noscript>
+                <meta http-equiv="refresh" content="0;url=<?= e($appUrl . '/r?action=noscript_log&c=' . $c . '&s=' . $s . '&t=' . $t . '&url=' . urlencode($url)) ?>">
+            </noscript>
+            <style>
+                body {
+                    background-color: #0b0f19;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    color: #ffffff;
+                }
+                .container {
+                    text-align: center;
+                    padding: 30px;
+                }
+                .spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid rgba(99, 91, 255, 0.15);
+                    border-top: 3px solid #635bff;
+                    border-radius: 50%;
+                    display: inline-block;
+                    animation: spin 0.8s linear infinite;
+                    margin-bottom: 20px;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                h2 {
+                    font-size: 15px;
+                    font-weight: 600;
+                    margin: 0 0 8px 0;
+                    color: #ffffff;
+                }
+                p {
+                    font-size: 12px;
+                    color: #adbdcc;
+                    margin: 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="spinner"></div>
+                <h2>Taking you to your destination</h2>
+                <p>Verifying secure link connection...</p>
+            </div>
+
+            <script>
+            (function() {
+                const target = <?= json_encode($target) ?>;
+                const logUrl = <?= json_encode($appUrl . '/r?action=log&c=' . $c . '&s=' . $s . '&t=' . $t . '&url=' . urlencode($url)) ?>;
+                let redirected = false;
+
+                function go() {
+                    if (!redirected) {
+                        redirected = true;
+                        window.location.replace(target);
+                    }
+                }
+
+                fetch(logUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}),
+                    keepalive: true
+                })
+                .then(go)
+                .catch(go);
+
+                setTimeout(go, 250);
+            })();
+            </script>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+
+    private function logClickInDatabase(PDO $db, int $c, int $s, string $t, string $url, string $clickType): void {
+        if (!$c || !$s || !$t || !$url) return;
+        if (getSetting('tracking_enabled', '1') !== '1') return;
 
         try {
             $stSub = $db->prepare("SELECT email FROM subscribers WHERE id = ?");
             $stSub->execute([$s]);
             $email = $stSub->fetchColumn();
-            if (!$email) exit;
+            if (!$email) return;
 
             $expected = generateToken((string)$email, $c, $s);
-            if (!hash_equals($expected, $t)) exit;
+            if (!hash_equals($expected, $t)) return;
 
             $stUnique = $db->prepare("SELECT COUNT(*) FROM campaign_clicks WHERE campaign_id = ? AND subscriber_id = ? AND url = ?");
             $stUnique->execute([$c, $s, $url]);
             $isUnique = ((int)$stUnique->fetchColumn()) === 0;
 
             $ipAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+            $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 512);
+            $referrer = substr($_SERVER['HTTP_REFERER'] ?? '', 0, 1024);
+
             $db->prepare("
-                INSERT INTO campaign_clicks (campaign_id, subscriber_id, url, ip_address, clicked_at) 
-                VALUES (?, ?, ?, ?, NOW())
-            ")->execute([$c, $s, $url, $ipAddr]);
+                INSERT INTO campaign_clicks (campaign_id, subscriber_id, url, ip_address, user_agent, referrer, click_type, clicked_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            ")->execute([$c, $s, $url, $ipAddr, $userAgent, $referrer, $clickType]);
 
             if ($ipAddr !== '') {
                 sc_update_subscriber_geoip($s, $ipAddr);
@@ -435,7 +566,7 @@ class CampaignController {
                 $db->prepare("UPDATE campaigns SET click_count = click_count + 1 WHERE id = ?")->execute([$c]);
                 logActivity($s, 'click', "Clicked link in Campaign #{$c}: {$url} (Unique)");
                 
-                // Fire  workflow automations for link click
+                // Fire workflow automations for link click
                 Automation::trigger("link_click:{$c}", $s);
                 
                 $hookData = ['campaign_id' => $c, 'subscriber_id' => $s, 'url' => $url];
@@ -443,10 +574,8 @@ class CampaignController {
             } else {
                 logActivity($s, 'click', "Clicked link in Campaign #{$c}: {$url} (Repeat)");
             }
-
         } catch (Throwable $e) {
-            error_log("trackClick error: " . $e->getMessage());
+            error_log("logClickInDatabase error: " . $e->getMessage());
         }
-        exit;
     }
 }
