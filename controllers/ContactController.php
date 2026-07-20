@@ -648,14 +648,11 @@ class ContactController {
         $db->prepare("DELETE FROM email_queue WHERE subscriber_id = ? AND status = 'pending'")->execute([$subId]);
     }
 
-    /**
-     * Check if email address is a duplicate in real-time
-     */
     public function checkEmail(): void {
         header('Content-Type: application/json');
         $email = strtolower(trim($_GET['email'] ?? ''));
         if ($email === '') {
-            echo json_encode(['exists' => false]);
+            echo json_encode(['exists' => false, 'matches' => []]);
             exit;
         }
 
@@ -664,9 +661,19 @@ class ContactController {
             $stmt = $db->prepare("SELECT id FROM subscribers WHERE email = ? LIMIT 1");
             $stmt->execute([$email]);
             $exists = $stmt->fetchColumn() !== false;
-            echo json_encode(['exists' => $exists]);
+
+            // Fetch autocomplete suggestions
+            $searchPattern = '%' . $email . '%';
+            $stmtSuggest = $db->prepare("SELECT id, email, first_name, last_name FROM subscribers WHERE email LIKE ? OR first_name LIKE ? OR last_name LIKE ? LIMIT 5");
+            $stmtSuggest->execute([$searchPattern, $searchPattern, $searchPattern]);
+            $matches = $stmtSuggest->fetchAll();
+
+            echo json_encode([
+                'exists' => $exists,
+                'matches' => $matches
+            ]);
         } catch (Throwable $e) {
-            echo json_encode(['exists' => false, 'error' => $e->getMessage()]);
+            echo json_encode(['exists' => false, 'matches' => [], 'error' => $e->getMessage()]);
         }
         exit;
     }

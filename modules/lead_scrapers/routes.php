@@ -7,7 +7,7 @@ require_once __DIR__ . '/Scraper.php';
 if ($routePath === '/scraper') {
     $db = Database::getConnection();
 
-    // Fetch Search Scraper stats (Count of 'scraped' tag)
+    // Fetch Search Scraper stats
     $stTag = $db->prepare("SELECT id FROM tags WHERE name = ?");
     $stTag->execute(['scraped']);
     $tagId = $stTag->fetchColumn();
@@ -19,7 +19,7 @@ if ($routePath === '/scraper') {
         $scrapedCount = (int)$stCount->fetchColumn();
     }
 
-    // Fetch Maps Scraper stats (Count of 'maps_lead' tag)
+    // Fetch Maps Scraper stats
     $stTagMaps = $db->prepare("SELECT id FROM tags WHERE name = ?");
     $stTagMaps->execute(['maps_lead']);
     $tagIdMaps = $stTagMaps->fetchColumn();
@@ -43,11 +43,12 @@ if ($routePath === '/maps-scraper') {
     exit;
 }
 
-// Route: /scraper/run (Ask.com Search Email Scraper)
+// Route: /scraper/run (Runs Scraper and returns un-imported leads list for review)
 if ($routePath === '/scraper/run') {
     header('Content-Type: application/json');
     $keyword = trim($_GET['keyword'] ?? '');
     $depth = min(max((int)($_GET['depth'] ?? 2), 1), 5);
+    $channel = trim($_GET['channel'] ?? 'all');
 
     if (empty($keyword)) {
         echo json_encode(['success' => false, 'error' => 'Please provide a niche keyword.']);
@@ -55,15 +56,63 @@ if ($routePath === '/scraper/run') {
     }
 
     try {
-        $results = SearchScraper::scrape($keyword, $depth);
-        if (empty($results)) {
-            echo json_encode(['success' => true, 'added' => 0, 'skipped' => 0, 'emails' => []]);
-            exit;
+        $results = SearchScraper::scrape($keyword, $depth, $channel);
+        
+        $leads = [];
+        if (!empty($results)) {
+            // Verify deliverability in real-time for the list
+            foreach ($results as $email => $meta) {
+                $valid = true;
+                $reason = 'MX Active';
+                
+                if (class_exists('EmailVerifier')) {
+                    $chk = EmailVerifier::verify($email);
+                    $valid = $chk['valid'];
+                    $reason = $chk['reason'];
+                }
+                
+                $leads[] = [
+                    'email' => $email,
+                    'source' => $meta['source'],
+                    'domain' => $meta['domain'],
+                    'valid' => $valid,
+                    'reason' => $reason
+                ];
+            }
         }
+        
+        echo json_encode([
+            'success' => true, 
+            'leads' => $leads
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
 
+// Route: /scraper/import (Imports approved list of scraped leads)
+if ($routePath === '/scraper/import') {
+    header('Content-Type: application/json');
+    
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        echo json_encode(['success' => false, 'error' => 'Method not allowed.']);
+        exit;
+    }
+    
+    $payload = json_decode(file_get_contents('php://input'), true);
+    $selectedLeads = $payload['leads'] ?? [];
+    
+    if (empty($selectedLeads)) {
+        echo json_encode(['success' => false, 'error' => 'No leads selected for import.']);
+        exit;
+    }
+    
+    try {
         $db = Database::getConnection();
         $db->beginTransaction();
 
+        // Ensure 'scraped' tag exists
         $stTag = $db->prepare("SELECT id FROM tags WHERE name = ?");
         $stTag->execute(['scraped']);
         $tagId = $stTag->fetchColumn();
@@ -75,10 +124,7 @@ if ($routePath === '/scraper/run') {
             $tagId = (int)$tagId;
         }
 
-        $addedCount = 0;
-        $skippedCount = 0;
-        $importedEmails = [];
-
+        $imported = 0;
         $stInsert = $db->prepare("
             INSERT INTO subscribers (email, first_name, last_name, status, created_at) 
             VALUES (?, '', '', 'active', NOW())
@@ -87,40 +133,26 @@ if ($routePath === '/scraper/run') {
         $stGet = $db->prepare("SELECT id FROM subscribers WHERE email = ?");
         $stTagAssign = $db->prepare("INSERT IGNORE INTO subscriber_tags (subscriber_id, tag_id) VALUES (?, ?)");
 
-        foreach ($results as $email => $source) {
-            if (class_exists('EmailVerifier')) {
-                $chk = EmailVerifier::verify($email);
-                if (!$chk['valid']) {
-                    $skippedCount++;
-                    continue;
-                }
-            }
-
-            try {
-                $stInsert->execute([$email]);
-                $stGet->execute([$email]);
-                $subId = (int)$stGet->fetchColumn();
-
-                if ($subId > 0) {
-                    $stTagAssign->execute([$subId, $tagId]);
-                    logActivity($subId, 'subscribe', "Discovered via scraper. Source: {$source}");
-                    $addedCount++;
-                    $importedEmails[] = $email;
-                }
-            } catch (Throwable $e) {
-                $skippedCount++;
+        foreach ($selectedLeads as $lead) {
+            $email = strtolower(trim($lead['email'] ?? ''));
+            $source = trim($lead['source'] ?? 'organic search');
+            if (empty($email)) continue;
+            
+            $stInsert->execute([$email]);
+            $stGet->execute([$email]);
+            $subId = (int)$stGet->fetchColumn();
+            
+            if ($subId > 0) {
+                $stTagAssign->execute([$subId, $tagId]);
+                logActivity($subId, 'subscribe', "Discovered via Search Scraper. Source: {$source}");
+                $imported++;
             }
         }
-
+        
         $db->commit();
-        echo json_encode([
-            'success' => true, 
-            'added' => $addedCount, 
-            'skipped' => $skippedCount,
-            'emails' => $importedEmails
-        ]);
+        echo json_encode(['success' => true, 'imported' => $imported]);
     } catch (Throwable $e) {
-        if ($db && $db->inTransaction()) {
+        if (isset($db) && $db->inTransaction()) {
             $db->rollBack();
         }
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -128,7 +160,7 @@ if ($routePath === '/scraper/run') {
     exit;
 }
 
-// Route: /maps-scraper/run (Google Maps B2B Lead Generator)
+// Route: /maps-scraper/run (Google Maps Lead Generator)
 if ($routePath === '/maps-scraper/run') {
     header('Content-Type: application/json');
     $query = trim($_GET['query'] ?? '');
@@ -141,7 +173,7 @@ if ($routePath === '/maps-scraper/run') {
 
     try {
         $db = Database::getConnection();
-        sleep(2); // Simulated API latency
+        sleep(2); // Simulated latency
 
         $mockResults = [
             ['name' => 'Acme ' . ucfirst($query), 'email' => 'contact@acme' . preg_replace('/[^a-z]/', '', strtolower($query)) . '.com', 'phone' => '+44 20 7946 0958', 'website' => 'https://acme' . preg_replace('/[^a-z]/', '', strtolower($query)) . '.com'],

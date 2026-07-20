@@ -209,6 +209,19 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                         Dashboard
                     </a>
                 </li>
+                <?php if (Database::getTenantSubdomain() === null): ?>
+                <li>
+                    <a href="<?= e($appUrl) ?>/super/tenants" class="sidebar-link <?= (str_starts_with($currentRoute, '/super/tenants')) ? 'active' : '' ?>" style="border-left: 3px solid #f59e0b;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                        </svg>
+                        <span style="color: #f59e0b; font-weight: 700;">Tenants SaaS</span>
+                    </a>
+                </li>
+                <?php endif; ?>
                 <li>
                     <a href="<?= e($appUrl) ?>/contacts" class="sidebar-link <?= (str_starts_with($currentRoute, '/contacts')) ? 'active' : '' ?>">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

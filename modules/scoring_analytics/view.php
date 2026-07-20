@@ -201,7 +201,7 @@ declare(strict_types=1);
     // Model recalculate AJAX trigger
     function recalculateScores() {
         if (confirm("Run machine learning scoring models over all contact history?")) {
-            fetch('<?= e(getSetting("app_url")) ?>/scoring/recalculate')
+            fetch('<?= e(BASE_PATH) ?>/scoring/recalculate')
             .then(r => r.json())
             .then(data => {
                 if (data.success) {

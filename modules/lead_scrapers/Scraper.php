@@ -2,61 +2,115 @@
 declare(strict_types=1);
 
 /**
- * Scraper logic class.
- * Searches keywords on Ask.com search engine and fetches target pages to extract email addresses via regex.
+ * Advanced Search Scraper Engine
+ * Crawls Ask.com, Bing, and Yahoo Search to extract email addresses, 
+ * with recursive deep crawling (2-levels) on target domains.
  */
 class SearchScraper {
     /**
-     * Scrape search engines and match email regex patterns.
+     * Run multi-channel search engine scraping and crawl domains recursively.
      */
-    public static function scrape(string $keyword, int $depth = 3): array {
+    public static function scrape(string $keyword, int $depth = 2, string $channel = 'all'): array {
         $found = [];
         $query = urlencode($keyword . ' email contact "@gmail.com" OR "@yahoo.com" OR "@outlook.com"');
         
-        // Use Ask.com as a fallback-free accessible endpoint for search scraping
-        $searchUrls = [];
+        $urls = [];
         for ($page = 1; $page <= $depth; $page++) {
-            // Ask.com search pagination format
-            $searchUrls[] = "https://www.ask.com/web?q={$query}&page={$page}";
+            $offset = ($page - 1) * 10 + 1;
+            
+            if ($channel === 'all' || $channel === 'ask') {
+                $urls[] = ['url' => "https://www.ask.com/web?q={$query}&page={$page}", 'source' => 'Ask.com'];
+            }
+            if ($channel === 'all' || $channel === 'bing') {
+                $urls[] = ['url' => "https://www.bing.com/search?q={$query}&first={$offset}", 'source' => 'Bing'];
+            }
+            if ($channel === 'all' || $channel === 'yahoo') {
+                $urls[] = ['url' => "https://search.yahoo.com/search?p={$query}&b={$offset}", 'source' => 'Yahoo'];
+            }
         }
 
-        foreach ($searchUrls as $url) {
-            $html = self::fetch($url);
+        $crawledLinks = [];
+        foreach ($urls as $item) {
+            $html = self::fetch($item['url']);
             if (empty($html)) continue;
 
-            // Extract links to crawl further
+            // 1. Extract links to crawl further
             preg_match_all('/href=["\'](https?:\/\/[^"\']+)["\']/i', $html, $matches);
             $links = array_unique($matches[1] ?? []);
 
-            // 1. Scrape raw text from search page snippets first
+            // 2. Extract emails from snippets first
             $emails = self::extractEmails($html);
             foreach ($emails as $email) {
-                $found[$email] = 'Search snippet result';
+                $found[$email] = [
+                    'source' => $item['source'] . ' snippet search',
+                    'domain' => explode('@', $email)[1] ?? 'unknown'
+                ];
             }
 
-            // 2. Crawl top 12 filtered links from search results (ignoring search engines & directories)
-            $crawled = 0;
+            // 3. Crawl target domains recursively up to 10 unique domains per search query
+            $domainsCount = 0;
             foreach ($links as $link) {
-                if ($crawled >= 12) break;
-                
-                // Skip common noise domains
-                if (preg_match('/ask\.com|google\.com|bing\.com|yahoo\.com|youtube\.com|facebook\.com|twitter\.com|linkedin\.com|wikipedia\.org|pinterest\.com/i', $link)) {
+                if ($domainsCount >= 8) break;
+
+                // Skip search engines and major portals
+                if (preg_match('/ask\.com|google\.|bing\.com|yahoo\.com|youtube\.com|facebook\.com|twitter\.com|linkedin\.com|wikipedia\.org|pinterest\.com|instagram\.com|microsoft\.com/i', $link)) {
                     continue;
                 }
 
-                $pageHtml = self::fetch($link);
-                if (!empty($pageHtml)) {
-                    $pageEmails = self::extractEmails($pageHtml);
-                    foreach ($pageEmails as $email) {
-                        if (!isset($found[$email])) {
-                            $found[$email] = 'Crawled from: ' . parse_url($link, PHP_URL_HOST);
-                        }
+                $host = parse_url($link, PHP_URL_HOST);
+                if (empty($host) || in_array($host, $crawledLinks, true)) continue;
+                $crawledLinks[] = $host;
+                $domainsCount++;
+
+                // Fetch Home Page
+                $homeHtml = self::fetch($link);
+                if (empty($homeHtml)) continue;
+
+                // Extract emails from Home Page
+                $homeEmails = self::extractEmails($homeHtml);
+                foreach ($homeEmails as $email) {
+                    if (!isset($found[$email])) {
+                        $found[$email] = [
+                            'source' => $item['source'] . ' crawl: ' . $host,
+                            'domain' => $host
+                        ];
                     }
-                    $crawled++;
                 }
-                
-                // Rate limit slightly to prevent blocking
-                usleep(200000); 
+
+                // Level 2: Extract inner links for deep contact pages crawling
+                preg_match_all('/href=["\'](\/[^"\']+|https?:\/\/' . preg_quote($host, '/') . '[^"\']+)["\']/i', $homeHtml, $innerMatches);
+                $innerLinks = array_unique($innerMatches[1] ?? []);
+
+                $innerCrawled = 0;
+                foreach ($innerLinks as $inner) {
+                    if ($innerCrawled >= 2) break; // Limit deep crawls to 2 pages per domain
+
+                    // Filter only relevant contacts pages
+                    if (!preg_match('/contact|about|support|team|help|info/i', $inner)) {
+                        continue;
+                    }
+
+                    // Build absolute URL
+                    $absoluteUrl = $inner;
+                    if (str_starts_with($inner, '/')) {
+                        $absoluteUrl = 'http://' . $host . $inner;
+                    }
+
+                    $innerHtml = self::fetch($absoluteUrl);
+                    if (!empty($innerHtml)) {
+                        $innerEmails = self::extractEmails($innerHtml);
+                        foreach ($innerEmails as $email) {
+                            if (!isset($found[$email])) {
+                                $found[$email] = [
+                                    'source' => $item['source'] . ' deep-crawl: ' . $host,
+                                    'domain' => $host
+                                ];
+                            }
+                        }
+                        $innerCrawled++;
+                    }
+                    usleep(100000); // polite sleep
+                }
             }
         }
 
@@ -64,7 +118,7 @@ class SearchScraper {
     }
 
     /**
-     * Extracts email addresses from string contents using standard regex
+     * Helper to extract emails from raw string text content
      */
     private static function extractEmails(string $text): array {
         $pattern = '/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.[a-z0-9\-\.]+/i';
@@ -74,8 +128,7 @@ class SearchScraper {
         if (!empty($matches[0])) {
             foreach ($matches[0] as $email) {
                 $email = strtolower(trim($email, '.'));
-                // Prevent extracting image references or assets
-                if (preg_match('/\.(jpg|png|gif|jpeg|svg|css|js|webp)$/i', $email)) {
+                if (preg_match('/\.(jpg|png|gif|jpeg|svg|css|js|webp|ico|woff)$/i', $email)) {
                     continue;
                 }
                 if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -87,14 +140,14 @@ class SearchScraper {
     }
 
     /**
-     * Fetch raw HTML with user agent headers
+     * Fetch HTML with user agent headers
      */
     private static function fetch(string $url): string {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 4);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
         

@@ -72,9 +72,10 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     <div class="card" style="margin-bottom: 24px; max-width: 680px;">
         <div class="card-header"><span class="card-title">Quick Add Contact</span></div>
         <form method="post" action="?action=add_contact">
-            <div class="form-group">
+            <div class="form-group" style="position: relative;">
                 <label class="form-label" for="email">Email Address</label>
-                <input class="form-control" type="email" id="email" name="email" required placeholder="name@domain.com" oninput="checkDuplicateEmail(this)">
+                <input class="form-control" type="email" id="email" name="email" required placeholder="name@domain.com" oninput="checkDuplicateEmail(this)" autocomplete="off">
+                <div id="email-suggestions-box" style="display:none; position:absolute; top:100%; left:0; width:100%; max-height:200px; overflow-y:auto; background:white; border:1px solid var(--theme-border); border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:999; margin-top:4px;"></div>
                 <div id="email-error-msg" style="display:none; font-size:12px; margin-top:4px; font-weight:600;"></div>
             </div>
             <div class="form-row">
@@ -453,18 +454,48 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
         clearTimeout(debounceTimer);
         const email = input.value.trim();
         const errorDiv = document.getElementById("email-error-msg");
+        const suggestionsDiv = document.getElementById("email-suggestions-box");
         const submitBtn = input.form.querySelector('button[type="submit"]');
 
-        if (!email || !email.includes('@')) {
+        if (!email) {
             errorDiv.style.display = "none";
+            suggestionsDiv.style.display = "none";
             if (submitBtn) submitBtn.disabled = false;
             return;
         }
 
         debounceTimer = setTimeout(() => {
-            fetch('<?= getSetting("app_url") ?>/contacts/check-email?email=' + encodeURIComponent(email))
+            fetch('<?= e(BASE_PATH) ?>/contacts/check-email?email=' + encodeURIComponent(email))
                 .then(r => r.json())
                 .then(data => {
+                    // 1. Render Autocomplete Suggestions overlay
+                    suggestionsDiv.innerHTML = "";
+                    if (data.matches && data.matches.length > 0) {
+                        suggestionsDiv.style.display = "block";
+                        data.matches.forEach(match => {
+                            const item = document.createElement("div");
+                            item.style.padding = "8px 12px";
+                            item.style.cursor = "pointer";
+                            item.style.borderBottom = "1px solid var(--theme-border)";
+                            item.style.fontSize = "12px";
+                            item.style.color = "var(--theme-dark)";
+                            item.style.transition = "background 0.2s";
+                            item.innerHTML = `<strong style="color: var(--theme-blurple);">${match.email}</strong> ${match.first_name || match.last_name ? `(${match.first_name} ${match.last_name})` : ''}`;
+                            
+                            item.onmouseover = () => item.style.backgroundColor = "var(--theme-bg)";
+                            item.onmouseout = () => item.style.backgroundColor = "transparent";
+                            item.onclick = () => {
+                                input.value = match.email;
+                                checkDuplicateEmail(input);
+                                suggestionsDiv.style.display = "none";
+                            };
+                            suggestionsDiv.appendChild(item);
+                        });
+                    } else {
+                        suggestionsDiv.style.display = "none";
+                    }
+
+                    // 2. Render exact duplicate warning status
                     if (data.exists) {
                         errorDiv.style.display = "block";
                         errorDiv.style.color = "var(--danger)";
@@ -477,8 +508,18 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                 })
                 .catch(() => {
                     errorDiv.style.display = "none";
+                    suggestionsDiv.style.display = "none";
                     if (submitBtn) submitBtn.disabled = false;
                 });
-        }, 300);
+        }, 200);
     }
+
+    // Close suggestions box if clicking outside form
+    document.addEventListener("click", function(e) {
+        const box = document.getElementById("email-suggestions-box");
+        const emailInput = document.getElementById("email");
+        if (box && e.target !== emailInput && !box.contains(e.target)) {
+            box.style.display = "none";
+        }
+    });
 </script>

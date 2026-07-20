@@ -203,6 +203,18 @@ try {
             $controller->uninstall();
             break;
 
+        case '/super/tenants':
+            require_once __DIR__ . '/controllers/TenantController.php';
+            $controller = new TenantController();
+            $controller->index();
+            break;
+
+        case '/super/tenants/create':
+            require_once __DIR__ . '/controllers/TenantController.php';
+            $controller = new TenantController();
+            $controller->create();
+            break;
+
         case '/diagnostics':
             $controller = new SettingController();
             $controller->diagnostics();
