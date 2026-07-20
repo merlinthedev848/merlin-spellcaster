@@ -94,7 +94,9 @@ class InboxMonitor {
             // Open IMAP Connection
             $inbox = @imap_open($mailbox, $user, $pass);
             if (!$inbox) {
-                // Skip if this specific folder fails to open, but continue trying others
+                // Flush IMAP error stack to prevent shutdown SSL notices
+                @imap_errors();
+                @imap_alerts();
                 continue;
             }
 

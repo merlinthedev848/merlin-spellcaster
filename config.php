@@ -123,7 +123,6 @@ function sc_geoip_lookup(string $ip): array {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 3);
     $response = curl_exec($ch);
-    curl_close($ch);
     
     if ($response) {
         $data = json_decode($response, true);
@@ -232,7 +231,7 @@ function _bootstrapSchema(PDO $db): void {
             subject VARCHAR(255) NOT NULL,
             body_html LONGTEXT NOT NULL,
             body_text LONGTEXT,
-            status ENUM('draft', 'queued', 'sending', 'sent', 'paused') DEFAULT 'draft',
+            status VARCHAR(32) DEFAULT 'draft',
             send_count INT DEFAULT 0,
             open_count INT DEFAULT 0,
             click_count INT DEFAULT 0,
@@ -387,7 +386,14 @@ function _bootstrapSchema(PDO $db): void {
 function _runMigrations(PDO $db): void {
     // Version guard — only run migrations when schema is outdated
     $currentVersion = (int)getSetting('schema_version', '0');
-    if ($currentVersion >= 11) return;
+    if ($currentVersion >= 16) return;
+
+    // Ensure campaigns.status is VARCHAR(32) so 'active' and 'inactive' are valid
+    try {
+        $db->exec("ALTER TABLE campaigns MODIFY COLUMN status VARCHAR(32) NOT NULL DEFAULT 'draft'");
+    } catch (Throwable $e) {
+        error_log("Migration Error (campaigns status varchar): " . $e->getMessage());
+    }
     // 1. Add scheduled_at and list_id columns to campaigns if missing
     try {
         $db->query("SELECT scheduled_at FROM campaigns LIMIT 1");
@@ -704,7 +710,7 @@ function _runMigrations(PDO $db): void {
     }
 
     // Mark schema as up-to-date
-    setSetting('schema_version', '15');
+    setSetting('schema_version', '16');
 }
 
 /**

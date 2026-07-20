@@ -55,7 +55,6 @@ class AI {
         $response = curl_exec($ch);
         $err = curl_error($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($err) {
             throw new Exception('Connection to AI Provider failed: ' . $err);

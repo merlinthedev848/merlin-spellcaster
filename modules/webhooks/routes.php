@@ -53,7 +53,6 @@ class WebhookSender {
                 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 3); // Do not block request long
                 curl_exec($ch);
-                curl_close($ch);
             }
         } catch (Throwable $e) {
             error_log("Webhook dispatch error: " . $e->getMessage());

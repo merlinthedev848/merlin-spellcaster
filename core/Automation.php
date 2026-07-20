@@ -203,7 +203,6 @@ class Automation {
                             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                             curl_setopt($ch, CURLOPT_TIMEOUT, 3);
                             curl_exec($ch);
-                            curl_close($ch);
                         }
                     } catch (Throwable $e) {
                          error_log("Webhook step trigger failed: " . $e->getMessage());
