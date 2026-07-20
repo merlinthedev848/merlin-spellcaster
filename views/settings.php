@@ -17,6 +17,7 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
 
 <div style="max-width: 1200px; margin: 0 auto;">
     <form method="post" action="" id="settings_form">
+        <?= Auth::csrfField() ?>
         <div class="grid grid-2" style="align-items: start;">
         <!-- Left Column: General & SMTP settings -->
         <div style="display: flex; flex-direction: column; gap: 24px;">
