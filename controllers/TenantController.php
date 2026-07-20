@@ -42,7 +42,7 @@ class TenantController {
         $tenants = $db->query("SELECT * FROM tenants ORDER BY created_at DESC")->fetchAll();
 
         // Calculate metadata for each tenant
-        $localConfig = dirname(dirname(__DIR__)) . '/config.local.php';
+        $localConfig = dirname(__DIR__) . '/config.local.php';
         require $localConfig;
         
         foreach ($tenants as &$t) {
@@ -110,7 +110,7 @@ class TenantController {
                 }
 
                 // 2. Connect to the pre-created tenant database
-                $localConfig = dirname(dirname(__DIR__)) . '/config.local.php';
+                $localConfig = dirname(__DIR__) . '/config.local.php';
                 require $localConfig;
                 
                 $dsnTenant = "mysql:host=" . ($db_host ?? 'localhost') . ";port=" . ($db_port ?? 3306) . ";dbname=" . $dbNameInput . ";charset=utf8mb4";
