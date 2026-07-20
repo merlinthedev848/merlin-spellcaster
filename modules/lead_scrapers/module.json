@@ -1,0 +1,9 @@
+{
+    "id": "lead_scrapers",
+    "name": "B2B Lead Scrapers",
+    "description": "Generate high-quality business leads dynamically. Includes Google Maps Business Search scraper and organic search lead extractor.",
+    "version": "1.0.0",
+    "author": "Antigravity",
+    "menu_label": "Lead Scrapers",
+    "menu_path": "/scraper"
+}

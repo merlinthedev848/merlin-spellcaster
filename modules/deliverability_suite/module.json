@@ -1,0 +1,9 @@
+{
+    "id": "deliverability_suite",
+    "name": "Email Deliverability Suite",
+    "description": "Ensure your emails land in the inbox. Includes real-time email list verification, content spam trigger scanners, and automated domain warming up schedules.",
+    "version": "1.0.0",
+    "author": "Antigravity",
+    "menu_label": "Deliverability Suite",
+    "menu_path": "/deliverability"
+}

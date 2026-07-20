@@ -1,8 +1,0 @@
-{
-    "id": "email_verifier",
-    "name": "Email Address Verifier",
-    "version": "1.0.0",
-    "description": "Validates email addresses format, MX server records, and disposable domains (e.g. mailinator) on import and quick-add.",
-    "menu_label": "Email Verifier",
-    "menu_path": "/verifier"
-}

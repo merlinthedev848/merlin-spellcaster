@@ -1,8 +1,0 @@
-{
-    "id": "hello_world",
-    "name": "Hello World Extension",
-    "version": "1.0.0",
-    "description": "A sample extension demonstrating the Merlin modular framework. Registers custom pages, menus, and views dynamically.",
-    "menu_label": "Hello World",
-    "menu_path": "/hello-world"
-}

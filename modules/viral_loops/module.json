@@ -1,9 +1,0 @@
-{
-    "id": "viral_loops",
-    "name": "Viral Loops (Referral Program)",
-    "description": "Turn your newsletter into a viral growth engine by giving every subscriber a unique referral link and tracking their successful invites.",
-    "version": "2.0.0",
-    "author": "CK Medis Services",
-    "menu_label": "Referrals",
-    "menu_path": "/referrals"
-}

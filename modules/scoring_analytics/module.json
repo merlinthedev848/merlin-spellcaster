@@ -1,0 +1,9 @@
+{
+    "id": "scoring_analytics",
+    "name": "Lead Scoring & Predictive Analytics",
+    "description": "Track contact engagement using behavioral point-scoring rules and predict client conversions using interaction metrics models.",
+    "version": "1.0.0",
+    "author": "Antigravity",
+    "menu_label": "Scoring Analytics",
+    "menu_path": "/scoring"
+}

@@ -1,8 +1,0 @@
-{
-    "id": "deliverability_sentinel",
-    "name": "AI Deliverability Sentinel",
-    "version": "1.0.0",
-    "description": "Scans campaigns for spam triggers and monitors domain/IP reputation via Google Postmaster.",
-    "menu_label": "Deliverability",
-    "menu_path": "/deliverability"
-}

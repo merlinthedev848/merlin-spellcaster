@@ -1,8 +1,0 @@
-{
-    "id": "predictive_scoring",
-    "name": "Predictive Lead Scoring",
-    "version": "1.0.0",
-    "description": "Calculates and updates conversion probabilities dynamically based on subscriber activity signals.",
-    "menu_label": "Predictive Score",
-    "menu_path": "/predictive-scoring"
-}

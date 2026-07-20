@@ -1,0 +1,9 @@
+{
+    "id": "conversion_suite",
+    "name": "Conversion & Viral Engagement Suite",
+    "description": "Drive user actions and viral loops growth. Includes dynamic countdown email timers, smart link round-robin rotators, and structured referral programs.",
+    "version": "1.0.0",
+    "author": "Antigravity",
+    "menu_label": "Conversion Suite",
+    "menu_path": "/conversions"
+}

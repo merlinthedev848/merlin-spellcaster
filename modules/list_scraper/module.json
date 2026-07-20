@@ -1,8 +1,0 @@
-{
-    "id": "list_scraper",
-    "name": "Search Scraper Engine",
-    "version": "1.0.0",
-    "description": "Scrapes email addresses from search results and web pages based on target niche keywords, automatically importing them with the 'scraped' tag.",
-    "menu_label": "Search Scraper",
-    "menu_path": "/scraper"
-}
