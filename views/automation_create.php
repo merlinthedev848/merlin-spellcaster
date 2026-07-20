@@ -44,7 +44,7 @@ declare(strict_types=1);
                     <?php foreach ($tags as $t): ?>
                         <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
                             <input type="checkbox" name="trigger_tag_ids[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);">
-                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color'] ?? '#635bff') ?>;"></span>
                             <?= e($t['name']) ?>
                         </label>
                     <?php endforeach; ?>

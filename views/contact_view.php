@@ -111,8 +111,10 @@ declare(strict_types=1);
                 <?php if (empty($contactTags)): ?>
                     <span style="color: var(--theme-dark-slate); font-size: 13px;">No tags assigned.</span>
                 <?php else: ?>
-                    <?php foreach ($contactTags as $t): ?>
-                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background-color: <?= e($t['color']) ?>20; color: <?= e($t['color']) ?>; border: 1px solid <?= e($t['color']) ?>30;">
+                    <?php foreach ($contactTags as $t): 
+                        $cColor = $t['color'] ?? '#635bff';
+                    ?>
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background-color: <?= e($cColor) ?>20; color: <?= e($cColor) ?>; border: 1px solid <?= e($cColor) ?>30;">
                             <?= e($t['name']) ?>
                         </span>
                     <?php endforeach; ?>

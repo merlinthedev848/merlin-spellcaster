@@ -363,14 +363,30 @@ class Automation {
         $db = Database::getConnection();
         $stepId = (int)$step['id'];
         $stepType = $step['step_type'];
-        $stepValue = $step['step_value'];
+        $stepValue = (string)($step['step_value'] ?? '');
 
         $executeAt = clone $baseTime;
 
         if ($stepType === 'wait') {
-            $interval = DateInterval::createFromDateString($stepValue);
-            if ($interval) {
-                $executeAt->add($interval);
+            try {
+                $val = trim($stepValue);
+                if ($val !== '' && is_numeric($val)) {
+                    $val = $val . ' days';
+                }
+                if ($val === '') {
+                    $val = '1 day';
+                }
+                $interval = @DateInterval::createFromDateString($val);
+                if ($interval instanceof DateInterval) {
+                    $executeAt->add($interval);
+                } else {
+                    $executeAt->add(new DateInterval('P1D'));
+                }
+            } catch (Throwable $e) {
+                error_log("Invalid wait step interval '{$stepValue}': " . $e->getMessage());
+                try {
+                    $executeAt->add(new DateInterval('P1D'));
+                } catch (Throwable) {}
             }
         }
 

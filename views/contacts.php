@@ -106,7 +106,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     <?php foreach ($tags as $t): ?>
                         <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
                             <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);">
-                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color'] ?? '#635bff') ?>;"></span>
                             <?= e($t['name']) ?>
                         </label>
                     <?php endforeach; ?>
@@ -146,7 +146,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     <?php foreach ($tags as $t): ?>
                         <label style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--theme-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500;">
                             <input type="checkbox" name="tags[]" value="<?= $t['id'] ?>" style="accent-color: var(--theme-blurple);">
-                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <?= e($t['color'] ?? '#635bff') ?>;"></span>
                             <?= e($t['name']) ?>
                         </label>
                     <?php endforeach; ?>
@@ -185,7 +185,9 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                 <?php foreach ($tags as $t): ?>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 6px; background-color: <?= ($currentTagId === (int)$t['id']) ? 'var(--theme-blurple-light)' : 'transparent' ?>;">
                         <a href="?tag_id=<?= $t['id'] ?>" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--theme-dark); flex-grow: 1; font-weight: 500; font-size: 14px;">
-                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: <?= e($t['color']) ?>;"></span>
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: <?= e($t['color'] ?? '#635bff') ?>;"></span>
+                            <?= e($t['name']) ?>
+                        </a>
                             <?= e($t['name']) ?>
                         </a>
                         <form method="post" action="?action=delete_tag&tag_id=<?= $t['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this tag?');" style="display: flex; align-items: center;">
