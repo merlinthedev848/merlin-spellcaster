@@ -15,6 +15,7 @@ declare(strict_types=1);
         <span class="card-title">Install Extension Bundle</span>
     </div>
     <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/upload" enctype="multipart/form-data" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+        <?= Auth::csrfField() ?>
         <div style="flex: 1; min-width: 280px;">
             <div style="background-color: var(--theme-blurple-light); color: var(--theme-dark-slate); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 12px; border: 1px solid rgba(99,91,255,0.1); line-height: 1.4;">
                 Upload a <strong>.zip</strong> package containing a valid <code>module.json</code> descriptor at the root directory level.
@@ -79,11 +80,13 @@ declare(strict_types=1);
                                     </a>
                                 <?php endif; ?>
                                 <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/toggle?id=<?= urlencode($id) ?>" style="margin: 0; display: inline-block; margin-left: 4px;">
+                                    <?= Auth::csrfField() ?>
                                     <button type="submit" class="btn <?= $mod['enabled'] ? 'btn-secondary' : 'btn-primary' ?>" style="padding: 6px 12px; font-size: 12px; min-width: 90px; justify-content: center;">
                                         <?= $mod['enabled'] ? 'Disable' : 'Enable' ?>
                                     </button>
                                 </form>
                                 <form method="post" action="<?= e(getSetting('app_url')) ?>/extensions/uninstall?id=<?= urlencode($id) ?>" onsubmit="return confirm('Are you sure you want to permanently uninstall and delete this module? This cannot be undone.');" style="margin: 0; display: inline-block; margin-left: 4px;">
+                                    <?= Auth::csrfField() ?>
                                     <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; justify-content: center;">
                                         Uninstall
                                     </button>
