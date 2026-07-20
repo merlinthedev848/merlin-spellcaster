@@ -283,10 +283,14 @@ class SettingController {
         $pass = trim($_POST['pass'] ?? '');
         $ssl = (int)($_POST['ssl'] ?? 1) === 1;
 
+        if ($pass === '') {
+            $pass = getSetting('bounce_imap_pass') ?: getSetting('smtp_pass', '');
+        }
+
         if ($host === '' || $user === '' || $pass === '') {
             ob_clean();
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Missing IMAP credentials (host, user, pass).']);
+            echo json_encode(['success' => false, 'error' => 'Missing IMAP credentials (host, user, or password). Please enter or save your password first.']);
             return;
         }
 

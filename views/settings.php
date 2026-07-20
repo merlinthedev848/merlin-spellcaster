@@ -258,8 +258,8 @@ document.getElementById('btn_fetch_imap_folders').addEventListener('click', asyn
         const smtpPass = document.getElementById('setting_smtp_pass').value;
         const smtpEnc = document.getElementById('setting_smtp_encryption').value;
 
-        if (!smtpHost || !smtpUser || !smtpPass) {
-            status.innerHTML = '<span style="color:var(--danger)">Please fill in SMTP Host, Username, and Password first.</span>';
+        if (!smtpHost || !smtpUser) {
+            status.innerHTML = '<span style="color:var(--danger)">Please fill in SMTP Host and Username first.</span>';
             return;
         }
 
