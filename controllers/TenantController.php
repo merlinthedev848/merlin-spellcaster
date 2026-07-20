@@ -9,7 +9,6 @@ class TenantController {
      * Show Super Admin Tenants panel
      */
     public function index(): void {
-        // Tenants panel is only accessible on the master domain
         if (Database::getTenantSubdomain() !== null) {
             header('Location: ' . getSetting('app_url') . '/');
             exit;
@@ -22,15 +21,23 @@ class TenantController {
 
         $db = Database::getConnection();
 
-        // Ensure master database has the tenants table
+        // Ensure master database has the tenants table (including db_name)
         $db->exec("
             CREATE TABLE IF NOT EXISTS tenants (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 slug VARCHAR(100) UNIQUE NOT NULL,
+                db_name VARCHAR(255) NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ");
+
+        // Self-healing migration to add db_name if it was previously created without it
+        try {
+            $db->query("SELECT db_name FROM tenants LIMIT 1");
+        } catch (Throwable) {
+            $db->exec("ALTER TABLE tenants ADD COLUMN db_name VARCHAR(255) NOT NULL AFTER slug");
+        }
 
         $tenants = $db->query("SELECT * FROM tenants ORDER BY created_at DESC")->fetchAll();
 
@@ -39,10 +46,8 @@ class TenantController {
         require $localConfig;
         
         foreach ($tenants as &$t) {
-            $tDbName = ($db_name ?? 'merlin') . '_tenant_' . preg_replace('/[^a-zA-Z0-9_]/', '', $t['slug']);
-            
             try {
-                $dsnTenant = "mysql:host=" . ($db_host ?? 'localhost') . ";port=" . ($db_port ?? 3306) . ";dbname=" . $tDbName . ";charset=utf8mb4";
+                $dsnTenant = "mysql:host=" . ($db_host ?? 'localhost') . ";port=" . ($db_port ?? 3306) . ";dbname=" . $t['db_name'] . ";charset=utf8mb4";
                 $pdoT = new PDO($dsnTenant, $db_user ?? '', $db_pass ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
                 
                 $t['contacts'] = (int)$pdoT->query("SELECT COUNT(*) FROM subscribers")->fetchColumn();
@@ -82,10 +87,11 @@ class TenantController {
 
             $name = trim($_POST['name'] ?? '');
             $slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $_POST['slug'] ?? ''));
+            $dbNameInput = trim($_POST['db_name'] ?? '');
             $email = strtolower(trim($_POST['admin_email'] ?? ''));
             $password = $_POST['admin_password'] ?? '';
 
-            if ($name === '' || $slug === '' || $email === '' || $password === '') {
+            if ($name === '' || $slug === '' || $dbNameInput === '' || $email === '' || $password === '') {
                 $_SESSION['flash_error'] = 'All fields are required.';
                 header('Location: ' . getSetting('app_url') . '/super/tenants');
                 exit;
@@ -103,23 +109,30 @@ class TenantController {
                     exit;
                 }
 
-                // 2. Connect to MySQL server and provision the database
+                // 2. Connect to the pre-created tenant database
                 $localConfig = dirname(dirname(__DIR__)) . '/config.local.php';
                 require $localConfig;
                 
-                $tDbName = ($db_name ?? 'merlin') . '_tenant_' . $slug;
+                $dsnTenant = "mysql:host=" . ($db_host ?? 'localhost') . ";port=" . ($db_port ?? 3306) . ";dbname=" . $dbNameInput . ";charset=utf8mb4";
                 
-                $dsnNoDb = "mysql:host=" . ($db_host ?? 'localhost') . ";port=" . ($db_port ?? 3306) . ";charset=utf8mb4";
-                $pdoT = new PDO($dsnNoDb, $db_user ?? '', $db_pass ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-                $pdoT->exec("CREATE DATABASE IF NOT EXISTS `" . $tDbName . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                $pdoT->exec("USE `" . $tDbName . "`");
+                try {
+                    $pdoT = new PDO($dsnTenant, $db_user ?? '', $db_pass ?? '', [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                    ]);
+                } catch (PDOException $pdoErr) {
+                    throw new Exception("Could not connect to database '{$dbNameInput}'. Please verify it has been created on your server and that user '{$db_user}' has access permissions assigned to it. MySQL error: " . $pdoErr->getMessage());
+                }
 
-                // 3. Run migrations on the new database
+                // 3. Run migrations on the tenant database
                 _bootstrapSchema($pdoT);
                 _runMigrations($pdoT);
 
                 // 4. Seed default admin user
                 $hashed = password_hash($password, PASSWORD_ARGON2ID);
+                
+                // Clear any existing users to prevent duplicate key violations
+                $pdoT->exec("TRUNCATE TABLE users");
+                
                 $stAdmin = $pdoT->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
                 $stAdmin->execute([$email, $hashed]);
 
@@ -136,8 +149,8 @@ class TenantController {
                 $stUrl->execute([$tenantUrl]);
 
                 // 6. Insert tenant record into master database
-                $stTenant = $db->prepare("INSERT INTO tenants (name, slug) VALUES (?, ?)");
-                $stTenant->execute([$name, $slug]);
+                $stTenant = $db->prepare("INSERT INTO tenants (name, slug, db_name) VALUES (?, ?, ?)");
+                $stTenant->execute([$name, $slug, $dbNameInput]);
 
                 $_SESSION['flash_success'] = "Tenant '{$name}' successfully provisioned at {$tenantUrl}";
             } catch (Throwable $e) {

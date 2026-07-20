@@ -23,7 +23,6 @@ class Database {
         $localConfig = dirname(__DIR__) . '/config.local.php';
         $primaryHost = null;
         if (file_exists($localConfig)) {
-            // Use output buffering/clean scope to load variables safely
             $configVars = (static function($file) {
                 include $file;
                 return get_defined_vars();
@@ -76,7 +75,26 @@ class Database {
         $targetDb = $masterDb;
 
         if ($subdomain !== null) {
-            $targetDb = $masterDb . '_tenant_' . preg_replace('/[^a-zA-Z0-9_]/', '', $subdomain);
+            // Connect to master database first to resolve the tenant's database name mappings
+            $dsnMaster = sprintf(
+                "mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4",
+                $db_host ?? 'localhost',
+                $db_port ?? 3306,
+                $masterDb
+            );
+            try {
+                $pdoMaster = new PDO($dsnMaster, $db_user ?? '', $db_pass ?? '', [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                ]);
+                $stmt = $pdoMaster->prepare("SELECT db_name FROM tenants WHERE slug = ? LIMIT 1");
+                $stmt->execute([$subdomain]);
+                $tenantDb = $stmt->fetchColumn();
+                if ($tenantDb) {
+                    $targetDb = $tenantDb;
+                }
+            } catch (Throwable $e) {
+                // fall back to masterDb if lookup fails
+            }
         }
 
         if (self::$instance === null || self::$resolvedDbName !== $targetDb) {
@@ -87,39 +105,13 @@ class Database {
                 $targetDb
             );
             
-            try {
-                self::$instance = new PDO($dsn, $db_user ?? '', $db_pass ?? '', [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
-                ]);
-                self::$instance->exec("SET time_zone = '+00:00'");
-                self::$resolvedDbName = $targetDb;
-            } catch (PDOException $e) {
-                // If database does not exist (1049), automatically create it on demand
-                if ($e->getCode() == 1049) {
-                    $dsnNoDb = sprintf(
-                        "mysql:host=%s;port=%d;charset=utf8mb4",
-                        $db_host ?? 'localhost',
-                        $db_port ?? 3306
-                    );
-                    $pdoNoDb = new PDO($dsnNoDb, $db_user ?? '', $db_pass ?? '', [
-                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-                    ]);
-                    $pdoNoDb->exec("CREATE DATABASE IF NOT EXISTS `" . str_replace("`","",$targetDb) . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                    
-                    // Re-connect to new database
-                    self::$instance = new PDO($dsn, $db_user ?? '', $db_pass ?? '', [
-                        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                        PDO::ATTR_EMULATE_PREPARES   => false,
-                    ]);
-                    self::$instance->exec("SET time_zone = '+00:00'");
-                    self::$resolvedDbName = $targetDb;
-                } else {
-                    throw $e;
-                }
-            }
+            self::$instance = new PDO($dsn, $db_user ?? '', $db_pass ?? '', [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ]);
+            self::$instance->exec("SET time_zone = '+00:00'");
+            self::$resolvedDbName = $targetDb;
         }
 
         return self::$instance;

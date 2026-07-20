@@ -26,7 +26,13 @@ declare(strict_types=1);
             <div class="form-group">
                 <label class="form-label" for="slug">Subdomain Slug</label>
                 <input class="form-control" type="text" id="slug" name="slug" required placeholder="e.g. acme" pattern="[a-zA-Z0-9]+">
-                <span style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px; display: block;">Only letters and numbers allowed. (acme.localhost)</span>
+                <span style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px; display: block;">Only letters and numbers allowed (e.g. <code>acme</code>).</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="db_name">Database Name (Pre-created in cPanel)</label>
+                <input class="form-control" type="text" id="db_name" name="db_name" required placeholder="e.g. mailer_c1_spellc_acme">
+                <span style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px; display: block;">Please create this database in your hosting control panel first and assign the database user to it.</span>
             </div>
 
             <div class="form-group">
@@ -40,7 +46,7 @@ declare(strict_types=1);
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; height: 38px; font-weight: 600;">
-                Deploy Isolated Instance →
+                Deploy Tenant Instance →
             </button>
         </form>
     </div>
@@ -57,6 +63,7 @@ declare(strict_types=1);
                     <tr>
                         <th>Organization</th>
                         <th>Subdomain Access</th>
+                        <th>Database Name</th>
                         <th style="text-align: center; width: 100px;">CRM Contacts</th>
                         <th style="text-align: center; width: 100px;">Campaigns</th>
                         <th style="width: 80px;"></th>
@@ -65,7 +72,7 @@ declare(strict_types=1);
                 <tbody>
                     <?php if (empty($tenants)): ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No tenants provisioned yet.</td>
+                            <td colspan="6" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No tenants provisioned yet.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tenants as $t): 
@@ -85,6 +92,9 @@ declare(strict_types=1);
                                     <code style="font-family: monospace; font-size: 11px; background-color: var(--theme-bg); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--theme-border); color: var(--theme-blurple); font-weight: 600;">
                                         <?= e($t['slug']) ?>.<?= e($host) ?><?= e($port) ?>
                                     </code>
+                                </td>
+                                <td>
+                                    <span style="font-size: 11px; font-family: monospace; color: var(--theme-dark-slate);"><?= e($t['db_name']) ?></span>
                                 </td>
                                 <td style="text-align: center; font-weight: 600; color: var(--theme-dark);">
                                     <?= (int)$t['contacts'] ?>
