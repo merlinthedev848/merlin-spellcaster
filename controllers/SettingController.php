@@ -17,7 +17,7 @@ class SettingController {
             foreach ($_POST as $key => $value) {
                 if (str_starts_with($key, 'setting_')) {
                     $settingKey = substr($key, 8);
-                    if ($settingKey === 'smtp_pass' && trim((string)$value) === '') {
+                    if (($settingKey === 'smtp_pass' || $settingKey === 'bounce_imap_pass') && trim((string)$value) === '') {
                         continue;
                     }
                     setSetting($settingKey, trim((string)$value));

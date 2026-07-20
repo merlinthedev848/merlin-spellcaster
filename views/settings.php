@@ -98,26 +98,46 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
             </div>
 
             <!-- IMAP Bounce Inbox Connection -->
-            <?php
-            $imapHost = getSetting('bounce_imap_host');
-            $imapUser = getSetting('bounce_imap_user');
-            $imapPass = getSetting('bounce_imap_pass');
-            
-            if (!$imapHost && !ModuleManager::isEnabled('multi_smtp')) {
-                $imapHost = str_replace('smtp.', 'imap.', getSetting('smtp_host', ''));
-                $imapUser = getSetting('smtp_user', '');
-                $imapPass = getSetting('smtp_pass', '');
-            }
-            ?>
             <div class="card">
                  <div class="card-header"><span class="card-title">IMAP Bounce Inbox Connection</span></div>
                  
-                 <div style="background-color: #fafbfc; border: 1px solid var(--theme-border); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px;">
-                     <div style="display: flex; gap: 8px; align-items: flex-start; color: var(--theme-dark-slate); font-size: 13px; line-height: 1.5;">
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--primary); margin-top: 2px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                         <div>
-                             <strong>Automatic Sync Enabled:</strong> Connection host, port, username, and password credentials are automatically inherited from your <strong>SMTP Mailer Settings</strong> above. This prevents double configuration and ensures your bounce monitor is always in sync.
+                 <!-- Checkbox to toggle inheritance -->
+                 <div class="form-group" style="margin-bottom: 20px;">
+                     <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: var(--theme-dark);">
+                         <input type="checkbox" id="setting_bounce_imap_inherit" name="setting_bounce_imap_inherit" value="1" <?= getSetting('bounce_imap_inherit', '1') === '1' ? 'checked' : '' ?> onchange="toggleImapCredentialsField()" style="accent-color: var(--theme-blurple);">
+                         Inherit credentials from SMTP Mailer Settings (Recommended)
+                     </label>
+                 </div>
+
+                 <!-- Custom IMAP Input fields (hidden if inherit is checked) -->
+                 <div id="custom_imap_fields" style="display: <?= getSetting('bounce_imap_inherit', '1') === '1' ? 'none' : 'block' ?>; margin-bottom: 20px; padding: 16px; background-color: var(--theme-bg); border-radius: 6px; border: 1px solid var(--theme-border);">
+                     <div class="form-row" style="margin-bottom: 12px;">
+                         <div class="form-group" style="margin-bottom: 0;">
+                             <label class="form-label" for="setting_bounce_imap_host">IMAP Host</label>
+                             <input class="form-control" type="text" id="setting_bounce_imap_host" name="setting_bounce_imap_host" value="<?= e(getSetting('bounce_imap_host')) ?>" placeholder="e.g. imap.domain.com">
                          </div>
+                         <div class="form-group" style="margin-bottom: 0;">
+                             <label class="form-label" for="setting_bounce_imap_port">IMAP Port</label>
+                             <input class="form-control" type="number" id="setting_bounce_imap_port" name="setting_bounce_imap_port" value="<?= e(getSetting('bounce_imap_port', '993')) ?>" placeholder="e.g. 993">
+                         </div>
+                     </div>
+                     <div class="form-row" style="margin-bottom: 12px; margin-top: 12px;">
+                         <div class="form-group" style="margin-bottom: 0;">
+                             <label class="form-label" for="setting_bounce_imap_user">IMAP Username</label>
+                             <input class="form-control" type="text" id="setting_bounce_imap_user" name="setting_bounce_imap_user" value="<?= e(getSetting('bounce_imap_user')) ?>" placeholder="name@domain.com">
+                         </div>
+                         <div class="form-group" style="margin-bottom: 0;">
+                             <label class="form-label" for="setting_bounce_imap_pass">IMAP Password</label>
+                             <input class="form-control" type="password" id="setting_bounce_imap_pass" name="setting_bounce_imap_pass" value="" placeholder="Leave empty to keep existing password">
+                         </div>
+                     </div>
+                     <div class="form-group" style="margin-bottom: 0; margin-top: 12px;">
+                         <label class="form-label" for="setting_bounce_imap_encryption">IMAP Encryption</label>
+                         <select class="form-control" id="setting_bounce_imap_encryption" name="setting_bounce_imap_encryption">
+                             <option value="ssl" <?= getSetting('bounce_imap_encryption', 'ssl') === 'ssl' ? 'selected' : '' ?>>SSL (Port 993)</option>
+                             <option value="tls" <?= getSetting('bounce_imap_encryption', 'ssl') === 'tls' ? 'selected' : '' ?>>TLS (Port 143)</option>
+                             <option value="none" <?= getSetting('bounce_imap_encryption', 'ssl') === 'none' ? 'selected' : '' ?>>None (Port 143)</option>
+                         </select>
                      </div>
                  </div>
 
@@ -207,27 +227,50 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
 </div>
 
 <script>
+function toggleImapCredentialsField() {
+    const inherit = document.getElementById('setting_bounce_imap_inherit').checked;
+    document.getElementById('custom_imap_fields').style.display = inherit ? 'none' : 'block';
+}
+
 document.getElementById('btn_fetch_imap_folders').addEventListener('click', async function() {
     const btn = this;
     const status = document.getElementById('imap_fetch_status');
-    const smtpHost = document.getElementById('setting_smtp_host').value.trim();
-    const smtpUser = document.getElementById('setting_smtp_user').value.trim();
-    const smtpPass = document.getElementById('setting_smtp_pass').value;
-    const smtpEnc = document.getElementById('setting_smtp_encryption').value;
+    const inherit = document.getElementById('setting_bounce_imap_inherit').checked;
+    
+    let host, port, user, pass, ssl;
+    
+    if (inherit) {
+        const smtpHost = document.getElementById('setting_smtp_host').value.trim();
+        const smtpUser = document.getElementById('setting_smtp_user').value.trim();
+        const smtpPass = document.getElementById('setting_smtp_pass').value;
+        const smtpEnc = document.getElementById('setting_smtp_encryption').value;
 
-    if (!smtpHost || !smtpUser || !smtpPass) {
-        status.innerHTML = '<span style="color:var(--danger)">Please fill in SMTP Host, Username, and Password first.</span>';
-        return;
-    }
+        if (!smtpHost || !smtpUser || !smtpPass) {
+            status.innerHTML = '<span style="color:var(--danger)">Please fill in SMTP Host, Username, and Password first.</span>';
+            return;
+        }
 
-    let host = smtpHost;
-    if (smtpHost.toLowerCase().startsWith('smtp.')) {
-        host = 'imap.' + smtpHost.substring(5);
+        host = smtpHost;
+        if (smtpHost.toLowerCase().startsWith('smtp.')) {
+            host = 'imap.' + smtpHost.substring(5);
+        }
+        user = smtpUser;
+        pass = smtpPass;
+        ssl = (smtpEnc === 'ssl') ? '1' : '0';
+        port = (smtpEnc === 'ssl') ? '993' : '143';
+    } else {
+        host = document.getElementById('setting_bounce_imap_host').value.trim();
+        port = document.getElementById('setting_bounce_imap_port').value.trim();
+        user = document.getElementById('setting_bounce_imap_user').value.trim();
+        pass = document.getElementById('setting_bounce_imap_pass').value;
+        const enc = document.getElementById('setting_bounce_imap_encryption').value;
+        ssl = (enc === 'ssl') ? '1' : '0';
+
+        if (!host || !user) {
+            status.innerHTML = '<span style="color:var(--danger)">Please fill in IMAP Host and Username.</span>';
+            return;
+        }
     }
-    const user = smtpUser;
-    const pass = smtpPass;
-    const ssl = (smtpEnc === 'ssl') ? '1' : '0';
-    const port = (smtpEnc === 'ssl') ? '993' : '143';
 
     btn.disabled = true;
     btn.innerHTML = 'Connecting...';
@@ -241,7 +284,7 @@ document.getElementById('btn_fetch_imap_folders').addEventListener('click', asyn
     formData.append('ssl', ssl);
 
     try {
-        const response = await fetch('<?= rtrim(e(getSetting('app_url')), '/') ?>/api/imap-folders', {
+        const response = await fetch('<?= e(BASE_PATH) ?>/api/imap-folders', {
             method: 'POST',
             body: formData
         });

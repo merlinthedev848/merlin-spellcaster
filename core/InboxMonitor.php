@@ -20,21 +20,52 @@ class InboxMonitor {
             return ['success' => false, 'message' => 'SMTP mailer settings not configured. Please setup SMTP in Settings first.'];
         }
 
-        // Derive IMAP details from SMTP authority settings
-        if (stripos($smtpHost, 'smtp.') === 0) {
-            $host = preg_replace('/^smtp\./i', 'imap.', $smtpHost);
-        } else {
-            $host = $smtpHost;
+        // Determine if custom IMAP settings should be used
+        $inherit = getSetting('bounce_imap_inherit', '1') === '1';
+        
+        $host = '';
+        $portVal = '';
+        $user = '';
+        $pass = '';
+        $enc = '';
+
+        if (!$inherit) {
+            $host = getSetting('bounce_imap_host', '');
+            $portVal = getSetting('bounce_imap_port', '');
+            $user = getSetting('bounce_imap_user', '');
+            $pass = getSetting('bounce_imap_pass', '');
+            $enc = strtolower(getSetting('bounce_imap_encryption', 'ssl'));
         }
-        $user = $smtpUser;
-        $pass = $smtpPass;
+
+        // Fallback to derived SMTP settings if values are empty
+        if (empty($host)) {
+            if (stripos($smtpHost, 'smtp.') === 0) {
+                $host = preg_replace('/^smtp\./i', 'imap.', $smtpHost);
+            } else {
+                $host = $smtpHost;
+            }
+        }
+        if (empty($user)) {
+            $user = $smtpUser;
+        }
+        if (empty($pass)) {
+            $pass = $smtpPass;
+        }
+        if (empty($enc)) {
+            $enc = $smtpEnc;
+        }
+
         $port = 143;
+        if (!empty($portVal)) {
+            $port = (int)$portVal;
+        } else {
+            $port = ($enc === 'ssl') ? 993 : 143;
+        }
+
         $sslStr = '/novalidate-cert';
-        if ($smtpEnc === 'ssl') {
-            $port = 993;
+        if ($enc === 'ssl') {
             $sslStr = '/ssl/novalidate-cert';
-        } elseif ($smtpEnc === 'tls') {
-            $port = 143;
+        } elseif ($enc === 'tls') {
             $sslStr = '/tls/novalidate-cert';
         }
 

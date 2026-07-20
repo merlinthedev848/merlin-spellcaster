@@ -101,14 +101,16 @@ class ImapClient {
         
         $folders = [];
         foreach ($listResp as $line) {
-            // e.g. * LIST (\HasNoChildren) "/" "INBOX"
-            // e.g. * LIST (\HasNoChildren) "/" INBOX
             if (str_starts_with($line, '* LIST')) {
-                // Regex to extract the last quoted or unquoted token
-                if (preg_match('/\* LIST \([^\)]*\)\s+"[^"]*"\s+"?([^"]+)"?/i', $line, $m)) {
-                    $folders[] = $m[1];
-                } elseif (preg_match('/\* LIST \([^\)]*\)\s+NIL\s+"?([^"]+)"?/i', $line, $m)) {
-                    $folders[] = $m[1];
+                if (str_ends_with($line, '"')) {
+                    $lastQuotePos = strrpos($line, '"');
+                    $secondLastQuotePos = strrpos(substr($line, 0, $lastQuotePos), '"');
+                    if ($lastQuotePos !== false && $secondLastQuotePos !== false) {
+                        $folders[] = substr($line, $secondLastQuotePos + 1, $lastQuotePos - $secondLastQuotePos - 1);
+                    }
+                } else {
+                    $parts = explode(' ', $line);
+                    $folders[] = end($parts);
                 }
             }
         }
