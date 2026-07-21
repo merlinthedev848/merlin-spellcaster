@@ -83,8 +83,10 @@ class InboxMonitor {
 
         $processedBounces = 0;
         $processedReplies = 0;
+        $processedUnsubscribes = 0;
         $bouncedList = [];
         $repliedList = [];
+        $unsubscribedList = [];
 
         foreach ($folders as $folder) {
             if (empty(trim($folder))) continue;
@@ -114,6 +116,7 @@ class InboxMonitor {
                     $bounceEmail = self::parseBounceEmail($header, $body);
                     $isBounce = false;
                     $isReply = false;
+                    $isUnsub = false;
 
                     if ($bounceEmail) {
                         // It is a bounce!
@@ -128,7 +131,7 @@ class InboxMonitor {
                             $isBounce = true;
                         }
                     } else {
-                        // Check if it is a reply from an existing contact
+                        // Check if it is a reply or unsubscribe from an existing contact
                         $fromAddress = '';
                         if (!empty($header->from)) {
                             $fromObj = $header->from[0];
@@ -143,23 +146,30 @@ class InboxMonitor {
                                 $subId = (int)$st->fetchColumn();
 
                                 if ($subId > 0) {
-                                    self::markAsReplied($db, $subId, $header->subject ?? 'Re: Campaign');
-                                    $repliedList[] = $fromAddress;
-                                    $processedReplies++;
-                                    $isReply = true;
+                                    if (self::parseUnsubscribeEmail($header, $body)) {
+                                        self::markAsUnsubscribed($db, $subId, $header->subject ?? 'Unsubscribe request');
+                                        $unsubscribedList[] = $fromAddress;
+                                        $processedUnsubscribes++;
+                                        $isUnsub = true;
+                                    } else {
+                                        self::markAsReplied($db, $subId, $header->subject ?? 'Re: Campaign');
+                                        $repliedList[] = $fromAddress;
+                                        $processedReplies++;
+                                        $isReply = true;
+                                    }
                                 }
                             }
                         }
                     }
                     
-                    // Post-processing action ONLY for bounces and replies!
-                    if ($isBounce || $isReply) {
+                    // Post-processing action for bounces, replies, and unsubscribes
+                    if ($isBounce || $isReply || $isUnsub) {
                         if ($action === 'delete') {
                             imap_delete($inbox, (string)$emailNumber);
                         } elseif ($action === 'move') {
                             if ($isBounce && !empty(trim($archiveBounces))) {
                                 imap_mail_move($inbox, (string)$emailNumber, trim($archiveBounces));
-                            } elseif ($isReply && !empty(trim($archiveReplies))) {
+                            } elseif (($isReply || $isUnsub) && !empty(trim($archiveReplies))) {
                                 imap_mail_move($inbox, (string)$emailNumber, trim($archiveReplies));
                             } else {
                                 imap_setflag_full($inbox, (string)$emailNumber, '\\Seen');
@@ -169,21 +179,27 @@ class InboxMonitor {
                             imap_setflag_full($inbox, (string)$emailNumber, '\\Seen');
                         }
                     }
-                    // If it's a normal email, we do nothing and it remains UNSEEN.
                 }
             }
             
             // Execute deletions/moves
             imap_expunge($inbox);
             imap_close($inbox);
+            @imap_errors();
+            @imap_alerts();
         }
+
+        @imap_errors();
+        @imap_alerts();
 
         return [
             'success' => true,
             'bounces_count' => $processedBounces,
             'replies_count' => $processedReplies,
+            'unsubscribes_count' => $processedUnsubscribes,
             'bounces' => $bouncedList,
-            'replies' => $repliedList
+            'replies' => $repliedList,
+            'unsubscribes' => $unsubscribedList
         ];
     }
 
@@ -308,6 +324,86 @@ class InboxMonitor {
                 $db->rollBack();
             }
             error_log('InboxMonitor markAsReplied error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check if email subject or body contains explicit unsubscribe requests
+     */
+    private static function parseUnsubscribeEmail($header, string $body): bool {
+        $subject = strtolower($header->subject ?? '');
+        $snippet = strtolower(substr(strip_tags($body), 0, 1500));
+
+        // Direct subject match
+        if (preg_match('/\b(unsubscribe|opt-out|optout|remove me|stop|cancel subscription)\b/i', $subject)) {
+            return true;
+        }
+
+        // Snippet/Body phrase match
+        $bodyKeywords = [
+            'please unsubscribe me',
+            'unsubscribe me',
+            'remove me from your list',
+            'remove me from this list',
+            'take me off your list',
+            'take me off this list',
+            'stop sending me emails',
+            'stop sending email',
+            'please opt me out',
+            'opt me out',
+            'do not contact me',
+            'don\'t contact me',
+            'please remove my email',
+            'cancel my subscription'
+        ];
+
+        foreach ($bodyKeywords as $kw) {
+            if (str_contains($snippet, $kw)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Set subscriber status 'unsubscribed', strip other tags, assign 'DO NOT CONTACT' tag, clean pending queues, log activity
+     */
+    private static function markAsUnsubscribed(PDO $db, int $subId, string $subject): void {
+        try {
+            $db->beginTransaction();
+
+            $db->prepare("UPDATE subscribers SET status = 'unsubscribed', updated_at = NOW() WHERE id = ?")->execute([$subId]);
+
+            // Resolve 'DO NOT CONTACT' tag
+            $stTag = $db->prepare("SELECT id FROM tags WHERE name = ?");
+            $stTag->execute(['DO NOT CONTACT']);
+            $tagId = $stTag->fetchColumn();
+            if (!$tagId) {
+                $stIns = $db->prepare("INSERT INTO tags (name, color) VALUES (?, ?)");
+                $stIns->execute(['DO NOT CONTACT', '#d69e2e']);
+                $tagId = (int)$db->lastInsertId();
+            } else {
+                $tagId = (int)$tagId;
+            }
+
+            // Strip existing tags & assign DNC tag
+            $db->prepare("DELETE FROM subscriber_tags WHERE subscriber_id = ?")->execute([$subId]);
+            $db->prepare("INSERT IGNORE INTO subscriber_tags (subscriber_id, tag_id) VALUES (?, ?)")->execute([$subId, $tagId]);
+
+            // Clean pending queues
+            $db->prepare("DELETE FROM email_queue WHERE subscriber_id = ? AND status = 'pending'")->execute([$subId]);
+            $db->prepare("DELETE FROM automation_queue WHERE subscriber_id = ? AND status = 'pending'")->execute([$subId]);
+
+            logActivity($subId, 'unsubscribed', "Unsubscribed via Inbox Monitor: " . $subject);
+            Automation::trigger('unsubscribed', $subId);
+
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log('InboxMonitor markAsUnsubscribed error: ' . $e->getMessage());
         }
     }
 }

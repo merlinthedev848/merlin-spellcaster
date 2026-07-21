@@ -172,9 +172,16 @@ class Mailer {
             $headers[] = "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ">";
             $headers[] = "MIME-Version: 1.0";
             $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
-            if ($replyTo) {
-                $headers[] = "Reply-To: <{$replyTo}>";
+            // RFC 8058 One-Click List-Unsubscribe Headers
+            $appUrl = rtrim(getSetting('app_url', 'http://localhost'), '/');
+            $unsubUrl = "{$appUrl}/unsubscribe?email=" . urlencode($to);
+            if (!isset($extraHeaders['List-Unsubscribe'])) {
+                $headers[] = "List-Unsubscribe: <{$unsubUrl}>";
             }
+            if (!isset($extraHeaders['List-Unsubscribe-Post'])) {
+                $headers[] = "List-Unsubscribe-Post: List-Unsubscribe=One-Click";
+            }
+
             foreach ($extraHeaders as $hName => $hVal) {
                 $headers[] = "{$hName}: {$hVal}";
             }

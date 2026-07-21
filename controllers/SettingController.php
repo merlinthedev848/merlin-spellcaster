@@ -246,17 +246,21 @@ class SettingController {
         $queueResults = Queue::process($batchSize);
         echo $queueResults['message'] . "\n\n";
 
-        // 3. Process inbox monitor (Bounces & Replies)
-        echo "Processing Inbox Monitor (Bounces & Replies)...\n";
+        // 3. Process inbox monitor (Bounces, Replies & Unsubscribes)
+        echo "Processing Inbox Monitor (Bounces, Replies & Unsubscribes)...\n";
         require_once __DIR__ . '/../core/InboxMonitor.php';
         $inboxRes = InboxMonitor::process();
         if ($inboxRes['success']) {
-            echo "Inbox Monitor: Processed {$inboxRes['bounces_count']} bounces and {$inboxRes['replies_count']} replies.\n";
+            $unsubCount = $inboxRes['unsubscribes_count'] ?? 0;
+            echo "Inbox Monitor: Processed {$inboxRes['bounces_count']} bounces, {$inboxRes['replies_count']} replies, and {$unsubCount} unsubscribes.\n";
             if (!empty($inboxRes['bounces'])) {
                 echo "Bounced Recipients: " . implode(', ', $inboxRes['bounces']) . "\n";
             }
             if (!empty($inboxRes['replies'])) {
                 echo "Replied Recipients: " . implode(', ', $inboxRes['replies']) . "\n";
+            }
+            if (!empty($inboxRes['unsubscribes'])) {
+                echo "Unsubscribed Recipients: " . implode(', ', $inboxRes['unsubscribes']) . "\n";
             }
         } else {
             echo "Inbox Monitor: " . $inboxRes['message'] . "\n";
