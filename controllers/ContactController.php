@@ -539,7 +539,11 @@ class ContactController {
 
         $stLogs = $db->prepare("SELECT * FROM activity_log WHERE subscriber_id = ? ORDER BY created_at DESC");
         $stLogs->execute([$id]);
-        $activities = $stLogs->fetchAll();
+        $activityLogs = $stLogs->fetchAll();
+
+        $stScoreLogs = $db->prepare("SELECT * FROM lead_score_logs WHERE subscriber_id = ? ORDER BY id DESC LIMIT 50");
+        $stScoreLogs->execute([$id]);
+        $scoreLogs = $stScoreLogs->fetchAll();
 
         // Heat Score Chart Data (Last 30 Days)
         $stChart = $db->prepare("

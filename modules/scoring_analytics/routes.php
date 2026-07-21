@@ -32,13 +32,14 @@ Hook::register('email_opened', function($data) {
     try {
         $db = Database::getConnection();
         $subscriberId = (int)($data['subscriber_id'] ?? 0);
+        $campaignId = (int)($data['campaign_id'] ?? 0);
         if ($subscriberId > 0) {
-            $st = $db->prepare("UPDATE subscribers SET lead_score = lead_score + 1 WHERE id = ?");
-            $st->execute([$subscriberId]);
-            
-            $stScore = $db->prepare("SELECT lead_score FROM subscribers WHERE id = ?");
-            $stScore->execute([$subscriberId]);
-            $newScore = (int)$stScore->fetchColumn();
+            $reason = "Opened email broadcast";
+            if ($campaignId > 0) {
+                $cName = $db->query("SELECT name FROM campaigns WHERE id = {$campaignId}")->fetchColumn();
+                if ($cName) $reason = "Opened campaign: {$cName}";
+            }
+            $newScore = logScoreChange($subscriberId, 1, $reason);
             checkPointsThresholdAutomations($db, $subscriberId, $newScore);
         }
     } catch (Throwable $e) {
@@ -51,13 +52,10 @@ Hook::register('link_clicked', function($data) {
     try {
         $db = Database::getConnection();
         $subscriberId = (int)($data['subscriber_id'] ?? 0);
+        $url = trim($data['url'] ?? '');
         if ($subscriberId > 0) {
-            $st = $db->prepare("UPDATE subscribers SET lead_score = lead_score + 5 WHERE id = ?");
-            $st->execute([$subscriberId]);
-            
-            $stScore = $db->prepare("SELECT lead_score FROM subscribers WHERE id = ?");
-            $stScore->execute([$subscriberId]);
-            $newScore = (int)$stScore->fetchColumn();
+            $reason = "Clicked email link" . ($url ? " ({$url})" : "");
+            $newScore = logScoreChange($subscriberId, 5, $reason);
             checkPointsThresholdAutomations($db, $subscriberId, $newScore);
         }
     } catch (Throwable $e) {
@@ -113,6 +111,41 @@ if ($routePath === '/scoring') {
 // Redirect old routes for backwards compatibility
 if ($routePath === '/predictive-scoring') {
     header('Location: ' . getSetting('app_url') . '/scoring?tab=predictive');
+    exit;
+}
+
+// Route: /scoring/breakdown
+if ($routePath === '/scoring/breakdown') {
+    header('Content-Type: application/json');
+    $subId = (int)($_GET['id'] ?? 0);
+    if ($subId <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Invalid subscriber ID']);
+        exit;
+    }
+
+    try {
+        $db = Database::getConnection();
+        $stSub = $db->prepare("SELECT id, email, first_name, last_name, lead_score FROM subscribers WHERE id = ?");
+        $stSub->execute([$subId]);
+        $sub = $stSub->fetch();
+
+        if (!$sub) {
+            echo json_encode(['success' => false, 'error' => 'Subscriber not found']);
+            exit;
+        }
+
+        $stLogs = $db->prepare("SELECT * FROM lead_score_logs WHERE subscriber_id = ? ORDER BY id DESC LIMIT 50");
+        $stLogs->execute([$subId]);
+        $logs = $stLogs->fetchAll();
+
+        echo json_encode([
+            'success' => true,
+            'subscriber' => $sub,
+            'logs' => $logs
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
     exit;
 }
 

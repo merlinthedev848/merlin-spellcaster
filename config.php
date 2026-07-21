@@ -153,6 +153,39 @@ function sc_update_subscriber_geoip(int $subscriberId, string $ip): void {
 }
 
 /**
+ * Safely log lead score adjustments with clear event reasons
+ */
+function logScoreChange(int $subscriberId, int $pointsChanged, string $reason): int {
+    if ($subscriberId <= 0 || $pointsChanged === 0) {
+        return 0;
+    }
+    try {
+        $db = Database::getConnection();
+        // 1. Update subscriber score
+        $stUpd = $db->prepare("UPDATE subscribers SET lead_score = GREATEST(0, lead_score + ?) WHERE id = ?");
+        $stUpd->execute([$pointsChanged, $subscriberId]);
+
+        // 2. Fetch new total
+        $stScore = $db->prepare("SELECT lead_score FROM subscribers WHERE id = ?");
+        $stScore->execute([$subscriberId]);
+        $newScore = (int)$stScore->fetchColumn();
+
+        // 3. Insert detailed audit trail log
+        $stLog = $db->prepare("INSERT INTO lead_score_logs (subscriber_id, points_changed, new_total_score, reason, created_at) VALUES (?, ?, ?, ?, NOW())");
+        $stLog->execute([$subscriberId, $pointsChanged, $newScore, $reason]);
+
+        // 4. Log general activity
+        $sign = $pointsChanged > 0 ? "+{$pointsChanged}" : "{$pointsChanged}";
+        logActivity($subscriberId, 'score_adjusted', "Lead score updated ({$sign} pts): {$reason}");
+
+        return $newScore;
+    } catch (Throwable $e) {
+        error_log('logScoreChange error: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
  * Bootstrap database schema if it doesn't exist
  */
 function _bootstrapSchema(PDO $db): void {
@@ -709,8 +742,27 @@ function _runMigrations(PDO $db): void {
         }
     }
 
+    // 16. Create lead_score_logs table
+    try {
+        $db->query("SELECT 1 FROM lead_score_logs LIMIT 1");
+    } catch (PDOException) {
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS lead_score_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                subscriber_id INT NOT NULL,
+                points_changed INT NOT NULL,
+                new_total_score INT NOT NULL,
+                reason VARCHAR(255) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX (subscriber_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {
+            error_log('Migration Error (lead_score_logs): ' . $e->getMessage());
+        }
+    }
+
     // Mark schema as up-to-date
-    setSetting('schema_version', '16');
+    setSetting('schema_version', '17');
 }
 
 /**

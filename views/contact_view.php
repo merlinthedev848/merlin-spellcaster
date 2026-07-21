@@ -166,6 +166,42 @@ declare(strict_types=1);
         </div>
     </div>
 
+    <!-- Lead Score Breakdown Card -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="card-title">⭐ Lead Score Rationale & Point Breakdown</span>
+            <span style="font-weight: 700; font-size: 16px; color: var(--theme-blurple); background: var(--theme-blurple-light); padding: 4px 12px; border-radius: 20px;">
+                Total Score: <?= (int)($contact['lead_score'] ?? 0) ?> pts
+            </span>
+        </div>
+        
+        <?php if (empty($scoreLogs)): ?>
+            <p style="color: var(--theme-dark-slate); font-size: 13px; margin: 0; padding: 12px 0;">No detailed point logs recorded yet. Score adjustments from email opens (+1), link clicks (+5), and automations will automatically appear here with exact reasons.</p>
+        <?php else: ?>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                <?php foreach ($scoreLogs as $sLog): 
+                    $pts = (int)$sLog['points_changed'];
+                    $isPos = $pts > 0;
+                ?>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--theme-bg); border-radius: 8px; border: 1px solid var(--theme-border);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-weight: 800; font-size: 13px; padding: 4px 8px; border-radius: 6px; <?= $isPos ? 'background: rgba(16,185,129,0.15); color: #10b981;' : 'background: rgba(239,68,68,0.15); color: #ef4444;' ?>">
+                                <?= $isPos ? "+{$pts}" : $pts ?> pts
+                            </span>
+                            <div>
+                                <span style="font-weight: 600; font-size: 13px; color: var(--theme-dark); display: block;"><?= e($sLog['reason']) ?></span>
+                                <span style="font-size: 11px; color: var(--theme-dark-slate);"><?= date('M j, Y H:i:s', strtotime($sLog['created_at'])) ?></span>
+                            </div>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 700; color: var(--theme-dark-slate);">
+                            Resulting Score: <?= (int)$sLog['new_total_score'] ?> pts
+                        </span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
     <!-- Timeline Event Card -->
     <div class="card">
         <div class="card-header"><span class="card-title">Event Timeline</span></div>

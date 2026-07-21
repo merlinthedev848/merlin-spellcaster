@@ -180,9 +180,13 @@ class Automation {
                 }
                 elseif ($stepType === 'adjust_points') {
                     $points = (int)$stepValue;
-                    $db->prepare("UPDATE subscribers SET lead_score = lead_score + ? WHERE id = ?")
-                       ->execute([$points, $subId]);
-                    logActivity($subId, 'score_adjusted', "Lead score adjusted by automation: " . ($points >= 0 ? "+{$points}" : $points) . " points");
+                    $autoId = (int)($step['automation_id'] ?? 0);
+                    $autoTitle = "Automation #{$autoId}";
+                    if ($autoId > 0) {
+                        $aName = $db->query("SELECT title FROM automations WHERE id = {$autoId}")->fetchColumn();
+                        if ($aName) $autoTitle = $aName;
+                    }
+                    logScoreChange($subId, $points, "Automation Workflow rule: {$autoTitle}");
                 }
                 elseif ($stepType === 'trigger_webhook') {
                     $webhookUrl = $stepValue;

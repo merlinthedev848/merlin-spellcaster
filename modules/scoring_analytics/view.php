@@ -64,21 +64,27 @@ declare(strict_types=1);
                         <tr>
                             <th>Email Address</th>
                             <th>Name</th>
-                            <th style="text-align: right; width: 120px;">Lead Points</th>
+                            <th style="text-align: center; width: 120px;">Lead Points</th>
+                            <th style="text-align: right; width: 140px;">Score Rationale</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($topLeads)): ?>
                             <tr>
-                                <td colspan="3" style="text-align: center; color: var(--theme-dark-slate);">No contacts scored yet.</td>
+                                <td colspan="4" style="text-align: center; color: var(--theme-dark-slate);">No contacts scored yet.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($topLeads as $lead): ?>
                                 <tr>
                                     <td style="font-weight: 600; color: var(--theme-dark);"><?= e($lead['email']) ?></td>
                                     <td><?= e($lead['first_name'] . ' ' . $lead['last_name']) ?: '—' ?></td>
-                                    <td style="text-align: right; font-weight: 700; color: var(--theme-blurple);">
+                                    <td style="text-align: center; font-weight: 700; color: var(--theme-blurple);">
                                         <?= (int)$lead['lead_score'] ?> pts
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; font-weight: 600;" onclick="viewScoreBreakdown(<?= (int)$lead['id'] ?>, '<?= e(addslashes($lead['email'])) ?>')">
+                                            🔍 Breakdown
+                                        </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -89,6 +95,65 @@ declare(strict_types=1);
         </div>
     </div>
 </div>
+
+<!-- Score Breakdown Modal -->
+<div id="score_breakdown_modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 540px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; position: relative; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--theme-dark);" id="modal_sub_email">Lead Score Rationale</h3>
+            <button type="button" onclick="closeScoreBreakdown()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--theme-dark-slate);">✕</button>
+        </div>
+        <div id="modal_breakdown_content" style="overflow-y: auto; max-height: 50vh; display: flex; flex-direction: column; gap: 8px;">
+            <!-- Loaded via JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+async function viewScoreBreakdown(subId, email) {
+    const modal = document.getElementById('score_breakdown_modal');
+    const titleEl = document.getElementById('modal_sub_email');
+    const contentEl = document.getElementById('modal_breakdown_content');
+    
+    titleEl.textContent = 'Score Breakdown: ' + email;
+    contentEl.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--theme-dark-slate);">Loading score audit trail...</p>';
+    modal.style.display = 'flex';
+
+    try {
+        const resp = await fetch('<?= getSetting("app_url") ?>/scoring/breakdown?id=' + subId);
+        const data = await resp.json();
+
+        if (data.success && data.logs && data.logs.length > 0) {
+            contentEl.innerHTML = data.logs.map(log => {
+                const pts = parseInt(log.points_changed);
+                const isPos = pts > 0;
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--theme-bg); border-radius: 8px; border: 1px solid var(--theme-border);">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 6px; ${isPos ? 'background: rgba(16,185,129,0.15); color: #10b981;' : 'background: rgba(239,68,68,0.15); color: #ef4444;'}">
+                                ${isPos ? '+' + pts : pts} pts
+                            </span>
+                            <div>
+                                <span style="font-weight: 600; font-size: 13px; color: var(--theme-dark); display: block;">${log.reason}</span>
+                                <span style="font-size: 11px; color: var(--theme-dark-slate);">${log.created_at}</span>
+                            </div>
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: var(--theme-dark-slate);">Result: ${log.new_total_score} pts</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            contentEl.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--theme-dark-slate);">No specific score logs recorded for this subscriber yet.</p>';
+        }
+    } catch (err) {
+        contentEl.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 20px;">Failed to load score breakdown.</p>';
+    }
+}
+
+function closeScoreBreakdown() {
+    document.getElementById('score_breakdown_modal').style.display = 'none';
+}
+</script>
 
 <!-- TAB 2: Predictive Intent Models -->
 <div id="tab-predictive" class="scoring-tab-content" style="display: none;">
