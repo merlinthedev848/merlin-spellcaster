@@ -281,6 +281,22 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
                     </a>
                 </li>
                 <li>
+                    <a href="<?= e($appUrl) ?>/queue" class="sidebar-link <?= (str_starts_with($currentRoute, '/queue')) ? 'active' : '' ?>">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                            <path d="M22 7l-10 7L2 7"></path>
+                        </svg>
+                        Outbound Queue
+                        <?php
+                        $navDb = Database::getConnection();
+                        $navPending = (int)$navDb->query("SELECT COUNT(*) FROM email_queue WHERE status = 'pending'")->fetchColumn();
+                        if ($navPending > 0):
+                        ?>
+                            <span style="background: var(--warning); color: #000; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-left: auto;"><?= $navPending ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
+                <li>
                     <a href="<?= e($appUrl) ?>/analytics" class="sidebar-link <?= (str_starts_with($currentRoute, '/analytics')) ? 'active' : '' ?>">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="20" x2="18" y2="10"></line>

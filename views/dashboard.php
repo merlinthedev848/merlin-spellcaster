@@ -53,8 +53,8 @@ declare(strict_types=1);
             </div>
         </div>
         <div>
-            <a href="<?= e(getSetting('app_url')) ?>/diagnostics" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; font-weight: 600;">
-                Monitor Delivery & Speed →
+            <a href="<?= e(getSetting('app_url')) ?>/queue?status=pending" class="btn btn-primary" style="font-size: 12px; padding: 6px 14px; font-weight: 600;">
+                Inspect Pending Queue (<?= number_format($pendingEmailsCount) ?>) →
             </a>
         </div>
     </div>

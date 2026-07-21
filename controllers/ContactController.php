@@ -335,7 +335,7 @@ class ContactController {
         // 4. Fetch Subscribers with their associated tags
         $filterList = (int)($_GET['list_id'] ?? 0);
         $filterTag = (int)($_GET['tag_id'] ?? 0);
-        $search = trim($_GET['q'] ?? '');
+        $page = max(1, (int)($_GET['page'] ?? 1));
         $limitParam = isset($_GET['limit']) ? (int)$_GET['limit'] : (int)($_SESSION['contacts_per_page'] ?? 50);
         if (in_array($limitParam, [25, 50, 100, 250, 500, 1000, 5000], true)) {
             $limit = $limitParam;
@@ -404,7 +404,7 @@ class ContactController {
         $totalPages = (int)ceil($totalContacts / $limit);
         if ($totalPages < 1) $totalPages = 1;
         if ($page > $totalPages) $page = $totalPages;
-        $offset = ($page - 1) * $limit;
+        $offset = max(0, ($page - 1) * $limit);
         
         // Fetch pages contacts matching the criteria
         $query = "SELECT DISTINCT s.*, (SELECT MIN(t2.name) FROM tags t2 JOIN subscriber_tags st2 ON st2.tag_id = t2.id WHERE st2.subscriber_id = s.id) as first_tag FROM subscribers s";

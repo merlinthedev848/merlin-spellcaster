@@ -103,32 +103,44 @@ class EmailVerifier {
 
             // 2. HELO / EHLO
             $senderDomain = explode('@', $fromEmail)[1] ?? 'localhost';
-            fwrite($socket, "EHLO " . $senderDomain . "\r\n");
+            if (@fwrite($socket, "EHLO " . $senderDomain . "\r\n") === false) {
+                @fclose($socket);
+                return ['status' => 'unknown', 'reason' => 'Connection reset by server on EHLO'];
+            }
             $ehloResp = $read();
             if (!str_starts_with($ehloResp, '250')) {
-                fwrite($socket, "HELO " . $senderDomain . "\r\n");
+                if (@fwrite($socket, "HELO " . $senderDomain . "\r\n") === false) {
+                    @fclose($socket);
+                    return ['status' => 'unknown', 'reason' => 'Connection reset by server on HELO'];
+                }
                 $heloResp = $read();
                 if (!str_starts_with($heloResp, '250')) {
-                    fclose($socket);
+                    @fclose($socket);
                     return ['status' => 'unknown', 'reason' => 'HELO/EHLO rejected: ' . $ehloResp];
                 }
             }
 
             // 3. MAIL FROM
-            fwrite($socket, "MAIL FROM:<" . $fromEmail . ">\r\n");
+            if (@fwrite($socket, "MAIL FROM:<" . $fromEmail . ">\r\n") === false) {
+                @fclose($socket);
+                return ['status' => 'unknown', 'reason' => 'Connection reset on MAIL FROM'];
+            }
             $mailResp = $read();
             if (!str_starts_with($mailResp, '250')) {
-                fclose($socket);
+                @fclose($socket);
                 return ['status' => 'unknown', 'reason' => 'Sender rejected: ' . $mailResp];
             }
 
             // 4. RCPT TO
-            fwrite($socket, "RCPT TO:<" . $email . ">\r\n");
+            if (@fwrite($socket, "RCPT TO:<" . $email . ">\r\n") === false) {
+                @fclose($socket);
+                return ['status' => 'unknown', 'reason' => 'Connection reset on RCPT TO'];
+            }
             $rcptResp = $read();
             
             // 5. QUIT
-            fwrite($socket, "QUIT\r\n");
-            fclose($socket);
+            @fwrite($socket, "QUIT\r\n");
+            @fclose($socket);
 
             // Parse RCPT response
             if (preg_match('/^(550|551|552|554)/', $rcptResp)) {

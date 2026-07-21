@@ -120,6 +120,11 @@ try {
             $controller->index();
             break;
 
+        case '/queue':
+            $controller = new QueueController();
+            $controller->index();
+            break;
+
         case '/campaigns/create':
             $controller = new CampaignController();
             $controller->create();
