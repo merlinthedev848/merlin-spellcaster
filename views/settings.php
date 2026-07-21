@@ -97,6 +97,12 @@ $appUrl = rtrim(getSetting('app_url', 'http://localhost/merlin-spellcaster'), '/
                     </div>
                 </div>
 
+                <div class="form-group" style="margin-top: 16px;">
+                    <label class="form-label" for="setting_custom_tracking_domain">Custom Open/Click Tracking Domain (Optional CNAME)</label>
+                    <input class="form-control" type="text" id="setting_custom_tracking_domain" name="setting_custom_tracking_domain" value="<?= e(getSetting('custom_tracking_domain', '')) ?>" placeholder="e.g. track.chriskendallvo.com">
+                    <p style="font-size: 11px; color: var(--theme-dark-slate); margin-top: 4px;">Point a CNAME record from your tracking domain to your main app server URL for white-labeled deliverability.</p>
+                </div>
+
                 <!-- Test SMTP Connection Action -->
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--theme-border);">
                     <label class="form-label" style="margin-bottom: 6px; font-weight: 600;">Test SMTP Mailer Connection</label>

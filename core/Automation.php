@@ -239,6 +239,39 @@ class Automation {
                             VALUES (?, ?, 'pending', NOW())
                         ")->execute([$campaignId, $subId]);
                     }
+                }
+                elseif ($stepType === 'if_else') {
+                    $parts = explode(':', $stepValue);
+                    $condType = $parts[0] ?? '';
+                    $condVal = $parts[1] ?? '';
+                    $jumpOrder = (int)($parts[2] ?? ($orderNum + 2));
+
+                    $pass = false;
+                    if ($condType === 'has_tag') {
+                        $stTag = $db->prepare("SELECT COUNT(*) FROM subscriber_tags WHERE subscriber_id = ? AND tag_id = ?");
+                        $stTag->execute([$subId, (int)$condVal]);
+                        $pass = ((int)$stTag->fetchColumn()) > 0;
+                    } elseif ($condType === 'min_score') {
+                        $stScore = $db->prepare("SELECT lead_score FROM subscribers WHERE id = ?");
+                        $stScore->execute([$subId]);
+                        $pass = ((int)$stScore->fetchColumn()) >= (int)$condVal;
+                    } elseif ($condType === 'opened_camp') {
+                        $stOpen = $db->prepare("SELECT COUNT(*) FROM campaign_opens WHERE campaign_id = ? AND subscriber_id = ?");
+                        $stOpen->execute([(int)$condVal, $subId]);
+                        $pass = ((int)$stOpen->fetchColumn()) > 0;
+                    }
+
+                    if (!$pass) {
+                        $stJump = $db->prepare("SELECT * FROM automation_steps WHERE automation_id = ? AND order_num >= ? ORDER BY order_num ASC LIMIT 1");
+                        $stJump->execute([$autoId, $jumpOrder]);
+                        $jumpStep = $stJump->fetch();
+                        if ($jumpStep) {
+                            self::scheduleStep($subId, $autoId, $jumpStep, new DateTime());
+                            $db->commit();
+                            $processedCount++;
+                            continue;
+                        }
+                    }
                 } 
                 elseif ($stepType === 'tag_if_not_opened') {
                     $parts = explode(':', $stepValue);

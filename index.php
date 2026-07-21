@@ -41,7 +41,9 @@ $publicRoutes = [
     '/cron',
     '/subscribe',
     '/go',
-    '/webhooks/incoming'
+    '/webhooks/incoming',
+    '/api/form-submit',
+    '/widget.js'
 ];
 
 if (!in_array($routePath, $publicRoutes, true)) {
@@ -177,6 +179,20 @@ try {
             $controller = new FormController();
             $controller->edit();
             break;
+
+        case '/api/form-submit':
+            $controller = new FormController();
+            $controller->submitApi();
+            break;
+
+        case '/widget.js':
+            header('Content-Type: application/javascript');
+            if (file_exists(__DIR__ . '/widget.js')) {
+                readfile(__DIR__ . '/widget.js');
+            } else {
+                echo "console.error('widget.js missing');";
+            }
+            exit;
 
         case '/subscribe':
             $controller = new FormController();

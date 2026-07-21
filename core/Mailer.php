@@ -173,8 +173,15 @@ class Mailer {
             $headers[] = "MIME-Version: 1.0";
             $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
             // RFC 8058 One-Click List-Unsubscribe Headers
-            $appUrl = rtrim(getSetting('app_url', 'http://localhost'), '/');
-            $unsubUrl = "{$appUrl}/unsubscribe?email=" . urlencode($to);
+            $customTrack = trim(getSetting('custom_tracking_domain', ''));
+            if (!empty($customTrack)) {
+                $customTrack = (str_starts_with($customTrack, 'http://') || str_starts_with($customTrack, 'https://')) ? $customTrack : "https://{$customTrack}";
+                $baseUrl = rtrim($customTrack, '/');
+            } else {
+                $baseUrl = rtrim(getSetting('app_url', 'http://localhost'), '/');
+            }
+
+            $unsubUrl = "{$baseUrl}/unsubscribe?email=" . urlencode($to);
             if (!isset($extraHeaders['List-Unsubscribe'])) {
                 $headers[] = "List-Unsubscribe: <{$unsubUrl}>";
             }

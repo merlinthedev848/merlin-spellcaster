@@ -331,4 +331,71 @@ class FormController {
         $viewPath = dirname(__DIR__) . '/views/subscribe.php';
         include $viewPath;
     }
+
+    /**
+     * Public CORS API for widget.js external form submissions
+     */
+    public function submitApi(): void {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: POST, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type');
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $email = strtolower(trim($input['email'] ?? ''));
+        $firstName = trim($input['first_name'] ?? '');
+        $lastName = trim($input['last_name'] ?? '');
+        $phone = trim($input['phone'] ?? '');
+        $formId = (int)($input['form_id'] ?? 0);
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid email address.']);
+            exit;
+        }
+
+        try {
+            $db = Database::getConnection();
+
+            $listId = 0;
+            if ($formId > 0) {
+                $stF = $db->prepare("SELECT list_id FROM forms WHERE id = ?");
+                $stF->execute([$formId]);
+                $listId = (int)$stF->fetchColumn();
+            }
+
+            $stCheck = $db->prepare("SELECT id FROM subscribers WHERE email = ?");
+            $stCheck->execute([$email]);
+            $subId = (int)$stCheck->fetchColumn();
+
+            if ($subId > 0) {
+                $stUpd = $db->prepare("UPDATE subscribers SET first_name = COALESCE(NULLIF(?, ''), first_name), last_name = COALESCE(NULLIF(?, ''), last_name), phone = COALESCE(NULLIF(?, ''), phone), updated_at = NOW() WHERE id = ?");
+                $stUpd->execute([$firstName, $lastName, $phone, $subId]);
+            } else {
+                $stIns = $db->prepare("INSERT INTO subscribers (email, first_name, last_name, phone, status, created_at) VALUES (?, ?, ?, ?, 'active', NOW())");
+                $stIns->execute([$email, $firstName, $lastName, $phone]);
+                $subId = (int)$db->lastInsertId();
+            }
+
+            if ($listId > 0) {
+                $db->prepare("INSERT IGNORE INTO subscriber_lists (subscriber_id, list_id, status) VALUES (?, ?, 'confirmed')")->execute([$subId, $listId]);
+            }
+
+            logActivity($subId, 'subscribe', "Opted in via Embeddable Web Widget (Form #{$formId})");
+            Automation::trigger('subscribe', $subId);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Thank you for subscribing!',
+                'subscriber_id' => $subId
+            ]);
+        } catch (Throwable $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
 }

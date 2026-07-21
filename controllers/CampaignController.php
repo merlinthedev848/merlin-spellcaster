@@ -51,6 +51,49 @@ class CampaignController {
                 header('Location: ' . getSetting('app_url') . '/campaigns');
                 exit;
             }
+            if ($action === 'resend_unopened' && $id > 0) {
+                $stOrig = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
+                $stOrig->execute([$id]);
+                $orig = $stOrig->fetch();
+
+                if ($orig) {
+                    $newSubject = trim($_POST['new_subject'] ?? '') ?: "[Re-send] " . $orig['subject'];
+                    $newName = "Re-send: " . $orig['name'] . " (" . date('M j') . ")";
+                    
+                    $stIns = $db->prepare("
+                        INSERT INTO campaigns (name, subject, list_id, body_html, body_text, status, include_unsubscribe, max_per_hour, created_at)
+                        VALUES (?, ?, ?, ?, ?, 'active', ?, ?, NOW())
+                    ");
+                    $stIns->execute([$newName, $newSubject, $orig['list_id'], $orig['body_html'], $orig['body_text'], $orig['include_unsubscribe'], $orig['max_per_hour']]);
+                    $newId = (int)$db->lastInsertId();
+
+                    $stNonOpeners = $db->prepare("
+                        SELECT DISTINCT eq.subscriber_id 
+                        FROM email_queue eq
+                        LEFT JOIN campaign_opens co ON co.campaign_id = eq.campaign_id AND co.subscriber_id = eq.subscriber_id
+                        WHERE eq.campaign_id = ? 
+                          AND co.id IS NULL
+                          AND eq.subscriber_id IN (SELECT id FROM subscribers WHERE status = 'active')
+                    ");
+                    $stNonOpeners->execute([$id]);
+                    $subIds = $stNonOpeners->fetchAll(PDO::FETCH_COLUMN);
+
+                    $queued = 0;
+                    if (!empty($subIds)) {
+                        $stQueue = $db->prepare("INSERT IGNORE INTO email_queue (campaign_id, subscriber_id, status, send_at) VALUES (?, ?, 'pending', NOW())");
+                        foreach ($subIds as $sId) {
+                            $stQueue->execute([$newId, (int)$sId]);
+                            $queued++;
+                        }
+                    }
+
+                    $_SESSION['flash_success'] = "Re-send campaign created and queued for {$queued} non-openers!";
+                } else {
+                    $_SESSION['flash_error'] = "Original campaign not found.";
+                }
+                header('Location: ' . getSetting('app_url') . '/campaigns');
+                exit;
+            }
         }
         
         // Fetch all campaigns

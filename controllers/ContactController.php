@@ -372,6 +372,15 @@ class ContactController {
             $conditions[] = "stg.tag_id = ?";
             $params[] = $filterTag;
         }
+
+        $segment = trim($_GET['segment'] ?? '');
+        if ($segment === 'active_openers') {
+            $conditions[] = "s.id IN (SELECT DISTINCT subscriber_id FROM campaign_opens WHERE opened_at >= DATE_SUB(NOW(), INTERVAL 30 DAY))";
+        } elseif ($segment === 'high_intent') {
+            $conditions[] = "s.lead_score >= 50";
+        } elseif ($segment === 'cold_contacts') {
+            $conditions[] = "s.id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_opens) AND s.created_at <= DATE_SUB(NOW(), INTERVAL 14 DAY)";
+        }
         
         if ($search !== '') {
             $conditions[] = "(s.email LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ?)";

@@ -202,6 +202,15 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
     
     <!-- Right Pane: CRM Table -->
     <div style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- Smart Segments Quick Filter Bar -->
+        <?php $currentSegment = $_GET['segment'] ?? ''; ?>
+        <div style="display: flex; gap: 8px; font-size: 13px; flex-wrap: wrap;">
+            <a href="?<?= http_build_query(array_merge($_GET, ['segment' => ''])) ?>" class="btn <?= $currentSegment === '' ? 'btn-primary' : 'btn-secondary' ?>" style="padding: 6px 14px; font-size: 12px; font-weight: 600;">All Contacts</a>
+            <a href="?<?= http_build_query(array_merge($_GET, ['segment' => 'active_openers'])) ?>" class="btn <?= $currentSegment === 'active_openers' ? 'btn-primary' : 'btn-secondary' ?>" style="padding: 6px 14px; font-size: 12px; font-weight: 600;">🔥 Active Openers (30d)</a>
+            <a href="?<?= http_build_query(array_merge($_GET, ['segment' => 'high_intent'])) ?>" class="btn <?= $currentSegment === 'high_intent' ? 'btn-primary' : 'btn-secondary' ?>" style="padding: 6px 14px; font-size: 12px; font-weight: 600;">⭐ High Intent (Score 50+)</a>
+            <a href="?<?= http_build_query(array_merge($_GET, ['segment' => 'cold_contacts'])) ?>" class="btn <?= $currentSegment === 'cold_contacts' ? 'btn-primary' : 'btn-secondary' ?>" style="padding: 6px 14px; font-size: 12px; font-weight: 600;">❄️ Cold Contacts</a>
+        </div>
+
         <div class="card" style="padding: 16px; flex-direction: row; gap: 12px; align-items: center; justify-content: space-between;">
             <form method="get" action="" style="display: flex; gap: 12px; align-items: center; flex-grow: 1; margin-bottom: 0;">
                 <?php if ($currentListId > 0): ?>
