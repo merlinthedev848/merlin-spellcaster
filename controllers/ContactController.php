@@ -648,6 +648,7 @@ class ContactController {
         
         // Flush queue
         $db->prepare("DELETE FROM email_queue WHERE subscriber_id = ? AND status = 'pending'")->execute([$subId]);
+        $db->prepare("DELETE FROM automation_queue WHERE subscriber_id = ? AND status = 'pending'")->execute([$subId]);
     }
 
     public function checkEmail(): void {
