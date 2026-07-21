@@ -44,11 +44,14 @@ declare(strict_types=1);
                 <div class="form-group">
                     <label class="form-label" for="channel">Search Engines</label>
                     <select class="form-control" id="channel">
-                        <option value="all" selected>All Engines (DuckDuckGo + Bing + Yahoo + Ask)</option>
+                        <option value="all" selected>All 7 Engines (Google + DuckDuckGo + Bing + Yahoo + Ask + Mojeek + Brave)</option>
+                        <option value="google">Google Engine Only</option>
                         <option value="duckduckgo">DuckDuckGo Engine Only</option>
                         <option value="bing">Bing Search Engine Only</option>
                         <option value="yahoo">Yahoo Search Engine Only</option>
                         <option value="ask">Ask.com Engine Only</option>
+                        <option value="mojeek">Mojeek Engine Only</option>
+                        <option value="brave">Brave Engine Only</option>
                     </select>
                 </div>
                 <div class="form-group">
