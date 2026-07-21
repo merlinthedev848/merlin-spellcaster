@@ -383,6 +383,7 @@ class ContactController {
         $tags = $db->query("SELECT * FROM tags ORDER BY name ASC")->fetchAll();
         
         // 4. Fetch Subscribers with their associated tags
+        $search = trim($_GET['q'] ?? $_GET['search'] ?? '');
         $filterList = (int)($_GET['list_id'] ?? 0);
         $filterTag = (int)($_GET['tag_id'] ?? 0);
         $page = max(1, (int)($_GET['page'] ?? 1));

@@ -82,7 +82,7 @@ declare(strict_types=1);
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--theme-bg); border-radius: 6px; border: 1px solid var(--theme-border);">
                             <div>
                                 <a href="<?= e(getSetting('app_url')) ?>/automations/edit?id=<?= $auto['id'] ?>" style="font-weight: 600; color: var(--theme-blurple); text-decoration: none; font-size: 14px;">
-                                    <?= e($auto['title']) ?>
+                                    <?= e($auto['name']) ?>
                                 </a>
                                 <span style="font-size: 12px; color: var(--theme-dark-slate); display: block;">Trigger: <?= e($auto['trigger_event']) ?></span>
                             </div>

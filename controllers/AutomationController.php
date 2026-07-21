@@ -24,9 +24,9 @@ class AutomationController {
                 $auto = $stAuto->fetch();
 
                 if ($auto) {
-                    $newTitle = $auto['title'] . " (Copy)";
-                    $stIns = $db->prepare("INSERT INTO automations (title, trigger_event, status, created_at) VALUES (?, ?, 'inactive', NOW())");
-                    $stIns->execute([$newTitle, $auto['trigger_event']]);
+                    $newName = ($auto['name'] ?? 'Automation') . " (Copy)";
+                    $stIns = $db->prepare("INSERT INTO automations (name, trigger_event, status, created_at) VALUES (?, ?, 'inactive', NOW())");
+                    $stIns->execute([$newName, $auto['trigger_event']]);
                     $newId = (int)$db->lastInsertId();
 
                     $stSteps = $db->prepare("SELECT * FROM automation_steps WHERE automation_id = ? ORDER BY order_num ASC");

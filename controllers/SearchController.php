@@ -42,9 +42,9 @@ class SearchController {
 
             // 3. Search Automations
             $stAuto = $db->prepare("
-                SELECT id, title, trigger_event, status, created_at 
+                SELECT id, name, trigger_event, status, created_at 
                 FROM automations 
-                WHERE title LIKE ? OR trigger_event LIKE ? 
+                WHERE name LIKE ? OR trigger_event LIKE ? 
                 ORDER BY created_at DESC 
                 LIMIT 20
             ");
