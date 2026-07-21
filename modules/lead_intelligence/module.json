@@ -1,9 +1,17 @@
 {
     "id": "lead_intelligence",
-    "name": "Lead Acquisition & Intelligence Hub",
-    "version": "2.0.0",
-    "description": "7-Engine Intent Search Scraper, Google Maps Finder, Email Verifier, and B2B Profile Data Enrichment.",
-    "author": "Merlin Team",
+    "name": "🎯 Lead Acquisition & Intelligence Suite",
+    "version": "2.5.0",
+    "price": "$199.00 One-time",
+    "tier": "Commercial Power Suite",
+    "description": "7-Engine Intent Search Scraper (Google, Bing, DuckDuckGo, Yahoo, Ask, Mojeek, Brave), Google Maps B2B Lead Generator, Email Verifier, and B2B Profile Data Enrichment.",
+    "features": [
+        "7-Engine Real-Time Buyer Intent Crawler",
+        "Google Maps B2B Studio & Agency Generator",
+        "Live MX & Deliverability Email Verifier",
+        "B2B Corporate Profile Enrichment"
+    ],
+    "author": "Merlin Software Inc.",
     "menu_label": "🎯 Lead Intelligence",
     "menu_path": "/lead-intelligence"
 }

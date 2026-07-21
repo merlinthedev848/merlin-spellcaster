@@ -1,8 +1,17 @@
 {
     "id": "workflow_engine",
-    "name": "Behavioral Workflow Engine",
-    "version": "1.0.0",
-    "description": "Visual, node-based automation builder for creating advanced marketing funnels and conditional logic.",
-    "menu_label": "Automations",
-    "menu_path": "/automations"
+    "name": "⚡ Automation & Webhook Workflow Suite",
+    "version": "2.5.0",
+    "price": "$149.00 One-time",
+    "tier": "Commercial Power Suite",
+    "description": "Multi-branching visual If/Else automation flows, instant Twilio SMS broadcasts, inbound/outbound Webhooks, and RSS-to-Email automated feeds.",
+    "features": [
+        "Multi-Branching If/Else Conditional Logic",
+        "Instant Twilio SMS Alerts & Broadcasts",
+        "Outbound & Inbound Webhooks API",
+        "Automated RSS-to-Email Newsletter Feeds"
+    ],
+    "author": "Merlin Software Inc.",
+    "menu_label": "⚡ Workflows & SMS",
+    "menu_path": "/workflows"
 }

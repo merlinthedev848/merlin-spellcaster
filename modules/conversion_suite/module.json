@@ -1,9 +1,18 @@
 {
     "id": "conversion_suite",
-    "name": "Conversion & Viral Engagement Suite",
-    "description": "Drive user actions and viral loops growth. Includes dynamic countdown email timers, smart link round-robin rotators, and structured referral programs.",
-    "version": "1.0.0",
-    "author": "Antigravity",
-    "menu_label": "Conversion Suite",
+    "name": "🚀 Conversions & Traffic Suite",
+    "version": "2.5.0",
+    "price": "$149.00 One-time",
+    "tier": "Commercial Power Suite",
+    "description": "Live Dynamic PNG Countdown Timers, Smart Traffic Link Rotators, Viral Growth Referral Engine, Dynamic UTM Builder, and Exit-Intent Web Personalization.",
+    "features": [
+        "Dynamic Inbox PNG Countdown Tickers (FOMO)",
+        "Weighted Split-Test Link Rotators",
+        "Viral Growth Referral Loops (?ref=CODE)",
+        "UTM Campaign Link Builder",
+        "Exit-Intent Web Personalization Popups"
+    ],
+    "author": "Merlin Software Inc.",
+    "menu_label": "🚀 Conversions & Traffic",
     "menu_path": "/conversions"
 }

@@ -1,8 +1,17 @@
 {
     "id": "ai_copywriter",
-    "name": "AI Copywriter",
-    "version": "1.0.0",
-    "description": "Generates high-converting email copy and subject lines using AI.",
-    "menu_label": "AI Copywriter",
+    "name": "🤖 AI Assistant & Copywriter Suite",
+    "version": "2.5.0",
+    "price": "$99.00 One-time",
+    "tier": "Commercial Power Suite",
+    "description": "AI-powered subject line generator, high-converting email body copywriter, and spam-score optimization assistant.",
+    "features": [
+        "OpenAI / Claude / Gemini Integration",
+        "High-Converting Email Copy Generation",
+        "Subject Line CTR Optimizer",
+        "Spam-Score Copy Improver"
+    ],
+    "author": "Merlin Software Inc.",
+    "menu_label": "🤖 AI Copywriter",
     "menu_path": "/ai-copywriter"
 }
