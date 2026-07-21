@@ -73,23 +73,24 @@ class ContactController {
             }
 
             if ($action === 'mass_delete') {
-                $selected = $_POST['selected_contacts'] ?? [];
+                $selected = array_map('intval', $_POST['selected_contacts'] ?? $_POST['subscriber_ids'] ?? []);
                 if (!empty($selected)) {
                     $placeholders = implode(',', array_fill(0, count($selected), '?'));
                     $db->beginTransaction();
                     try {
-                        $st = $db->prepare("DELETE FROM subscribers WHERE id IN ($placeholders)");
-                        $st->execute(array_map('intval', $selected));
+                        $db->prepare("DELETE FROM subscriber_tags WHERE subscriber_id IN ({$placeholders})")->execute($selected);
+                        $db->prepare("DELETE FROM subscriber_lists WHERE subscriber_id IN ({$placeholders})")->execute($selected);
+                        $db->prepare("DELETE FROM email_queue WHERE subscriber_id IN ({$placeholders})")->execute($selected);
+                        $db->prepare("DELETE FROM automation_queue WHERE subscriber_id IN ({$placeholders})")->execute($selected);
+                        $db->prepare("DELETE FROM subscribers WHERE id IN ({$placeholders})")->execute($selected);
                         $db->commit();
-                        $_SESSION['flash_success'] = count($selected) . ' contacts deleted successfully.';
+                        $_SESSION['flash_success'] = count($selected) . ' contact(s) deleted successfully.';
                     } catch (Throwable $e) {
                         if ($db->inTransaction()) {
                             $db->rollBack();
                         }
                         $_SESSION['flash_error'] = 'Failed to execute mass deletion: ' . $e->getMessage();
                     }
-                } else {
-                    $_SESSION['flash_error'] = 'No contacts selected for deletion.';
                 }
                 header('Location: ' . getSetting('app_url') . '/contacts');
                 exit;
