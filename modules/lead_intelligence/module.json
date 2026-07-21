@@ -1,0 +1,9 @@
+{
+    "id": "lead_intelligence",
+    "name": "Lead Acquisition & Intelligence Hub",
+    "version": "2.0.0",
+    "description": "7-Engine Intent Search Scraper, Google Maps Finder, Email Verifier, and B2B Profile Data Enrichment.",
+    "author": "Merlin Team",
+    "menu_label": "🎯 Lead Intelligence",
+    "menu_path": "/lead-intelligence"
+}
