@@ -7,6 +7,11 @@ declare(strict_types=1);
         <h1>Lead Scoring & Predictive Analytics</h1>
         <p>Model contact purchase intent, view conversion statuses, and manage point scoring metrics rules.</p>
     </div>
+    <div>
+        <button type="button" class="btn btn-primary" style="font-weight: 600; padding: 10px 20px;" onclick="recalculateScores()">
+            ⚡ Recalculate & Score All Contacts
+        </button>
+    </div>
 </div>
 
 <!-- Tabs Row -->

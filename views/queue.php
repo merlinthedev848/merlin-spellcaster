@@ -25,6 +25,10 @@ declare(strict_types=1);
         <?php endif; ?>
 
         <?php if ($pendingCount > 0): ?>
+            <form method="post" action="?action=process_all" style="margin: 0;">
+                <?= Auth::csrfField() ?>
+                <button type="submit" class="btn btn-primary" style="font-weight: 600; padding: 8px 16px;">⚡ Process & Send All Pending Emails (<?= $pendingCount ?>)</button>
+            </form>
             <form method="post" action="?action=flush_pending" style="margin: 0;" onsubmit="return confirm('WARNING: Are you sure you want to flush and remove all <?= $pendingCount ?> pending emails from the queue?');">
                 <?= Auth::csrfField() ?>
                 <button type="submit" class="btn btn-danger" style="font-weight: 600; padding: 8px 16px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v2"></path></svg>Flush <?= $pendingCount ?> Pending Emails</button>

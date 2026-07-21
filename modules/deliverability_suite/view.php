@@ -7,6 +7,11 @@ declare(strict_types=1);
         <h1>Email Deliverability Suite</h1>
         <p>Audit deliverability, screen content for spam words, and schedule automated domain warming campaigns.</p>
     </div>
+    <div>
+        <button type="button" class="btn btn-primary" style="font-weight: 600; padding: 10px 20px;" onclick="runEmailScan()">
+            ⚡ Verify & Process All Contacts
+        </button>
+    </div>
 </div>
 
 <!-- Tabs Row -->

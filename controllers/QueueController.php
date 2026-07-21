@@ -40,6 +40,20 @@ class QueueController {
                 exit;
             }
 
+            if ($action === 'process_all') {
+                require_once __DIR__ . '/../core/Queue.php';
+                $result = Queue::process(500);
+                $sent = (int)($result['sent'] ?? 0);
+                $failed = (int)($result['failed'] ?? 0);
+                if ($sent > 0 || $failed > 0) {
+                    $_SESSION['flash_success'] = "Processed queue batch: {$sent} email(s) sent successfully, {$failed} failed.";
+                } else {
+                    $_SESSION['flash_info'] = "No pending emails were ready for immediate dispatch.";
+                }
+                header('Location: ' . getSetting('app_url') . '/queue');
+                exit;
+            }
+
             if ($action === 'send_now' && $id > 0) {
                 require_once __DIR__ . '/../core/Queue.php';
                 $stItem = $db->prepare("
