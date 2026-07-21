@@ -29,34 +29,41 @@ declare(strict_types=1);
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="keyword">Search Target / Niche Keyword</label>
-                <input class="form-control" type="text" id="keyword" placeholder="e.g. Plumbers London or Dentist Boston">
+                <label class="form-label" for="keyword">Target Search Query / Buyer Intent Phrase</label>
+                <input class="form-control" type="text" id="keyword" placeholder="e.g. Looking for British Voice Over Actor or Newcastle Voiceover">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--theme-dark-slate); align-self: center;">Intent Presets:</span>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setKeyword('Looking for British Voice Over Actor')">🎙️ British Voiceover</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setKeyword('Newcastle Geordie Voiceover Artist')">🎙️ Geordie / Newcastle</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setKeyword('Looking for Northeast England Voice Actor')">🎙️ Northeast England</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setKeyword('Need English Voice Over Studio')">🎙️ English Studio</button>
+                </div>
             </div>
 
             <div class="form-row" style="margin-bottom: 16px;">
                 <div class="form-group">
-                    <label class="form-label" for="channel">Search Provider</label>
+                    <label class="form-label" for="channel">Search Engines</label>
                     <select class="form-control" id="channel">
-                        <option value="all" selected>All (Ask + Bing + Yahoo)</option>
-                        <option value="ask">Ask.com Only</option>
-                        <option value="bing">Bing Search Only</option>
-                        <option value="yahoo">Yahoo Search Only</option>
+                        <option value="all" selected>All Engines (DuckDuckGo + Bing + Yahoo + Ask)</option>
+                        <option value="duckduckgo">DuckDuckGo Engine Only</option>
+                        <option value="bing">Bing Search Engine Only</option>
+                        <option value="yahoo">Yahoo Search Engine Only</option>
+                        <option value="ask">Ask.com Engine Only</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="depth">Crawling Page Depth</label>
+                    <label class="form-label" for="depth">Crawling Depth</label>
                     <select class="form-control" id="depth">
-                        <option value="1">1 Page (Fast)</option>
-                        <option value="2" selected>2 Pages (Balanced)</option>
-                        <option value="3">3 Pages (Deep)</option>
-                        <option value="5">5 Pages (Extensive)</option>
+                        <option value="1">1 Page (Fast Scan)</option>
+                        <option value="2" selected>2 Pages (Deep Crawl)</option>
+                        <option value="3">3 Pages (Extensive Domain Audit)</option>
                     </select>
                 </div>
             </div>
 
             <div style="margin-top: auto;">
                 <button type="button" id="start_search_btn" class="btn btn-primary" onclick="runSearchScraper()" style="font-weight: 600; width: 100%; padding: 12px; justify-content: center;">
-                    Crawl Search Engines & Extract →
+                    ⚡ Search Buyer Intent & Extract Leads →
                 </button>
             </div>
         </div>
@@ -188,6 +195,11 @@ declare(strict_types=1);
         div.innerHTML = `<span style="color:#64748b">[${time}]</span> <span style="${colorStr}">${msg}</span>`;
         cons.appendChild(div);
         cons.scrollTop = cons.scrollHeight;
+    }
+
+    function setKeyword(val) {
+        document.getElementById('keyword').value = val;
+        runSearchScraper();
     }
 
     // Toggle checkboxes
