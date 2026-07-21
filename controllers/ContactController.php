@@ -317,6 +317,56 @@ class ContactController {
                 header('Location: ' . getSetting('app_url') . '/contacts');
                 exit;
             }
+
+            if ($action === 'bulk_action') {
+                $ids = array_map('intval', $_POST['subscriber_ids'] ?? []);
+                $bulkType = $_POST['bulk_type'] ?? '';
+
+                if (empty($ids)) {
+                    $_SESSION['flash_error'] = 'No contacts selected for bulk action.';
+                    header('Location: ' . getSetting('app_url') . '/contacts');
+                    exit;
+                }
+
+                $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+                if ($bulkType === 'delete') {
+                    $db->prepare("DELETE FROM subscriber_tags WHERE subscriber_id IN ({$placeholders})")->execute($ids);
+                    $db->prepare("DELETE FROM subscriber_lists WHERE subscriber_id IN ({$placeholders})")->execute($ids);
+                    $db->prepare("DELETE FROM email_queue WHERE subscriber_id IN ({$placeholders})")->execute($ids);
+                    $db->prepare("DELETE FROM automation_queue WHERE subscriber_id IN ({$placeholders})")->execute($ids);
+                    $db->prepare("DELETE FROM subscribers WHERE id IN ({$placeholders})")->execute($ids);
+                    $_SESSION['flash_success'] = "Deleted " . count($ids) . " contact(s).";
+                } elseif ($bulkType === 'add_tag' && isset($_POST['bulk_tag_id'])) {
+                    $tagId = (int)$_POST['bulk_tag_id'];
+                    if ($tagId > 0) {
+                        $stT = $db->prepare("INSERT IGNORE INTO subscriber_tags (subscriber_id, tag_id) VALUES (?, ?)");
+                        foreach ($ids as $sId) {
+                            $stT->execute([$sId, $tagId]);
+                            Automation::trigger("tag_added:{$tagId}", $sId);
+                        }
+                        $_SESSION['flash_success'] = "Applied tag to " . count($ids) . " contact(s).";
+                    }
+                } elseif ($bulkType === 'add_list' && isset($_POST['bulk_list_id'])) {
+                    $listId = (int)$_POST['bulk_list_id'];
+                    if ($listId > 0) {
+                        $stL = $db->prepare("INSERT IGNORE INTO subscriber_lists (subscriber_id, list_id) VALUES (?, ?)");
+                        foreach ($ids as $sId) {
+                            $stL->execute([$sId, $listId]);
+                        }
+                        $_SESSION['flash_success'] = "Added " . count($ids) . " contact(s) to target list.";
+                    }
+                } elseif ($bulkType === 'change_status' && isset($_POST['bulk_status_val'])) {
+                    $statusVal = $_POST['bulk_status_val'];
+                    if (in_array($statusVal, ['active', 'unsubscribed', 'bounced'], true)) {
+                        $params = array_merge([$statusVal], $ids);
+                        $db->prepare("UPDATE subscribers SET status = ? WHERE id IN ({$placeholders})")->execute($params);
+                        $_SESSION['flash_success'] = "Updated status of " . count($ids) . " contact(s) to {$statusVal}.";
+                    }
+                }
+                header('Location: ' . getSetting('app_url') . '/contacts');
+                exit;
+            }
         }
         
         // 2. Fetch Lists with count

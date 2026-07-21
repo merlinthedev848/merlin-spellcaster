@@ -232,25 +232,43 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                 <?php endif; ?>
             </form>
             
-            <!-- Bulk Action Delete Button & Tag assignments -->
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <select id="bulk_tag_id" class="form-control" style="margin-bottom: 0; max-width: 160px; font-size: 13px; padding: 6px 12px; height: auto;">
-                    <option value="">-- Apply/Remove Tag --</option>
+            <!-- Bulk Actions Bar -->
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <select id="bulk_tag_select" class="form-control" style="margin-bottom: 0; max-width: 150px; font-size: 12px; padding: 5px 8px; height: auto;">
+                    <option value="0">-- Apply Tag --</option>
                     <?php foreach ($tags as $t): ?>
                         <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button type="button" class="btn btn-secondary" onclick="submitBulkTag('add')" style="padding: 6px 12px; font-size: 12px; font-weight: 600;">Add Tag</button>
-                <button type="button" class="btn btn-secondary" onclick="submitBulkTag('remove')" style="padding: 6px 12px; font-size: 12px; font-weight: 600;">Remove Tag</button>
-                <button type="button" class="btn btn-danger" onclick="submitMassDelete()" style="padding: 6px 12px; font-size: 12px; font-weight: 600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+                <button type="button" class="btn btn-secondary" onclick="executeBulkAction('add_tag')" style="padding: 5px 10px; font-size: 12px; font-weight: 600;">Tag</button>
+
+                <select id="bulk_list_select" class="form-control" style="margin-bottom: 0; max-width: 150px; font-size: 12px; padding: 5px 8px; height: auto;">
+                    <option value="0">-- Add to List --</option>
+                    <?php foreach ($lists as $l): ?>
+                        <option value="<?= $l['id'] ?>"><?= e($l['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="button" class="btn btn-secondary" onclick="executeBulkAction('add_list')" style="padding: 5px 10px; font-size: 12px; font-weight: 600;">Add List</button>
+
+                <select id="bulk_status_select" class="form-control" style="margin-bottom: 0; max-width: 130px; font-size: 12px; padding: 5px 8px; height: auto;">
+                    <option value="">-- Status --</option>
+                    <option value="active">Active</option>
+                    <option value="unsubscribed">Unsubscribed</option>
+                    <option value="bounced">Bounced</option>
+                </select>
+                <button type="button" class="btn btn-secondary" onclick="executeBulkAction('change_status')" style="padding: 5px 10px; font-size: 12px; font-weight: 600;">Status</button>
+
+                <button type="button" class="btn btn-danger" onclick="executeBulkAction('delete')" style="padding: 5px 10px; font-size: 12px; font-weight: 600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
             </div>
         </div>
 
-        <!-- Unified Mass Action Wrapper Form -->
-        <form id="mass_delete_form" method="post" action="?action=mass_delete">
+        <!-- Unified Mass Action Form -->
+        <form id="bulk_contacts_form" method="post" action="?action=bulk_action">
             <?= Auth::csrfField() ?>
-            <!-- Hidden tag field for tags routing -->
-            <input type="hidden" name="bulk_tag_id" id="hidden_bulk_tag_id" value="">
+            <input type="hidden" name="bulk_type" id="hidden_bulk_type" value="">
+            <input type="hidden" name="bulk_tag_id" id="hidden_bulk_tag_id" value="0">
+            <input type="hidden" name="bulk_list_id" id="hidden_bulk_list_id" value="0">
+            <input type="hidden" name="bulk_status_val" id="hidden_bulk_status_val" value="">
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -406,69 +424,32 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
         updateFloatingBar();
     }
 
-    // Submit mass delete form
-    function submitMassDelete() {
-        const checked = document.querySelectorAll(".contact-checkbox:checked");
-        if (checked.length === 0) {
-            alert("Please select at least one contact to delete.");
-            return;
-        }
-        if (confirm("Are you sure you want to permanently delete " + checked.length + " selected contacts? This will clear all their tag assignments and activity logs. This action is irreversible.")) {
-            const form = document.getElementById("mass_delete_form");
-            form.action = "?action=mass_delete";
-            form.submit();
-        }
-    }
-
-    // Submit bulk tag add or remove (from top bar)
-    function submitBulkTag(mode) {
-        const checked = document.querySelectorAll(".contact-checkbox:checked");
-        const selectTag = document.getElementById("bulk_tag_id");
-        
-        if (checked.length === 0) {
-            alert("Please select at least one contact to apply changes.");
-            return;
-        }
-        
-        if (selectTag.value === "") {
-            alert("Please select a tag to apply from the dropdown list.");
+    function executeBulkAction(type) {
+        const checkboxes = document.querySelectorAll('input[name="subscriber_ids[]"]:checked');
+        if (checkboxes.length === 0) {
+            alert("Please select at least one contact to perform a bulk action.");
             return;
         }
 
-        document.getElementById("hidden_bulk_tag_id").value = selectTag.value;
-        const form = document.getElementById("mass_delete_form");
-        
-        if (mode === "add") {
-            form.action = "?action=mass_tag_add";
-        } else {
-            form.action = "?action=mass_tag_remove";
-        }
-        form.submit();
-    }
+        const form = document.getElementById("bulk_contacts_form");
+        document.getElementById("hidden_bulk_type").value = type;
 
-    // Submit bulk tag add or remove (from floating bottom bar)
-    function submitBulkTagBottom(mode) {
-        const checked = document.querySelectorAll(".contact-checkbox:checked");
-        const selectTag = document.getElementById("bulk_tag_id_bottom");
-        
-        if (checked.length === 0) {
-            alert("Please select at least one contact to apply changes.");
-            return;
-        }
-        
-        if (selectTag.value === "") {
-            alert("Please select a tag to apply from the dropdown list.");
-            return;
+        if (type === "delete") {
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} selected contact(s)?`)) return;
+        } else if (type === "add_tag") {
+            const tagVal = document.getElementById("bulk_tag_select").value;
+            if (tagVal === "0" || !tagVal) { alert("Please select a tag to apply."); return; }
+            document.getElementById("hidden_bulk_tag_id").value = tagVal;
+        } else if (type === "add_list") {
+            const listVal = document.getElementById("bulk_list_select").value;
+            if (listVal === "0" || !listVal) { alert("Please select a list to add contacts to."); return; }
+            document.getElementById("hidden_bulk_list_id").value = listVal;
+        } else if (type === "change_status") {
+            const statusVal = document.getElementById("bulk_status_select").value;
+            if (!statusVal) { alert("Please select a status to apply."); return; }
+            document.getElementById("hidden_bulk_status_val").value = statusVal;
         }
 
-        document.getElementById("hidden_bulk_tag_id").value = selectTag.value;
-        const form = document.getElementById("mass_delete_form");
-        
-        if (mode === "add") {
-            form.action = "?action=mass_tag_add";
-        } else {
-            form.action = "?action=mass_tag_remove";
-        }
         form.submit();
     }
 

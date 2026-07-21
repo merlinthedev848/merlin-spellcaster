@@ -18,6 +18,31 @@ class AutomationController {
                 header('Location: ' . getSetting('app_url') . '/automations');
                 exit;
             }
+            if ($action === 'duplicate' && $id > 0) {
+                $stAuto = $db->prepare("SELECT * FROM automations WHERE id = ?");
+                $stAuto->execute([$id]);
+                $auto = $stAuto->fetch();
+
+                if ($auto) {
+                    $newTitle = $auto['title'] . " (Copy)";
+                    $stIns = $db->prepare("INSERT INTO automations (title, trigger_event, status, created_at) VALUES (?, ?, 'inactive', NOW())");
+                    $stIns->execute([$newTitle, $auto['trigger_event']]);
+                    $newId = (int)$db->lastInsertId();
+
+                    $stSteps = $db->prepare("SELECT * FROM automation_steps WHERE automation_id = ? ORDER BY order_num ASC");
+                    $stSteps->execute([$id]);
+                    $steps = $stSteps->fetchAll();
+
+                    $stInsStep = $db->prepare("INSERT INTO automation_steps (automation_id, order_num, step_type, step_value) VALUES (?, ?, ?, ?)");
+                    foreach ($steps as $s) {
+                        $stInsStep->execute([$newId, $s['order_num'], $s['step_type'], $s['step_value']]);
+                    }
+                    $_SESSION['flash_success'] = "Automation workflow duplicated.";
+                }
+                header('Location: ' . getSetting('app_url') . '/automations');
+                exit;
+            }
+
             if ($action === 'toggle' && $id > 0) {
                 $stStatus = $db->prepare("SELECT status FROM automations WHERE id = ?");
                 $stStatus->execute([$id]);

@@ -92,9 +92,13 @@ declare(strict_types=1);
                                     </button>
                                 </form>
                                 <a href="<?= e(getSetting('app_url')) ?>/automations/edit?id=<?= e($a['id']) ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a>
+                                <form method="post" action="?action=duplicate&id=<?= e($a['id']) ?>" style="margin: 0;">
+                                    <?= Auth::csrfField() ?>
+                                    <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" title="Duplicate automation workflow">📋 Clone</button>
+                                </form>
                                 <form method="post" action="?action=delete&id=<?= e($a['id']) ?>" onsubmit="return confirm('Are you sure you want to delete this automation?');">
                                     <?= Auth::csrfField() ?>
-                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+                                    <button type="submit" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
                                 </form>
                             </div>
                         </td>

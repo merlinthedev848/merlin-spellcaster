@@ -419,8 +419,8 @@ $adminEmail = $_SESSION['user_email'] ?? 'admin@domain.com';
             <!-- Search field -->
             <div class="top-navbar-search">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <form action="<?= e($appUrl) ?>/contacts" method="GET">
-                    <input type="text" name="q" placeholder="Global contact search...">
+                <form action="<?= e($appUrl) ?>/search" method="GET" style="margin: 0;">
+                    <input type="text" name="q" placeholder="Global search contacts, campaigns, automations..." value="<?= e($_GET['q'] ?? '') ?>">
                 </form>
             </div>
             

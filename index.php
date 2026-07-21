@@ -95,6 +95,11 @@ try {
             $controller->index();
             break;
 
+        case '/search':
+            $controller = new SearchController();
+            $controller->index();
+            break;
+
         case '/contacts':
             $controller = new ContactController();
             $controller->index();

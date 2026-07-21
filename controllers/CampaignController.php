@@ -38,6 +38,24 @@ class CampaignController {
                 header('Location: ' . getSetting('app_url') . '/campaigns');
                 exit;
             }
+            if ($action === 'duplicate' && $id > 0) {
+                $stOrig = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
+                $stOrig->execute([$id]);
+                $orig = $stOrig->fetch();
+
+                if ($orig) {
+                    $newName = $orig['name'] . " (Copy)";
+                    $stIns = $db->prepare("
+                        INSERT INTO campaigns (name, subject, list_id, body_html, body_text, status, include_unsubscribe, max_per_hour, created_at)
+                        VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, NOW())
+                    ");
+                    $stIns->execute([$newName, $orig['subject'], $orig['list_id'], $orig['body_html'], $orig['body_text'], $orig['include_unsubscribe'], $orig['max_per_hour']]);
+                    $_SESSION['flash_success'] = "Campaign duplicated as draft.";
+                }
+                header('Location: ' . getSetting('app_url') . '/campaigns');
+                exit;
+            }
+
             if ($action === 'pause' && $id > 0) {
                 $db->prepare("UPDATE campaigns SET status = 'inactive' WHERE id = ?")->execute([$id]);
                 $_SESSION['flash_success'] = 'Campaign deactivated.';
