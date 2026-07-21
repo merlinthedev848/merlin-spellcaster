@@ -183,16 +183,14 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
             <div class="card-header" style="margin-bottom: 12px;"><span class="card-title">CRM Tags</span></div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
                 <?php foreach ($tags as $t): ?>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 6px; background-color: <?= ($currentTagId === (int)$t['id']) ? 'var(--theme-blurple-light)' : 'transparent' ?>;">
-                        <a href="?tag_id=<?= $t['id'] ?>" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--theme-dark); flex-grow: 1; font-weight: 500; font-size: 14px;">
-                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: <?= e($t['color'] ?? '#635bff') ?>;"></span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-radius: 6px; background-color: <?= ($currentTagId === (int)$t['id']) ? 'var(--theme-blurple-light)' : 'transparent' ?>;">
+                        <a href="?tag_id=<?= $t['id'] ?>" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--theme-dark); flex-grow: 1; font-weight: 500; font-size: 13px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: <?= e($t['color'] ?? '#635bff') ?>; flex-shrink: 0;"></span>
                             <?= e($t['name']) ?>
                         </a>
-                            <?= e($t['name']) ?>
-                        </a>
-                        <form method="post" action="?action=delete_tag&tag_id=<?= $t['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this tag?');" style="display: flex; align-items: center;">
+                        <form method="post" action="?action=delete_tag&tag_id=<?= $t['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this tag?');" style="display: flex; align-items: center; margin-bottom: 0;">
                             <?= Auth::csrfField() ?>
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--danger); padding: 0 4px; line-height: 1;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--danger); padding: 0 4px; line-height: 1;" title="Delete tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                         </form>
                     </div>
                 <?php endforeach; ?>
