@@ -286,3 +286,75 @@ if ($routePath === '/warmup/run') {
     ]);
     exit;
 }
+
+// Route: /deliverability/check-domain (DNS SPF/DMARC/MX Diagnostic API)
+if ($routePath === '/deliverability/check-domain') {
+    header('Content-Type: application/json');
+    if (!Auth::check()) {
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
+    
+    $domain = strtolower(trim($_GET['domain'] ?? ''));
+    if ($domain === '') {
+        $fromEmail = getSetting('smtp_from_email', '');
+        if (str_contains($fromEmail, '@')) {
+            $domain = substr(strrchr($fromEmail, "@"), 1);
+        } else {
+            $domain = parse_url(getSetting('app_url'), PHP_URL_HOST) ?: 'localhost';
+        }
+    }
+
+    $domain = preg_replace('/^https?:\/\//', '', $domain);
+    $domain = explode('/', $domain)[0];
+
+    $spfFound = false;
+    $spfRecord = '';
+    $dmarcFound = false;
+    $dmarcRecord = '';
+    $mxFound = false;
+    $mxRecords = [];
+
+    if (function_exists('dns_get_record')) {
+        $dnsMx = @dns_get_record($domain, DNS_MX);
+        if (!empty($dnsMx)) {
+            $mxFound = true;
+            foreach ($dnsMx as $r) {
+                if (!empty($r['target'])) $mxRecords[] = $r['target'];
+            }
+        }
+
+        $dnsTxt = @dns_get_record($domain, DNS_TXT);
+        if (!empty($dnsTxt)) {
+            foreach ($dnsTxt as $r) {
+                $txt = $r['txt'] ?? ($r['entries'][0] ?? '');
+                if (str_starts_with(strtolower($txt), 'v=spf1')) {
+                    $spfFound = true;
+                    $spfRecord = $txt;
+                    break;
+                }
+            }
+        }
+
+        $dnsDmarc = @dns_get_record("_dmarc.{$domain}", DNS_TXT);
+        if (!empty($dnsDmarc)) {
+            foreach ($dnsDmarc as $r) {
+                $txt = $r['txt'] ?? ($r['entries'][0] ?? '');
+                if (str_starts_with(strtolower($txt), 'v=dmarc1')) {
+                    $dmarcFound = true;
+                    $dmarcRecord = $txt;
+                    break;
+                }
+            }
+        }
+    }
+
+    echo json_encode([
+        'success' => true,
+        'domain' => $domain,
+        'spf' => ['valid' => $spfFound, 'record' => $spfRecord],
+        'dmarc' => ['valid' => $dmarcFound, 'record' => $dmarcRecord],
+        'mx' => ['valid' => $mxFound, 'records' => $mxRecords]
+    ]);
+    exit;
+}

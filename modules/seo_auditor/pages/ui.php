@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Fetch Data
-$reports = $db->query("SELECT * FROM seo_reports ORDER BY created_at DESC LIMIT 20")->fetchAll();
+$reports = $db->query("SELECT * FROM seo_reports ORDER BY created_at DESC LIMIT 100")->fetchAll();
 $backlinks = $db->query("SELECT * FROM backlink_submissions ORDER BY id ASC")->fetchAll();
 
 $tab = $_GET['tab'] ?? 'seo';

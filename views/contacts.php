@@ -210,7 +210,15 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                 <?php if ($currentTagId > 0): ?>
                     <input type="hidden" name="tag_id" value="<?= $currentTagId ?>">
                 <?php endif; ?>
-                <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Search contacts by email or name..." style="max-width: 400px; margin-bottom: 0;">
+                <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Search contacts by email or name..." style="max-width: 320px; margin-bottom: 0;">
+                <select name="limit" onchange="this.form.submit()" class="form-control" style="margin-bottom: 0; max-width: 120px; font-size: 13px; padding: 6px 10px; height: auto;" title="Contacts per page">
+                    <option value="25" <?= $limit === 25 ? 'selected' : '' ?>>25 / page</option>
+                    <option value="50" <?= $limit === 50 ? 'selected' : '' ?>>50 / page</option>
+                    <option value="100" <?= $limit === 100 ? 'selected' : '' ?>>100 / page</option>
+                    <option value="250" <?= $limit === 250 ? 'selected' : '' ?>>250 / page</option>
+                    <option value="500" <?= $limit === 500 ? 'selected' : '' ?>>500 / page</option>
+                    <option value="1000" <?= $limit >= 1000 ? 'selected' : '' ?>>All (1000)</option>
+                </select>
                 <button type="submit" class="btn btn-secondary">Search</button>
                 <?php if ($q !== '' || $currentListId > 0 || $currentTagId > 0): ?>
                     <a href="?" class="btn btn-secondary">Reset</a>
@@ -311,8 +319,8 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     
                     <div style="display: flex; gap: 6px; align-items: center;">
                         <?php
-                        $buildUrl = function(int $p) use ($currentListId, $currentTagId, $q) {
-                            $params = ['page' => $p];
+                        $buildUrl = function(int $p) use ($currentListId, $currentTagId, $q, $limit) {
+                            $params = ['page' => $p, 'limit' => $limit];
                             if ($currentListId > 0) $params['list_id'] = $currentListId;
                             if ($currentTagId > 0) $params['tag_id'] = $currentTagId;
                             if ($q !== '') $params['q'] = $q;

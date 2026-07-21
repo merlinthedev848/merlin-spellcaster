@@ -187,7 +187,7 @@ if ($routePath === '/conversions') {
         FROM subscribers 
         WHERE referral_count > 0 
         ORDER BY referral_count DESC 
-        LIMIT 15
+        LIMIT 100
     ")->fetchAll();
 
     $title = 'Conversion & Engagement Suite';

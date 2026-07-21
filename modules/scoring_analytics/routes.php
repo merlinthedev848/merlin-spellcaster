@@ -70,10 +70,10 @@ if ($routePath === '/scoring') {
     $db = Database::getConnection();
 
     // 1. Fetch top leads based on current lead_score rules
-    $topLeads = $db->query("SELECT id, email, first_name, last_name, lead_score, status FROM subscribers ORDER BY lead_score DESC LIMIT 15")->fetchAll();
+    $topLeads = $db->query("SELECT id, email, first_name, last_name, lead_score, status FROM subscribers ORDER BY lead_score DESC LIMIT 100")->fetchAll();
 
     // 2. Fetch sample list and compute predictive conversion likelihood
-    $subscribers = $db->query("SELECT id, email, first_name, last_name, status, created_at, lead_score FROM subscribers ORDER BY created_at DESC LIMIT 15")->fetchAll();
+    $subscribers = $db->query("SELECT id, email, first_name, last_name, status, created_at, lead_score FROM subscribers ORDER BY created_at DESC LIMIT 100")->fetchAll();
     
     foreach ($subscribers as &$sub) {
         $subId = (int)$sub['id'];

@@ -336,8 +336,13 @@ class ContactController {
         $filterList = (int)($_GET['list_id'] ?? 0);
         $filterTag = (int)($_GET['tag_id'] ?? 0);
         $search = trim($_GET['q'] ?? '');
-        $page = max((int)($_GET['page'] ?? 1), 1);
-        $limit = 50;
+        $limitParam = isset($_GET['limit']) ? (int)$_GET['limit'] : (int)($_SESSION['contacts_per_page'] ?? 50);
+        if (in_array($limitParam, [25, 50, 100, 250, 500, 1000, 5000], true)) {
+            $limit = $limitParam;
+        } else {
+            $limit = 50;
+        }
+        $_SESSION['contacts_per_page'] = $limit;
         
         $sort = $_GET['sort'] ?? 'created_at';
         $order = strtolower($_GET['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';

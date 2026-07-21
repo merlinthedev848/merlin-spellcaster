@@ -57,3 +57,43 @@ if (str_starts_with($routePath, '/multi-smtp')) {
     include dirname(dirname(__DIR__)) . '/views/layout.php';
     exit;
 }
+
+// Route: /multi-smtp/test (Test Server Connection API)
+if ($routePath === '/multi-smtp/test') {
+    header('Content-Type: application/json');
+    if (!Auth::check()) {
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
+
+    $db = Database::getConnection();
+    $serverId = (int)($_GET['id'] ?? 0);
+    $st = $db->prepare("SELECT * FROM smtp_servers WHERE id = ?");
+    $st->execute([$serverId]);
+    $server = $st->fetch();
+
+    if (!$server) {
+        echo json_encode(['success' => false, 'error' => 'SMTP Server record not found']);
+        exit;
+    }
+
+    require_once dirname(dirname(__DIR__)) . '/core/Mailer.php';
+    $mailer = new Mailer();
+    
+    $recipient = $_SESSION['user_email'] ?? getSetting('smtp_from_email') ?: 'test@localhost';
+    $res = $mailer->sendCustom(
+        $server['host'],
+        (int)$server['port'],
+        $server['username'],
+        $server['password'],
+        $server['encryption'],
+        $server['from_email'] ?: getSetting('smtp_from_email'),
+        $server['from_name'] ?: getSetting('smtp_from_name', 'Merlin Test'),
+        $recipient,
+        'Multi-SMTP Connection Test (' . $server['name'] . ')',
+        '<p>This is a test email from Multi-SMTP server: <strong>' . htmlspecialchars($server['name']) . '</strong></p>'
+    );
+
+    echo json_encode($res);
+    exit;
+}

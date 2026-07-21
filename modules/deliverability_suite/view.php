@@ -20,6 +20,9 @@ declare(strict_types=1);
     <button class="btn analytics-tab-btn" id="btn-tab-warmup" onclick="switchDeliverabilityTab(event, 'tab-warmup')" style="border: none; border-bottom: 2px solid transparent; background: transparent; padding: 12px 18px; border-radius: 0; color: var(--theme-dark-slate); font-weight: 600; cursor: pointer;">
         🔥 SMTP Domain Warm-Up
     </button>
+    <button class="btn analytics-tab-btn" id="btn-tab-dns" onclick="switchDeliverabilityTab(event, 'tab-dns')" style="border: none; border-bottom: 2px solid transparent; background: transparent; padding: 12px 18px; border-radius: 0; color: var(--theme-dark-slate); font-weight: 600; cursor: pointer;">
+        🌐 Domain DNS Health (SPF/DMARC)
+    </button>
 </div>
 
 <!-- TAB 1: Email Verifier -->
@@ -252,6 +255,89 @@ declare(strict_types=1);
         </div>
     </div>
 </div>
+
+<!-- TAB 4: Domain DNS Health -->
+<div id="tab-dns" class="deliverability-tab-content" style="display: none;">
+    <div class="card" style="padding: 24px; max-width: 900px; margin: 0 auto;">
+        <div class="card-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 20px;">
+            <span class="card-title">Domain DNS Authentication Diagnostic (SPF / DMARC / MX)</span>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+            <input class="form-control" type="text" id="dns_domain_input" placeholder="Enter sender domain e.g. chriskendallvo.com" value="<?= e(substr(strrchr(getSetting('smtp_from_email', ''), "@"), 1) ?: '') ?>" style="margin-bottom: 0;">
+            <button type="button" class="btn btn-primary" onclick="runDnsDiagnostic()" style="padding: 0 24px; font-weight: 600; white-space: nowrap;">Check DNS Records →</button>
+        </div>
+
+        <div id="dns_results_card" style="display: none;">
+            <div class="grid grid-3" style="gap: 16px; margin-bottom: 24px;">
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--theme-dark-slate); text-transform: uppercase;">SPF Record</span>
+                    <div id="spf_status_badge" style="margin-top: 8px;">-</div>
+                </div>
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--theme-dark-slate); text-transform: uppercase;">DMARC Policy</span>
+                    <div id="dmarc_status_badge" style="margin-top: 8px;">-</div>
+                </div>
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--theme-dark-slate); text-transform: uppercase;">MX Mail Exchanger</span>
+                    <div id="mx_status_badge" style="margin-top: 8px;">-</div>
+                </div>
+            </div>
+
+            <div style="background: var(--theme-bg); border: 1px solid var(--theme-border); border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 13px; font-weight: 700; color: var(--theme-dark); margin-bottom: 12px;">Raw Verified Records:</h4>
+                <div style="font-family: monospace; font-size: 12px; display: flex; flex-direction: column; gap: 8px;" id="dns_raw_records"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function runDnsDiagnostic() {
+        const domain = document.getElementById("dns_domain_input").value.trim();
+        if (!domain) return alert("Please enter a domain.");
+
+        const resCard = document.getElementById("dns_results_card");
+        resCard.style.display = "block";
+        document.getElementById("spf_status_badge").innerHTML = '<span style="color: var(--theme-dark-slate);">Checking...</span>';
+        document.getElementById("dmarc_status_badge").innerHTML = '<span style="color: var(--theme-dark-slate);">Checking...</span>';
+        document.getElementById("mx_status_badge").innerHTML = '<span style="color: var(--theme-dark-slate);">Checking...</span>';
+        document.getElementById("dns_raw_records").innerHTML = '<div style="color: var(--theme-dark-slate);">Querying DNS...</div>';
+
+        try {
+            const resp = await fetch("/deliverability/check-domain?domain=" + encodeURIComponent(domain));
+            const data = await resp.json();
+
+            if (data.success) {
+                // SPF Badge
+                document.getElementById("spf_status_badge").innerHTML = data.spf.valid 
+                    ? '<span class="badge badge-active" style="background: rgba(52,211,153,0.15); color: #059669; font-weight: 700;">PASS (VALID)</span>'
+                    : '<span class="badge badge-unsubscribed" style="background: rgba(239,68,68,0.15); color: #dc2626; font-weight: 700;">MISSING / INVALID</span>';
+
+                // DMARC Badge
+                document.getElementById("dmarc_status_badge").innerHTML = data.dmarc.valid 
+                    ? '<span class="badge badge-active" style="background: rgba(52,211,153,0.15); color: #059669; font-weight: 700;">PASS (CONFIGURED)</span>'
+                    : '<span class="badge badge-unsubscribed" style="background: rgba(239,68,68,0.15); color: #dc2626; font-weight: 700;">MISSING / UNCONFIGURED</span>';
+
+                // MX Badge
+                document.getElementById("mx_status_badge").innerHTML = data.mx.valid 
+                    ? '<span class="badge badge-active" style="background: rgba(52,211,153,0.15); color: #059669; font-weight: 700;">PASS (' + data.mx.records.length + ' MX)</span>'
+                    : '<span class="badge badge-unsubscribed" style="background: rgba(239,68,68,0.15); color: #dc2626; font-weight: 700;">NO MX RECORD</span>';
+
+                // Raw Output
+                let html = '<div><strong>Domain Checked:</strong> ' + data.domain + '</div>';
+                html += '<div><strong>SPF Record:</strong> ' + (data.spf.record ? data.spf.record : 'None detected') + '</div>';
+                html += '<div><strong>DMARC Record:</strong> ' + (data.dmarc.record ? data.dmarc.record : 'None detected') + '</div>';
+                html += '<div><strong>MX Records:</strong> ' + (data.mx.records.length ? data.mx.records.join(', ') : 'None detected') + '</div>';
+                document.getElementById("dns_raw_records").innerHTML = html;
+            } else {
+                alert("DNS check error: " + data.error);
+            }
+        } catch (e) {
+            alert("Failed to perform DNS lookup: " + e.message);
+        }
+    }
+</script>
 
 <script>
     // Tab switching controller

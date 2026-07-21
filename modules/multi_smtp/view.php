@@ -97,7 +97,8 @@ $appUrl = getSetting('app_url');
                                 <?= e($s['host']) ?>:<?= e($s['port']) ?> &bull; <?= strtoupper(e($s['encryption'])) ?>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button type="button" class="btn btn-secondary" onclick="testSmtpServer(<?= $s['id'] ?>, this)" style="padding: 4px 10px; font-size: 12px;">Test Connection</button>
                             <form method="post" action="<?= e($appUrl) ?>/multi-smtp?action=toggle" style="margin:0;">
                                 <?= Auth::csrfField() ?>
                                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
@@ -159,3 +160,25 @@ $appUrl = getSetting('app_url');
         
     </div>
 </div>
+
+<script>
+    async function testSmtpServer(id, btn) {
+        const origText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Testing...";
+        try {
+            const resp = await fetch("/multi-smtp/test?id=" + id);
+            const data = await resp.json();
+            if (data.success) {
+                alert("✓ SMTP Connection Successful! " + (data.message || "Test email delivered cleanly."));
+            } else {
+                alert("✖ SMTP Connection Failed: " + (data.error || "Could not connect to host."));
+            }
+        } catch (e) {
+            alert("Error testing SMTP server: " + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = origText;
+        }
+    }
+</script>

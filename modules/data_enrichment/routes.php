@@ -13,7 +13,7 @@ if ($routePath === '/enrichment') {
           AND email NOT LIKE '%yahoo.com' 
           AND email NOT LIKE '%hotmail.com' 
           AND email NOT LIKE '%outlook.com'
-        LIMIT 10
+        LIMIT 250
     ")->fetchAll();
     
     foreach ($contacts as &$c) {

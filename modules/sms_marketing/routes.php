@@ -86,7 +86,7 @@ if ($routePath === '/sms-marketing') {
     // Fetch lists, tags, logs
     $lists = $db->query("SELECT * FROM lists ORDER BY name ASC")->fetchAll();
     $tags = $db->query("SELECT * FROM tags ORDER BY name ASC")->fetchAll();
-    $logs = $db->query("SELECT * FROM mod_sms_logs ORDER BY created_at DESC LIMIT 30")->fetchAll();
+    $logs = $db->query("SELECT * FROM mod_sms_logs ORDER BY created_at DESC LIMIT 250")->fetchAll();
 
     $title = 'SMS Marketing Engine';
     $viewPath = __DIR__ . '/view.php';
