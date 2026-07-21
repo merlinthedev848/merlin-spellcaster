@@ -21,6 +21,12 @@ $baseUrl = rtrim(getSetting('app_url'), '/');
     <button class="btn conversions-tab-btn" id="btn-tab-referrals" onclick="switchConversionsTab(event, 'tab-referrals')" style="border: none; border-bottom: 2px solid transparent; background: transparent; padding: 12px 18px; border-radius: 0; color: var(--theme-dark-slate); font-weight: 600; cursor: pointer;">
         🔥 Viral Growth Referrals
     </button>
+    <button class="btn conversions-tab-btn" id="btn-tab-utm" onclick="switchConversionsTab(event, 'tab-utm')" style="border: none; border-bottom: 2px solid transparent; background: transparent; padding: 12px 18px; border-radius: 0; color: var(--theme-dark-slate); font-weight: 600; cursor: pointer;">
+        🏷️ Dynamic UTM Builder
+    </button>
+    <button class="btn conversions-tab-btn" id="btn-tab-personalization" onclick="switchConversionsTab(event, 'tab-personalization')" style="border: none; border-bottom: 2px solid transparent; background: transparent; padding: 12px 18px; border-radius: 0; color: var(--theme-dark-slate); font-weight: 600; cursor: pointer;">
+        🌐 Web Personalization & Popups
+    </button>
 </div>
 
 <!-- TAB 1: Countdown Timers -->

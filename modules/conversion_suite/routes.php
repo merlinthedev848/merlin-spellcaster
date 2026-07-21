@@ -131,6 +131,18 @@ Hook::register('campaign_form_after_subject', function() {
     <?php
 });
 
+// Redirect aliases
+if (in_array($routePath, ['/link-rotator', '/utm-builder', '/web-personalization'], true)) {
+    $aliasTab = match($routePath) {
+        '/link-rotator' => 'rotators',
+        '/utm-builder' => 'utm',
+        '/web-personalization' => 'personalization',
+        default => 'timers'
+    };
+    header('Location: ' . getSetting('app_url') . '/conversions?tab=' . $aliasTab);
+    exit;
+}
+
 // Route: /conversions
 if ($routePath === '/conversions') {
     $db = Database::getConnection();
