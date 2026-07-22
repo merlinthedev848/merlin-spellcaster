@@ -1,9 +1,0 @@
-{
-    "id": "ai_settings",
-    "name": "AI Settings & Integrations",
-    "description": "Configure your AI provider (OpenClaw, OpenAI, DeepSeek) and expose a secure OpenAPI REST endpoint to allow AI Agents to autonomously operate your email marketing platform as a Skill.",
-    "version": "1.0.0",
-    "author": "Antigravity",
-    "menu_label": "AI Settings",
-    "menu_path": "/ai-settings"
-}

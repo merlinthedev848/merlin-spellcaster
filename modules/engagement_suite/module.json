@@ -1,0 +1,16 @@
+{
+    "id": "engagement_suite",
+    "name": "📊 Engagement & Survey Powerhouse Suite",
+    "version": "2.5.0",
+    "price": "$99.00 One-time",
+    "tier": "Commercial Powerhouse Suite",
+    "description": "A/B Subject & Body Split Testing, Interactive Web Surveys, and Feedback Collection.",
+    "features": [
+        "A/B Campaign Split Testing",
+        "Interactive Web Surveys & Feedback",
+        "Form Response Analytics"
+    ],
+    "author": "Merlin Software Inc.",
+    "menu_label": "📊 Engagement & Surveys",
+    "menu_path": "/engagement"
+}

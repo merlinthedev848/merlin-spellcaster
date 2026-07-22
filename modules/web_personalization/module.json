@@ -1,8 +1,0 @@
-{
-    "id": "web_personalization",
-    "name": "Dynamic Web Personalization",
-    "version": "1.0.0",
-    "description": "Serves dynamic JS tracking snippets to personalize landing pages based on subscriber CRM tags.",
-    "menu_label": "Personalization",
-    "menu_path": "/personalization"
-}

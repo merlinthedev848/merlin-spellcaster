@@ -1,9 +1,0 @@
-{
-    "id": "utm_builder",
-    "name": "UTM Campaign Builder",
-    "description": "Construct campaign tracking links with standard parameters (source, medium, name) and store them to keep track of conversion sources in Google Analytics.",
-    "version": "1.0.0",
-    "author": "Antigravity",
-    "menu_label": "UTM Builder",
-    "menu_path": "/utm-builder"
-}

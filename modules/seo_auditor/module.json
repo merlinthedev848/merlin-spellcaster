@@ -1,8 +1,0 @@
-{
-    "id": "seo_auditor",
-    "name": "SEO & Backlink Builder",
-    "description": "Comprehensive market research, on-page SEO auditor, and backlink submission manager.",
-    "version": "1.0.0",
-    "author": "Merlin Systems",
-    "icon": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\"><path d=\"M2 20h20\"></path><path d=\"M5 20v-5\"></path><path d=\"M10 20v-10\"></path><path d=\"M15 20v-15\"></path><path d=\"M20 20V8\"></path></svg>"
-}

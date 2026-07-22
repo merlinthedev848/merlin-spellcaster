@@ -1,8 +1,0 @@
-{
-    "name": "Multi-SMTP Intelligent Routing Engine",
-    "version": "1.0.0",
-    "description": "Distributes email sending across a load-balanced pool of SMTP servers, providing reputation protection and instant failover on blocks.",
-    "menu_label": "Multi-SMTP",
-    "menu_path": "/multi-smtp",
-    "author": "Merlin Team"
-}

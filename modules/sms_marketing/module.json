@@ -1,8 +1,0 @@
-{
-    "id": "sms_marketing",
-    "name": "SMS Marketing Engine",
-    "version": "1.0.0",
-    "description": "Send bulk SMS broadcasts and automated transactional texts directly to CRM lists and tags using Twilio integration.",
-    "menu_label": "SMS Marketing",
-    "menu_path": "/sms-marketing"
-}

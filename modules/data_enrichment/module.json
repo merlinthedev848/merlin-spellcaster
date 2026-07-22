@@ -1,8 +1,0 @@
-{
-    "id": "data_enrichment",
-    "name": "B2B Data Enrichment Engine",
-    "version": "1.0.0",
-    "description": "Automatically parses corporate email domains to populate company sizes, locations, and industries in CRM.",
-    "menu_label": "Enrichment",
-    "menu_path": "/enrichment"
-}

@@ -44,7 +44,7 @@ class ModuleManager {
         $enabledStr = getSetting('enabled_modules_list', 'INITIAL_STATE');
         
         if ($enabledStr === 'INITIAL_STATE' || $enabledStr === '') {
-            $list = ['ai_copywriter', 'ai_settings', 'seo_auditor', 'openclaw', 'utm_builder', 'deliverability_suite', 'lead_scrapers', 'scoring_analytics', 'conversion_suite'];
+            $list = ['lead_intelligence', 'conversion_suite', 'ai_copywriter', 'workflow_engine', 'engagement_suite'];
             setSetting('enabled_modules_list', implode(',', $list));
             $cache = $list;
             return $list;
