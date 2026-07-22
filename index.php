@@ -65,7 +65,11 @@ try {
 
         $routesFile = $modInfo['dir'] . '/routes.php';
         if (file_exists($routesFile)) {
-            include $routesFile;
+            try {
+                include $routesFile;
+            } catch (Throwable $e) {
+                error_log("Module '{$modId}' route error: " . $e->getMessage());
+            }
         }
     }
 

@@ -56,7 +56,22 @@ class ModuleManager {
         }
         
         $list = explode(',', $enabledStr);
-        $cache = array_values(array_unique(array_filter($list)));
+        $validSuites = ['lead_intelligence', 'conversion_suite', 'ai_copywriter', 'workflow_engine', 'engagement_suite'];
+        
+        // Remove legacy un-condensed module IDs if present
+        $cleanList = [];
+        foreach ($list as $id) {
+            $id = trim($id);
+            if (in_array($id, $validSuites, true) || file_exists(dirname(__DIR__) . '/modules/' . $id . '/module.json')) {
+                $cleanList[] = $id;
+            }
+        }
+
+        if (empty($cleanList)) {
+            $cleanList = $validSuites;
+        }
+
+        $cache = array_values(array_unique(array_filter($cleanList)));
         return $cache;
     }
 
