@@ -211,6 +211,68 @@ $baseUrl = rtrim(getSetting('app_url'), '/');
     </div>
 </div>
 
+<!-- TAB 4: Dynamic UTM Builder -->
+<div id="tab-utm" class="conversions-tab-content" style="display: none;">
+    <div class="grid grid-2" style="gap: 24px; align-items: start;">
+        <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--theme-border); padding-bottom: 12px;">
+                <span class="card-title">UTM Campaign URL Generator</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Destination Landing Page URL</label>
+                <input class="form-control" type="url" id="utm_url" value="https://yourdomain.com/landing" oninput="buildUtmUrl()" placeholder="https://yourdomain.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Campaign Source (utm_source)</label>
+                <input class="form-control" type="text" id="utm_source" value="email_newsletter" oninput="buildUtmUrl()" placeholder="e.g. google, newsletter, linkedin">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Campaign Medium (utm_medium)</label>
+                <input class="form-control" type="text" id="utm_medium" value="email" oninput="buildUtmUrl()" placeholder="e.g. cpc, email, social">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Campaign Name (utm_campaign)</label>
+                <input class="form-control" type="text" id="utm_campaign" value="summer_outreach_2026" oninput="buildUtmUrl()" placeholder="e.g. voiceover_promo">
+            </div>
+        </div>
+
+        <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--theme-border); padding-bottom: 12px;">
+                <span class="card-title">Generated Tracked Campaign URL</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Complete Tracked Link</label>
+                <textarea class="form-control" id="utm_result" readonly onclick="this.select()" rows="4" style="font-family: monospace; font-size: 12px; background: var(--theme-bg);"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="copyUtmLink()" style="width: 100%; justify-content: center; font-weight: 700;">Copy Tracked Link to Clipboard</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 5: Web Personalization & Popups -->
+<div id="tab-personalization" class="conversions-tab-content" style="display: none;">
+    <div class="card" style="padding: 24px;">
+        <div class="card-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--theme-border); padding-bottom: 12px;">
+            <span class="card-title">Exit-Intent Popup & Web Personalization Generator</span>
+        </div>
+        <p style="font-size: 13px; color: var(--theme-dark-slate); margin-bottom: 20px;">
+            Capture leaving website visitors with exit-intent popup widgets configured to collect lead emails directly into your CRM.
+        </p>
+        <div class="form-group">
+            <label class="form-label">Popup Headline</label>
+            <input class="form-control" type="text" id="popup_headline" value="Wait! Before You Leave..." oninput="buildPopupSnippet()">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Popup Offer Description</label>
+            <input class="form-control" type="text" id="popup_body" value="Get our free Voiceover Casting & Production Checklist instantly." oninput="buildPopupSnippet()">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Embed Script Snippet (Copy to Website Header/Footer)</label>
+            <textarea class="form-control" id="popup_snippet" readonly onclick="this.select()" rows="4" style="font-family: monospace; font-size: 11px; background: var(--theme-bg);"></textarea>
+        </div>
+    </div>
+</div>
+
 <script>
     // Tab switching controller
     function switchConversionsTab(event, tabId) {
@@ -245,7 +307,32 @@ $baseUrl = rtrim(getSetting('app_url'), '/');
             document.getElementById('btn-tab-' + tab).click();
         }
         updateTimerEmbedCode();
+        buildUtmUrl();
+        buildPopupSnippet();
     });
+
+    function buildUtmUrl() {
+        const url = document.getElementById('utm_url').value.trim() || 'https://yourdomain.com';
+        const src = encodeURIComponent(document.getElementById('utm_source').value.trim() || 'email');
+        const med = encodeURIComponent(document.getElementById('utm_medium').value.trim() || 'email');
+        const cmp = encodeURIComponent(document.getElementById('utm_campaign').value.trim() || 'campaign');
+        const delim = url.includes('?') ? '&' : '?';
+        document.getElementById('utm_result').value = `${url}${delim}utm_source=${src}&utm_medium=${med}&utm_campaign=${cmp}`;
+    }
+
+    function copyUtmLink() {
+        const el = document.getElementById('utm_result');
+        el.select();
+        document.execCommand('copy');
+        alert('UTM tracked link copied to clipboard!');
+    }
+
+    function buildPopupSnippet() {
+        const head = document.getElementById('popup_headline').value;
+        const body = document.getElementById('popup_body').value;
+        const appUrl = '<?= e($baseUrl) ?>';
+        document.getElementById('popup_snippet').value = `<script src="${appUrl}/api/popup.js?headline=${encodeURIComponent(head)}&body=${encodeURIComponent(body)}"><\/script>`;
+    }
 
     // --- Dynamic Countdown Timer code calculations ---
     function updateTimerEmbedCode() {

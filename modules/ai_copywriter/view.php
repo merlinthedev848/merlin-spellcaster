@@ -1,140 +1,177 @@
 <?php
 declare(strict_types=1);
+
+$currentTab = $_GET['tab'] ?? 'generator';
 ?>
 
-<div class="header-actions">
+<div class="header-actions" style="margin-bottom: 20px;">
     <div class="page-title">
-        <h1>AI Copywriter</h1>
-        <p>Generate high-converting email copy and subject lines instantly.</p>
+        <h1>AI Assistant & Copywriter Powerhouse Suite</h1>
+        <p>Generate high-converting B2B outreach emails, subject lines, and persuasive sales copy instantly with AI.</p>
     </div>
 </div>
 
-<div class="grid grid-1-3" style="align-items: start; margin-bottom: 24px;">
-    <!-- Left Pane: Input Parameters -->
-    <div class="card" style="padding: 24px;">
-        <div class="card-header" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0;">
-            <span class="card-title">Campaign Brief</span>
-        </div>
-        
-        <form id="ai_form">
+<div style="display: flex; gap: 4px; border-bottom: 1px solid var(--theme-border); margin-bottom: 24px;">
+    <button class="btn ai-tab-btn <?= $currentTab === 'generator' ? 'active' : '' ?>" onclick="switchAiTab(event, 'tab-generator')" style="border: none; border-bottom: 2px solid <?= $currentTab === 'generator' ? 'var(--theme-blurple)' : 'transparent' ?>; background: transparent; padding: 12px 18px; border-radius: 0; color: <?= $currentTab === 'generator' ? 'var(--theme-blurple)' : 'var(--theme-dark-slate)' ?>; font-weight: 600; cursor: pointer;">
+        ✍️ AI Email & Subject Generator
+    </button>
+    <button class="btn ai-tab-btn <?= $currentTab === 'settings' ? 'active' : '' ?>" onclick="switchAiTab(event, 'tab-settings')" style="border: none; border-bottom: 2px solid <?= $currentTab === 'settings' ? 'var(--theme-blurple)' : 'transparent' ?>; background: transparent; padding: 12px 18px; border-radius: 0; color: <?= $currentTab === 'settings' ? 'var(--theme-blurple)' : 'var(--theme-dark-slate)' ?>; font-weight: 600; cursor: pointer;">
+        ⚙️ AI Provider API Keys
+    </button>
+</div>
+
+<!-- TAB 1: Generator -->
+<div id="tab-generator" class="ai-tab-content" style="display: <?= $currentTab === 'generator' ? 'block' : 'none' ?>;">
+    <div class="grid grid-2" style="gap: 24px; align-items: start;">
+        <!-- Input Form -->
+        <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--theme-border); padding-bottom: 12px;">
+                <span class="card-title">Campaign Offer & Audience Brief</span>
+            </div>
+            
             <div class="form-group">
-                <label class="form-label" for="prompt">What is this email about?</label>
-                <textarea class="form-control" id="prompt" rows="4" placeholder="e.g. Announcing our new summer sale with 20% off all items..."></textarea>
+                <label class="form-label">Target Audience / Client Role</label>
+                <input class="form-control" type="text" id="ai_audience" value="Video Production Agencies & Creative Directors" placeholder="e.g. Video Producers, E-Learning Studios">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="audience">Target Audience</label>
-                <input class="form-control" type="text" id="audience" placeholder="e.g. Small Business Owners">
+                <label class="form-label">Your Service / Offer</label>
+                <input class="form-control" type="text" id="ai_offer" value="British Voice Over & Audio Production" placeholder="e.g. British Voice Over Artist">
             </div>
 
-            <div class="form-group" style="margin-bottom: 24px;">
-                <label class="form-label" for="tone">Tone of Voice</label>
-                <select class="form-control" id="tone">
-                    <option value="professional">Professional & Direct</option>
-                    <option value="witty">Witty & Casual</option>
-                    <option value="urgent">Urgent & Action-Oriented</option>
-                    <option value="empathetic">Empathetic & Caring</option>
+            <div class="form-group">
+                <label class="form-label">Copy Tone</label>
+                <select class="form-control" id="ai_tone">
+                    <option value="persuasive" selected>Persuasive & Professional</option>
+                    <option value="urgent">Urgent & Direct</option>
+                    <option value="storytelling">Storytelling & Social Proof</option>
+                    <option value="casual">Casual & Conversational</option>
                 </select>
             </div>
 
-            <button type="button" id="generate_btn" class="btn btn-primary" onclick="generateCopy()" style="font-weight: 600; width: 100%; padding: 10px;">
-                <svg style="width: 16px; height: 16px; margin-right: 8px; display: inline-block; vertical-align: middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Generate Copy
-            </button>
-        </form>
-    </div>
+            <div class="form-group">
+                <label class="form-label">Core Benefits & Selling Points</label>
+                <textarea class="form-control" id="ai_benefits" rows="3" placeholder="Broadcast quality studio, 24h turnaround, versatile tones">Broadcast quality acoustically treated studio, 24-hour turnaround, free revisions, remote direction via Zoom</textarea>
+            </div>
 
-    <!-- Right Pane: Output -->
-    <div class="card" style="padding: 24px; min-height: 400px; display: flex; flex-direction: column;">
-        <div class="card-header" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0;">
-            <span class="card-title">Generated Output</span>
+            <button type="button" id="btn_generate_ai" class="btn btn-primary" onclick="generateAiCopy()" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px;">
+                ⚡ Generate AI Subject Lines & Email Variations
+            </button>
         </div>
-        
-        <div id="output_area" style="display: none; flex-direction: column; gap: 16px;">
-            <div>
-                <label class="form-label">Subject Line</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="out_subject" class="form-control" readonly style="background: var(--bg-color);">
-                    <button class="btn btn-secondary" onclick="copyToClipboard('out_subject')">Copy</button>
+
+        <!-- Output Panel -->
+        <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--theme-border); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="card-title">Generated Copy Results</span>
+                <span id="ai_engine_badge" class="badge" style="background: rgba(99,91,255,0.1); color: var(--theme-blurple); font-weight: 700;">AI Engine Ready</span>
+            </div>
+
+            <div id="ai_results_container" style="display: none;">
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 700; color: var(--theme-dark);">🎯 High-CTR Subject Line Ideas:</label>
+                    <ul id="ai_subject_list" style="background: var(--theme-bg); padding: 12px 12px 12px 28px; border-radius: 6px; font-size: 13px; color: var(--theme-dark); line-height: 1.6; border: 1px solid var(--theme-border);">
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" style="font-weight: 700; color: var(--theme-dark); margin: 0;">📧 Pitch Email Variation A (Direct):</label>
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('ai_email_a')">Copy Code</button>
+                    </div>
+                    <textarea class="form-control" id="ai_email_a" rows="8" style="font-family: monospace; font-size: 12px; background: white;"></textarea>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" style="font-weight: 700; color: var(--theme-dark); margin: 0;">📧 Pitch Email Variation B (Problem-Agitate-Solve):</label>
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('ai_email_b')">Copy Code</button>
+                    </div>
+                    <textarea class="form-control" id="ai_email_b" rows="8" style="font-family: monospace; font-size: 12px; background: white;"></textarea>
                 </div>
             </div>
-            <div>
-                <label class="form-label">Email Body</label>
-                <div style="display: flex; gap: 8px; align-items: flex-start;">
-                    <textarea id="out_body" class="form-control" rows="10" readonly style="background: var(--bg-color); line-height: 1.6;"></textarea>
-                    <button class="btn btn-secondary" onclick="copyToClipboard('out_body')">Copy</button>
-                </div>
+
+            <div id="ai_placeholder" style="text-align: center; color: var(--theme-dark-slate); padding: 40px 20px;">
+                <span style="font-size: 32px; display: block; margin-bottom: 8px;">🤖</span>
+                Fill in your offer details on the left and click "Generate AI Copy".
             </div>
-            
-            <div style="margin-top: 16px; padding: 16px; background: rgba(56, 189, 248, 0.1); border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: space-between;">
-                <p style="margin: 0; color: #38bdf8; font-size: 0.9rem;"><strong>Tip:</strong> You can export this directly to a new Campaign Draft.</p>
-                <button type="button" class="btn btn-primary" onclick="saveAsDraft()" style="background: #38bdf8; color: #0f172a; font-weight: bold;">
-                    Save as Draft Campaign
-                </button>
-            </div>
-        </div>
-        
-        <div id="loading_area" style="display: none; flex-grow: 1; align-items: center; justify-content: center; flex-direction: column; color: var(--text-muted);">
-            <svg style="animation: spin 1s linear infinite; width: 32px; height: 32px; margin-bottom: 16px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p>Our AI is crafting the perfect message...</p>
-        </div>
-        
-        <div id="empty_area" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
-            <p>Fill out the brief and click Generate to see magic happen.</p>
         </div>
     </div>
 </div>
 
-<style>
-@keyframes spin { 100% { transform: rotate(360deg); } }
-</style>
+<!-- TAB 2: Settings -->
+<div id="tab-settings" class="ai-tab-content" style="display: <?= $currentTab === 'settings' ? 'block' : 'none' ?>;">
+    <div class="card" style="padding: 24px;">
+        <div class="card-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--theme-border); padding-bottom: 12px;">
+            <span class="card-title">AI Provider API Keys</span>
+        </div>
+        <form method="post" action="<?= e(getSetting('app_url')) ?>/settings">
+            <?= Auth::csrfField() ?>
+            <div class="form-group">
+                <label class="form-label">OpenAI API Key (GPT-4o / GPT-3.5)</label>
+                <input class="form-control" type="password" name="openai_api_key" value="<?= e(getSetting('openai_api_key')) ?>" placeholder="sk-proj-••••••••••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary">Save API Credentials</button>
+        </form>
+    </div>
+</div>
 
 <script>
-function generateCopy() {
-    const prompt = document.getElementById('prompt').value.trim();
-    if (!prompt) {
-        alert("Please provide a prompt.");
-        return;
-    }
-    
-    document.getElementById('empty_area').style.display = 'none';
-    document.getElementById('output_area').style.display = 'none';
-    document.getElementById('loading_area').style.display = 'flex';
-    
-    const btn = document.getElementById('generate_btn');
+function switchAiTab(e, tabId) {
+    document.querySelectorAll('.ai-tab-btn').forEach(btn => {
+        btn.style.borderBottomColor = 'transparent';
+        btn.style.color = 'var(--theme-dark-slate)';
+    });
+    e.currentTarget.style.borderBottomColor = 'var(--theme-blurple)';
+    e.currentTarget.style.color = 'var(--theme-blurple)';
+    document.querySelectorAll('.ai-tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+}
+
+function generateAiCopy() {
+    const btn = document.getElementById('btn_generate_ai');
     btn.disabled = true;
-    
-    const formData = new FormData();
-    formData.append('prompt', prompt);
-    formData.append('audience', document.getElementById('audience').value);
-    formData.append('tone', document.getElementById('tone').value);
-    
-    fetch('/ai-copywriter/generate', {
+    btn.textContent = 'Generating AI Copy...';
+
+    const payload = {
+        audience: document.getElementById('ai_audience').value,
+        offer: document.getElementById('ai_offer').value,
+        tone: document.getElementById('ai_tone').value,
+        benefits: document.getElementById('ai_benefits').value
+    };
+
+    fetch('<?= e(BASE_PATH) ?>/ai-copywriter/generate', {
         method: 'POST',
-        body: formData
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
     })
     .then(r => r.json())
-    .then(data => {
+    .then(res => {
         btn.disabled = false;
-        document.getElementById('loading_area').style.display = 'none';
-        
-        if (data.success) {
-            document.getElementById('out_subject').value = data.subject;
-            document.getElementById('out_body').value = data.body;
-            document.getElementById('output_area').style.display = 'flex';
+        btn.textContent = '⚡ Generate AI Subject Lines & Email Variations';
+
+        if (res.status === 'success') {
+            document.getElementById('ai_placeholder').style.display = 'none';
+            document.getElementById('ai_results_container').style.display = 'block';
+            document.getElementById('ai_engine_badge').textContent = res.engine;
+
+            const list = document.getElementById('ai_subject_list');
+            list.innerHTML = '';
+            res.subjects.forEach(subj => {
+                const li = document.createElement('li');
+                li.textContent = subj;
+                list.appendChild(li);
+            });
+
+            document.getElementById('ai_email_a').value = res.email_a;
+            document.getElementById('ai_email_b').value = res.email_b;
         } else {
-            alert("Error: " + data.error);
-            document.getElementById('empty_area').style.display = 'flex';
+            alert('AI Generation Error: ' + res.message);
         }
     })
     .catch(err => {
         btn.disabled = false;
-        document.getElementById('loading_area').style.display = 'none';
-        document.getElementById('empty_area').style.display = 'flex';
-        alert("A network error occurred.");
+        btn.textContent = '⚡ Generate AI Subject Lines & Email Variations';
+        alert('Error generating copy: ' + err.message);
     });
 }
 
@@ -142,34 +179,6 @@ function copyToClipboard(id) {
     const el = document.getElementById(id);
     el.select();
     document.execCommand('copy');
-    alert("Copied to clipboard!");
-}
-
-function saveAsDraft() {
-    const subject = document.getElementById('out_subject').value;
-    const body = document.getElementById('out_body').value;
-    
-    if (!subject || !body) return;
-    
-    const formData = new FormData();
-    formData.append('subject', subject);
-    formData.append('body', body);
-    
-    fetch('/ai-copywriter/save-draft', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            alert('Draft saved successfully! You can view it in the Campaigns tab.');
-            window.location.href = '/campaigns';
-        } else {
-            alert('Error saving draft: ' + data.error);
-        }
-    })
-    .catch(err => {
-        alert('A network error occurred while saving the draft.');
-    });
+    alert('Copy snippet copied to clipboard!');
 }
 </script>
