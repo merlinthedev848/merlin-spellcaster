@@ -256,7 +256,7 @@ if ($routePath === '/fomo/render') {
         header('Content-Type: image/png');
         header('Cache-Control: no-cache, no-store, must-revalidate');
         imagepng($image);
-        imagedestroy($image);
+        if (PHP_VERSION_ID < 80000) { @imagedestroy($image); }
     } else {
         header('Content-Type: text/plain');
         echo $text;
