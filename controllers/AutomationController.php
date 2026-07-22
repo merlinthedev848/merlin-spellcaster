@@ -56,14 +56,44 @@ class AutomationController {
             }
         }
         
+        $search = trim($_GET['q'] ?? $_GET['search'] ?? '');
+        $statusFilter = trim($_GET['status'] ?? '');
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = max(10, min(250, (int)($_GET['limit'] ?? 50)));
+
+        $conditions = [];
+        $params = [];
+
+        if ($search !== '') {
+            $conditions[] = "a.name LIKE ?";
+            $params[] = "%{$search}%";
+        }
+
+        if ($statusFilter !== '' && in_array($statusFilter, ['active', 'inactive'], true)) {
+            $conditions[] = "a.status = ?";
+            $params[] = $statusFilter;
+        }
+
+        $whereClause = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
+
+        $stCount = $db->prepare("SELECT COUNT(*) FROM automations a {$whereClause}");
+        $stCount->execute($params);
+        $totalAutomations = (int)$stCount->fetchColumn();
+        $totalPages = max(1, (int)ceil($totalAutomations / $limit));
+        $page = max(1, min($page, $totalPages));
+        $offset = max(0, ($page - 1) * $limit);
+
         // Fetch automations with count of associated steps
-        $st = $db->query("
+        $st = $db->prepare("
             SELECT a.*, COUNT(s.id) as step_count 
             FROM automations a
             LEFT JOIN automation_steps s ON s.automation_id = a.id
+            {$whereClause}
             GROUP BY a.id
             ORDER BY a.created_at DESC
+            LIMIT {$limit} OFFSET {$offset}
         ");
+        $st->execute($params);
         $automations = $st->fetchAll();
 
         // Mappings for human-readable triggers

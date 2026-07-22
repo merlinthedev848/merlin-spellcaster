@@ -144,6 +144,8 @@ class QueueController {
         $stCount->execute($params);
         $totalItems = (int)$stCount->fetchColumn();
         $totalPages = max(1, (int)ceil($totalItems / $limit));
+        if ($page > $totalPages) $page = $totalPages;
+        $offset = max(0, ($page - 1) * $limit);
 
         // Items Query
         $stQuery = $db->prepare("

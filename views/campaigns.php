@@ -15,6 +15,23 @@ declare(strict_types=1);
     </div>
 </div>
 
+<div class="card" style="padding: 16px; margin-bottom: 20px; flex-direction: row; gap: 12px; align-items: center; justify-content: space-between;">
+    <form method="get" action="" style="display: flex; gap: 12px; align-items: center; flex-grow: 1; margin-bottom: 0;">
+        <input class="form-control" type="text" name="q" value="<?= e($_GET['q'] ?? $_GET['search'] ?? '') ?>" placeholder="Search campaigns by title or subject..." style="max-width: 320px; margin-bottom: 0;">
+        <select name="status" onchange="this.form.submit()" class="form-control" style="margin-bottom: 0; max-width: 150px; font-size: 13px; padding: 6px 10px; height: auto;">
+            <option value="">All Statuses</option>
+            <option value="draft" <?= ($_GET['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft</option>
+            <option value="active" <?= ($_GET['status'] ?? '') === 'active' ? 'selected' : '' ?>>Active</option>
+            <option value="inactive" <?= ($_GET['status'] ?? '') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+            <option value="sending" <?= ($_GET['status'] ?? '') === 'sending' ? 'selected' : '' ?>>Sending</option>
+        </select>
+        <button type="submit" class="btn btn-secondary">Search</button>
+        <?php if (!empty($_GET['q']) || !empty($_GET['status'])): ?>
+            <a href="?" class="btn btn-secondary">Reset</a>
+        <?php endif; ?>
+    </form>
+</div>
+
 <div class="table-wrapper">
     <table>
         <thead>
@@ -112,6 +129,23 @@ declare(strict_types=1);
             <?php endif; ?>
         </tbody>
     </table>
+    <?php if (isset($totalPages) && $totalPages > 1): ?>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-top: 1px solid var(--theme-border); background-color: #fafbfc;">
+            <span style="font-size: 13px; color: var(--theme-dark-slate);">
+                Page <strong><?= $page ?></strong> of <strong><?= $totalPages ?></strong> (Total: <?= $totalCampaigns ?> campaigns)
+            </span>
+            <div style="display: flex; gap: 6px;">
+                <?php if ($page > 1): ?>
+                    <a href="?page=1<?= !empty($_GET['q']) ? '&q='.urlencode($_GET['q']) : '' ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">« First</a>
+                    <a href="?page=<?= $page - 1 ?><?= !empty($_GET['q']) ? '&q='.urlencode($_GET['q']) : '' ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">‹ Prev</a>
+                <?php endif; ?>
+                <?php if ($page < $totalPages): ?>
+                    <a href="?page=<?= $page + 1 ?><?= !empty($_GET['q']) ? '&q='.urlencode($_GET['q']) : '' ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Next ›</a>
+                    <a href="?page=<?= $totalPages ?><?= !empty($_GET['q']) ? '&q='.urlencode($_GET['q']) : '' ?>" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Last »</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <script>

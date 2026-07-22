@@ -453,9 +453,8 @@ class ContactController {
         $stCount = $db->prepare($countQuery);
         $stCount->execute($params);
         $totalContacts = (int)$stCount->fetchColumn();
-        $totalPages = (int)ceil($totalContacts / $limit);
-        if ($totalPages < 1) $totalPages = 1;
-        if ($page > $totalPages) $page = $totalPages;
+        $totalPages = max(1, (int)ceil($totalContacts / $limit));
+        $page = max(1, min($page, $totalPages));
         $offset = max(0, ($page - 1) * $limit);
         
         // Fetch pages contacts matching the criteria

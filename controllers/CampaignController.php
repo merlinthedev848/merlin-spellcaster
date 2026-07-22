@@ -114,15 +114,46 @@ class CampaignController {
             }
         }
         
-        // Fetch all campaigns
-        $st = $db->query("
+        $search = trim($_GET['q'] ?? $_GET['search'] ?? '');
+        $statusFilter = trim($_GET['status'] ?? '');
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = max(10, min(250, (int)($_GET['limit'] ?? 50)));
+
+        $conditions = [];
+        $params = [];
+
+        if ($search !== '') {
+            $conditions[] = "(c.name LIKE ? OR c.subject LIKE ?)";
+            $params[] = "%{$search}%";
+            $params[] = "%{$search}%";
+        }
+
+        if ($statusFilter !== '' && in_array($statusFilter, ['draft', 'active', 'inactive', 'sending', 'sent'], true)) {
+            $conditions[] = "c.status = ?";
+            $params[] = $statusFilter;
+        }
+
+        $whereClause = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
+
+        $stCount = $db->prepare("SELECT COUNT(*) FROM campaigns c {$whereClause}");
+        $stCount->execute($params);
+        $totalCampaigns = (int)$stCount->fetchColumn();
+        $totalPages = max(1, (int)ceil($totalCampaigns / $limit));
+        $page = max(1, min($page, $totalPages));
+        $offset = max(0, ($page - 1) * $limit);
+
+        // Fetch campaigns
+        $st = $db->prepare("
             SELECT c.*, 
                    ROUND(c.open_count / NULLIF(c.send_count, 0) * 100, 1) as open_rate,
                    ROUND(c.click_count / NULLIF(c.send_count, 0) * 100, 1) as click_rate,
                    (SELECT COUNT(*) FROM email_queue eq WHERE eq.campaign_id = c.id AND eq.status = 'pending') as pending_count
             FROM campaigns c
+            {$whereClause}
             ORDER BY c.created_at DESC
+            LIMIT {$limit} OFFSET {$offset}
         ");
+        $st->execute($params);
         $campaigns = $st->fetchAll();
         
         $title = 'Campaigns';

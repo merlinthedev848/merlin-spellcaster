@@ -344,10 +344,11 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     
                     <div style="display: flex; gap: 6px; align-items: center;">
                         <?php
-                        $buildUrl = function(int $p) use ($currentListId, $currentTagId, $q, $limit) {
+                        $buildUrl = function(int $p) use ($currentListId, $currentTagId, $q, $limit, $currentSegment) {
                             $params = ['page' => $p, 'limit' => $limit];
                             if ($currentListId > 0) $params['list_id'] = $currentListId;
                             if ($currentTagId > 0) $params['tag_id'] = $currentTagId;
+                            if (!empty($currentSegment)) $params['segment'] = $currentSegment;
                             if ($q !== '') $params['q'] = $q;
                             return '?' . http_build_query($params);
                         };
