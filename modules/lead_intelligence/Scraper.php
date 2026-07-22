@@ -289,7 +289,7 @@ class BuyerLeadScraper {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36');
         $html = curl_exec($ch);
-        curl_close($ch);
+        if (PHP_VERSION_ID < 80000) { @curl_close($ch); }
         return $html !== false ? (string)$html : '';
     }
 }

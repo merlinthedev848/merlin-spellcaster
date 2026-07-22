@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/Scraper.php';
-require_once __DIR__ . '/../deliverability_suite/Verifier.php';
+require_once __DIR__ . '/Verifier.php';
 
 // Route: /scraper/run
 if ($routePath === '/scraper/run') {

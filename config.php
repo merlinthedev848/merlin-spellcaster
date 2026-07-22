@@ -368,6 +368,16 @@ function _bootstrapSchema(PDO $db): void {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 
+        "CREATE TABLE IF NOT EXISTS lead_score_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            subscriber_id INT NOT NULL,
+            points_changed INT NOT NULL,
+            new_total_score INT NOT NULL,
+            reason VARCHAR(255) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (subscriber_id) REFERENCES subscribers(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+
         "CREATE TABLE IF NOT EXISTS forms (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(128) NOT NULL,
