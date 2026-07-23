@@ -223,34 +223,31 @@ class BuyerLeadScraper {
     }
 
     /**
-     * Generate search queries focused strictly on BUYERS (Agencies, Producers, Studios, Hiring Notices)
+     * Generate search queries focused strictly on what the user actually searched for
      */
     private static function generateBuyerQueries(string $userOffering, string $buyerType): array {
         $clean = trim($userOffering);
+        if (empty($clean)) return [];
+
+        // Strip quotes if user entered them to avoid double nesting
+        $clean = trim($clean, '"\'');
+
         $queries = [];
+        
+        // 1. Search the exact query the user typed
+        $queries[] = '"' . $clean . '"';
+        
+        // 2. Search exact query + contact terms to find email listings
+        $queries[] = '"' . $clean . '" "email"';
+        $queries[] = '"' . $clean . '" "contact"';
+        $queries[] = '"' . $clean . '" "hiring"';
+        $queries[] = '"' . $clean . '" "looking for"';
 
-        // If user enters a service like "Voiceover", "British Voice Over Actor", "Newcastle Voiceover", "Web Designer"
-        if (preg_match('/voice\s*over|voiceover|actor|narrator|audiobook|geordie|newcastle/i', $clean)) {
-            $location = '';
-            if (preg_match('/newcastle|northeast|geordie|london|uk|manchester|england/i', $clean, $lm)) {
-                $location = ' ' . $lm[0];
-            }
-
-            // Buyer Types: Video Production, E-Learning, Advertising Agencies, Game Studios, Audiobook Publishers
-            $queries[] = '"video production agency"' . $location . ' "contact"';
-            $queries[] = '"explainer video company"' . $location . ' "producer"';
-            $queries[] = '"e-learning development company"' . $location . ' "contact"';
-            $queries[] = '"creative ad agency"' . $location . ' "contact"';
-            $queries[] = '"hiring voice actor"' . $location;
-            $queries[] = '"voiceover casting"' . $location;
-            $queries[] = '"audiobook publisher"' . $location . ' "contact"';
-            $queries[] = '"animation studio"' . $location . ' "producer"';
-        } else {
-            // General service offering -> Buyer Agencies & Companies
-            $queries[] = '"' . $clean . '" "video production" OR "agency" "contact"';
-            $queries[] = '"hiring" "' . $clean . '"';
-            $queries[] = '"looking for" "' . $clean . '" "contact"';
-            $queries[] = '"agency" "' . $clean . '" "email"';
+        // 3. Fallback: if it's a multi-word phrase, also search without quotes to be broader
+        if (str_contains($clean, ' ')) {
+            $queries[] = $clean;
+            $queries[] = $clean . ' "email"';
+            $queries[] = $clean . ' "contact"';
         }
 
         return array_unique($queries);
