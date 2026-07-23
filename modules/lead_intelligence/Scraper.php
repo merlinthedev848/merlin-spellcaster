@@ -10,13 +10,23 @@ declare(strict_types=1);
  */
 class BuyerLeadScraper {
     /**
-     * Known actor/freelancer directory sites & competitors to exclude from buyer lead results
+     * Known search engines, directories, competitors, and system domains to exclude from buyer lead results
      */
-    private static array $excludedDomains = [
+    private static array $systemDomains = [
+        'google.com', 'google.co.uk', 'google.ad', 'google.ae', 'google.com.ar', 'google.at', 'google.com.au',
+        'google.be', 'google.com.br', 'google.ca', 'google.ch', 'google.cl', 'google.co', 'google.cz',
+        'google.de', 'google.dk', 'google.es', 'google.fi', 'google.fr', 'google.gr', 'google.com.hk',
+        'google.hu', 'google.co.id', 'google.ie', 'google.co.il', 'google.co.in', 'google.it', 'google.co.jp',
+        'google.co.kr', 'google.com.mx', 'google.com.my', 'google.nl', 'google.no', 'google.nz', 'google.pl',
+        'google.pt', 'google.ru', 'google.se', 'google.com.sg', 'google.co.th', 'google.com.tr', 'google.com.tw',
+        'google.com.ua', 'google.co.ve', 'google.co.za',
+        'duckduckgo.com', 'bing.com', 'yahoo.com', 'yahoo.co.uk', 'ask.com', 'mojeek.com', 'qwant.com', 'brave.com',
+        'youtube.com', 'youtu.be', 'wikipedia.org', 'w3.org', 'schema.org', 'microsoft.com', 'apple.com', 'android.com',
+        'github.com', 'gitlab.com', 'bitbucket.org', 'stackoverflow.com', 'pinterest.com', 'facebook.com',
+        'instagram.com', 'twitter.com', 'x.com', 'linkedin.com', 'reddit.com', 'tumblr.com', 'medium.com',
         'voices.com', 'voice123.com', 'spotlight.com', 'mandy.com', 'backstage.com', 
         'fiverr.com', 'upwork.com', 'starnow.com', 'castitnow.com', 'actorsequity.org',
-        'audible.com', 'imdb.com', 'wikipedia.org', 'youtube.com', 'facebook.com', 
-        'twitter.com', 'x.com', 'instagram.com', 'pinterest.com', 'tiktok.com'
+        'audible.com', 'imdb.com', 'youtube-nocookie.com', 'wordpress.org', 'w.org', 'gravatar.com'
     ];
 
     /**
@@ -66,9 +76,8 @@ class BuyerLeadScraper {
             $html = self::fetch($item['url']);
             if (empty($html)) continue;
 
-            // Extract external domain links for site crawling
-            preg_match_all('/href=["\'](https?:\/\/[^"\']+)["\']/i', $html, $matches);
-            $links = array_unique($matches[1] ?? []);
+            // Extract ONLY organic search result links
+            $links = self::extractOrganicLinks($html, $item['source']);
 
             $domainCount = 0;
             foreach ($links as $link) {
@@ -79,11 +88,6 @@ class BuyerLeadScraper {
 
                 // Skip self-domain
                 if ($selfDomain !== '' && (str_contains($host, $selfDomain) || str_contains($selfDomain, $host))) {
-                    continue;
-                }
-
-                // Skip directories & social platforms
-                if (self::isExcludedDomain($host)) {
                     continue;
                 }
 
@@ -166,6 +170,59 @@ class BuyerLeadScraper {
     }
 
     /**
+     * Extracts organic results URLs while ignoring search engine and scraper pages
+     */
+    private static function extractOrganicLinks(string $html, string $source): array {
+        $organic = [];
+        
+        if (str_contains($source, 'Google')) {
+            preg_match_all('/href=["\']\/url\?q=(https?:\/\/[^&"\']+)/i', $html, $matches);
+            if (!empty($matches[1])) {
+                foreach ($matches[1] as $url) {
+                    $organic[] = urldecode($url);
+                }
+            }
+        } elseif (str_contains($source, 'Yahoo')) {
+            preg_match_all('/RU=(https?%3a%2f%2f[^&"\']+)/i', $html, $matches);
+            if (!empty($matches[1])) {
+                foreach ($matches[1] as $url) {
+                    $organic[] = urldecode($url);
+                }
+            }
+        }
+
+        // Fallback generic extraction
+        preg_match_all('/href=["\'](https?:\/\/[^"\']+)["\']/i', $html, $matches);
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $url) {
+                $organic[] = $url;
+            }
+        }
+
+        $filtered = [];
+        foreach ($organic as $url) {
+            $host = strtolower((string)parse_url($url, PHP_URL_HOST));
+            if (empty($host)) continue;
+            
+            $cleanHost = preg_replace('/^www\./', '', $host);
+            
+            $isSystem = false;
+            foreach (self::$systemDomains as $sys) {
+                if ($cleanHost === $sys || str_ends_with($cleanHost, '.' . $sys)) {
+                    $isSystem = true;
+                    break;
+                }
+            }
+            
+            if (!$isSystem) {
+                $filtered[] = $url;
+            }
+        }
+
+        return array_unique($filtered);
+    }
+
+    /**
      * Generate search queries focused strictly on BUYERS (Agencies, Producers, Studios, Hiring Notices)
      */
     private static function generateBuyerQueries(string $userOffering, string $buyerType): array {
@@ -197,16 +254,6 @@ class BuyerLeadScraper {
         }
 
         return array_unique($queries);
-    }
-
-    /**
-     * Exclude directory websites & competitor marketplaces
-     */
-    private static function isExcludedDomain(string $host): bool {
-        foreach (self::$excludedDomains as $ex) {
-            if (str_contains($host, $ex)) return true;
-        }
-        return false;
     }
 
     /**
@@ -244,7 +291,13 @@ class BuyerLeadScraper {
         if (!empty($matches[0])) {
             foreach ($matches[0] as $email) {
                 $email = strtolower(trim($email, '.'));
-                if (preg_match('/\.(jpg|png|gif|jpeg|svg|css|js|webp|ico|woff|ttf|eot)$/i', $email)) continue;
+                
+                // Exclude invalid file extensions at the end of the email TLD
+                $parts = explode('.', $email);
+                $lastPart = end($parts);
+                $exts = ['jpg', 'png', 'gif', 'jpeg', 'svg', 'css', 'js', 'webp', 'ico', 'woff', 'ttf', 'eot', 'avif', 'mp3', 'mp4', 'wav', 'pdf', 'zip', 'gz', 'tar', 'xml', 'json'];
+                if (in_array(strtolower($lastPart), $exts, true)) continue;
+                
                 if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $clean[] = $email;
                 }
