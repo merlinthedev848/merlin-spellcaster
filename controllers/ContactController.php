@@ -435,7 +435,8 @@ class ContactController {
         }
         
         if ($search !== '') {
-            $conditions[] = "(s.email LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ?)";
+            $conditions[] = "(s.email LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR s.attributes LIKE ?)";
+            $params[] = "%{$search}%";
             $params[] = "%{$search}%";
             $params[] = "%{$search}%";
             $params[] = "%{$search}%";

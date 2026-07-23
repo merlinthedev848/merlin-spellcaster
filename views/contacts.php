@@ -278,6 +278,8 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                             </th>
                             <th><a href="<?= sortLink('email', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Email Address<?= sortCaret('email', $currentSort, $currentOrder) ?></a></th>
                             <th><a href="<?= sortLink('name', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Name<?= sortCaret('name', $currentSort, $currentOrder) ?></a></th>
+                            <th>Company & Industry</th>
+                            <th style="text-align: center; width: 90px;">Lead Score</th>
                             <th><a href="<?= sortLink('tag', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Tags<?= sortCaret('tag', $currentSort, $currentOrder) ?></a></th>
                             <th><a href="<?= sortLink('status', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Status<?= sortCaret('status', $currentSort, $currentOrder) ?></a></th>
                             <th><a href="<?= sortLink('created_at', $currentSort, $currentOrder) ?>" style="text-decoration: none; color: inherit; font-weight: bold;">Joined Date<?= sortCaret('created_at', $currentSort, $currentOrder) ?></a></th>
@@ -287,7 +289,7 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                     <tbody>
                         <?php if (empty($contacts)): ?>
                             <tr>
-                                <td colspan="7" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No contacts matching the criteria.</td>
+                                <td colspan="9" style="text-align: center; color: var(--theme-dark-slate); padding: 40px;">No contacts matching the criteria.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($contacts as $c): ?>
@@ -312,6 +314,24 @@ function sortCaret(string $field, string $currentSort, string $currentOrder): st
                                         </div>
                                     </td>
                                     <td><?= e(trim($c['first_name'] . ' ' . $c['last_name'])) !== '' ? e(trim($c['first_name'] . ' ' . $c['last_name'])) : '—' ?></td>
+                                    <?php 
+                                    $attrs = json_decode((string)($c['attributes'] ?? ''), true) ?: []; 
+                                    ?>
+                                    <td>
+                                        <?php if (!empty($attrs['company_name'])): ?>
+                                            <div style="font-weight: 600; color: var(--theme-dark); margin-bottom: 2px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= e($attrs['company_name']) ?>"><?= e($attrs['company_name']) ?></div>
+                                            <?php if (!empty($attrs['industry'])): ?>
+                                                <span style="font-size: 9px; font-weight: 700; background: rgba(99,91,255,0.1); padding: 2px 6px; border-radius: 4px; color: var(--theme-blurple); text-transform: uppercase; border: 1px solid rgba(99,91,255,0.15);"><?= e($attrs['industry']) ?></span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span style="color: var(--theme-dark-slate);">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge" style="background-color: <?= ($c['lead_score'] ?? 0) >= 50 ? 'rgba(16,185,129,0.15)' : 'var(--theme-bg)' ?>; color: <?= ($c['lead_score'] ?? 0) >= 50 ? '#059669' : 'var(--theme-dark-slate)' ?>; font-weight: 700;">
+                                            <?= (int)($c['lead_score'] ?? 0) ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 200px;">
                                             <?php foreach ($c['tags'] as $tg): ?>

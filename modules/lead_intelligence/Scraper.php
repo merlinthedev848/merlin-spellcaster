@@ -342,4 +342,166 @@ class BuyerLeadScraper {
         if (PHP_VERSION_ID < 80000) { @curl_close($ch); }
         return $html !== false ? (string)$html : '';
     }
+
+    /**
+     * Local Agency & Studio Finder Search
+     */
+    public static function scrapeLocal(string $category, string $location, int $depth = 2): array {
+        $found = [];
+        $queryStr = trim($category) . ' ' . trim($location);
+        if (empty($queryStr)) return [];
+
+        $selfEmails = array_filter([
+            strtolower(trim($_SESSION['user_email'] ?? '')),
+            strtolower(trim(getSetting('smtp_from', ''))),
+            strtolower(trim(getSetting('admin_email', '')))
+        ]);
+        $selfDomain = strtolower(parse_url(getSetting('app_url', ''), PHP_URL_HOST) ?: '');
+
+        // Formulate target local intent queries
+        $queries = [
+            '"' . trim($category) . '" "' . trim($location) . '" "email"',
+            '"' . trim($category) . '" "' . trim($location) . '" "contact"',
+            trim($category) . ' ' . trim($location) . ' agency OR studio'
+        ];
+
+        $urls = [];
+        foreach ($queries as $q) {
+            $encoded = urlencode($q);
+            for ($page = 1; $page <= $depth; $page++) {
+                $offset = ($page - 1) * 10 + 1;
+                $urls[] = ['url' => "https://www.google.com/search?q={$encoded}&start={$offset}", 'source' => 'Google Maps Finder'];
+                $urls[] = ['url' => "https://html.duckduckgo.com/html/?q={$encoded}", 'source' => 'DuckDuckGo Local'];
+            }
+        }
+
+        $crawledHosts = [];
+        foreach ($urls as $item) {
+            $html = self::fetch($item['url']);
+            if (empty($html)) continue;
+
+            $links = self::extractOrganicLinks($html, $item['source']);
+            $domainCount = 0;
+
+            foreach ($links as $link) {
+                if ($domainCount >= 10) break;
+
+                $host = strtolower((string)parse_url($link, PHP_URL_HOST));
+                if (empty($host) || in_array($host, $crawledHosts, true)) continue;
+
+                if ($selfDomain !== '' && (str_contains($host, $selfDomain) || str_contains($selfDomain, $host))) {
+                    continue;
+                }
+
+                $crawledHosts[] = $host;
+                $domainCount++;
+
+                $homeHtml = self::fetch($link);
+                if (empty($homeHtml)) continue;
+
+                $companyTitle = self::extractTitle($homeHtml);
+                $phone = self::extractPhone($homeHtml);
+                $homeEmails = self::extractEmails($homeHtml);
+
+                foreach ($homeEmails as $email) {
+                    $emailLower = strtolower($email);
+                    if (in_array($emailLower, $selfEmails, true)) continue;
+
+                    if (!isset($found[$emailLower])) {
+                        $roleInfo = self::determineBuyerRole($companyTitle, $homeHtml);
+                        $found[$emailLower] = [
+                            'email' => $emailLower,
+                            'name' => $roleInfo['name'] ?: self::deriveNameFromEmail($emailLower),
+                            'company' => $companyTitle ?: ucwords(str_replace(['www.', '.com', '.co.uk', '.net', '.org'], '', $host)),
+                            'role' => 'Local ' . ucwords(trim($category)),
+                            'phone' => $phone,
+                            'domain' => $host,
+                            'source' => $item['source'] . ' (Local Search)',
+                            'buyer_score' => 90
+                        ];
+                    }
+                }
+            }
+        }
+
+        return array_values($found);
+    }
+
+    /**
+     * B2B Corporate Lead Profile Enrichment
+     */
+    public static function enrichDomain(string $domain): array {
+        $domain = strtolower(trim($domain));
+        if (empty($domain)) return [];
+
+        $url = 'https://' . $domain;
+        $html = self::fetch($url);
+        if (empty($html)) {
+            $url = 'http://' . $domain;
+            $html = self::fetch($url);
+        }
+
+        if (empty($html)) {
+            return [
+                'company_name' => ucwords(str_replace(['www.', '.com', '.co.uk', '.net', '.org'], '', $domain)),
+                'description' => 'Unable to crawl company website.',
+                'industry' => 'Unknown',
+                'location' => 'Unknown'
+            ];
+        }
+
+        $title = self::extractTitle($html);
+        
+        $desc = '';
+        if (preg_match('/<meta[^>]*name=["\']description["\'][^>]*content=["\'](.*?)["\']/is', $html, $m)) {
+            $desc = trim(html_entity_decode($m[1]));
+        } elseif (preg_match('/<meta[^>]*content=["\'](.*?)["\'][^>]*name=["\']description["\']/is', $html, $m)) {
+            $desc = trim(html_entity_decode($m[1]));
+        } elseif (preg_match('/<meta[^>]*property=["\']og:description["\'][^>]*content=["\'](.*?)["\']/is', $html, $m)) {
+            $desc = trim(html_entity_decode($m[1]));
+        }
+
+        if (empty($desc)) {
+            if (preg_match('/<p[^>]*>(.*?)<\/p>/is', $html, $m)) {
+                $desc = trim(strip_tags($m[1]));
+            }
+        }
+        $desc = mb_substr(preg_replace('/\s+/', ' ', $desc), 0, 180);
+
+        // Classify Industry
+        $industry = 'Business Services';
+        $fullText = strtolower($title . ' ' . $desc . ' ' . $html);
+        if (preg_match('/video|film|production|audio|recording|voice|actor|studio/i', $fullText)) {
+            $industry = 'Media & Production';
+        } elseif (preg_match('/marketing|agency|advertising|creative|branding|pr/i', $fullText)) {
+            $industry = 'Marketing & Advertising';
+        } elseif (preg_match('/software|app|web|technology|cloud|it\s|saas/i', $fullText)) {
+            $industry = 'Technology';
+        } elseif (preg_match('/learn|course|education|school|e-learning|training/i', $fullText)) {
+            $industry = 'E-Learning & Education';
+        } elseif (preg_match('/consulting|legal|financial|advisory/i', $fullText)) {
+            $industry = 'Professional Services';
+        }
+
+        // Classify Location
+        $location = 'Global / United States';
+        if (str_ends_with($domain, '.uk') || str_ends_with($domain, '.co.uk')) {
+            $location = 'United Kingdom';
+        } elseif (str_ends_with($domain, '.ca')) {
+            $location = 'Canada';
+        } elseif (str_ends_with($domain, '.au') || str_ends_with($domain, '.com.au')) {
+            $location = 'Australia';
+        } elseif (str_ends_with($domain, '.de')) {
+            $location = 'Germany';
+        } elseif (str_ends_with($domain, '.eu')) {
+            $location = 'Europe';
+        }
+
+        return [
+            'company_name' => $title ?: ucwords(str_replace(['www.', '.com', '.co.uk', '.net', '.org'], '', $domain)),
+            'description' => $desc ?: 'Corporate website crawled successfully.',
+            'industry' => $industry,
+            'location' => $location
+        ];
+    }
 }

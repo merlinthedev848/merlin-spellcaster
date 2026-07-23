@@ -4,6 +4,124 @@ declare(strict_types=1);
 require_once __DIR__ . '/Scraper.php';
 require_once __DIR__ . '/Verifier.php';
 
+// Route: /maps/run
+if ($routePath === '/maps/run') {
+    header('Content-Type: application/json');
+    if (!Auth::check()) {
+        http_response_code(403);
+        exit(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+    }
+
+    $category = trim($_GET['category'] ?? '');
+    $location = trim($_GET['location'] ?? '');
+    $depth = max(1, min(5, (int)($_GET['depth'] ?? 2)));
+
+    if (empty($category) || empty($location)) {
+        echo json_encode(['status' => 'error', 'message' => 'Category and location parameters required']);
+        exit;
+    }
+
+    try {
+        $results = BuyerLeadScraper::scrapeLocal($category, $location, $depth);
+        echo json_encode([
+            'status' => 'success',
+            'count' => count($results),
+            'data' => $results
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Route: /verifier/verify-single
+if ($routePath === '/verifier/verify-single') {
+    header('Content-Type: application/json');
+    if (!Auth::check()) {
+        http_response_code(403);
+        exit(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+    }
+
+    $email = trim($_GET['email'] ?? '');
+    if (empty($email)) {
+        echo json_encode(['status' => 'error', 'message' => 'Email address is required']);
+        exit;
+    }
+
+    try {
+        $res = DeliverabilityVerifier::verifyEmail($email);
+        echo json_encode(array_merge(['status' => 'success'], $res));
+    } catch (Throwable $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Route: /verifier/verify-bulk
+if ($routePath === '/verifier/verify-bulk') {
+    header('Content-Type: application/json');
+    if (!Auth::check()) {
+        http_response_code(403);
+        exit(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+    }
+
+    try {
+        $res = DeliverabilityVerifier::processBatch(50);
+        echo json_encode(array_merge(['status' => 'success'], $res));
+    } catch (Throwable $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Route: /enrichment/run
+if ($routePath === '/enrichment/run') {
+    header('Content-Type: application/json');
+    if (!Auth::check()) {
+        http_response_code(403);
+        exit(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+    }
+
+    $id = (int)($_GET['id'] ?? 0);
+    if ($id <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Valid subscriber ID required']);
+        exit;
+    }
+
+    $db = Database::getConnection();
+    $st = $db->prepare("SELECT email FROM subscribers WHERE id = ?");
+    $st->execute([id]);
+    $email = $st->fetchColumn();
+
+    if (!$email) {
+        echo json_encode(['status' => 'error', 'message' => 'Subscriber not found']);
+        exit;
+    }
+
+    $domain = explode('@', $email)[1] ?? '';
+    if (empty($domain)) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid email domain']);
+        exit;
+    }
+
+    try {
+        $profile = BuyerLeadScraper::enrichDomain($domain);
+        $attributesJson = json_encode($profile);
+
+        // Update subscriber attributes
+        $stUp = $db->prepare("UPDATE subscribers SET attributes = ? WHERE id = ?");
+        $stUp->execute([$attributesJson, $id]);
+
+        echo json_encode([
+            'status' => 'success',
+            'profile' => $profile
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // Route: /scraper/run
 if ($routePath === '/scraper/run') {
     header('Content-Type: application/json');
